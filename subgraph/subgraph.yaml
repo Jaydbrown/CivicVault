@@ -1,0 +1,89 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CivicVaultFactory
+    network: arc-testnet
+    source:
+      address: "0x5a9d34264da36cd05b66fab80e6e5d6fedc9fdbc"
+      abi: CivicVaultFactory
+      startBlock: 47718182
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DAO
+        - DaoCreatedEvent
+      abis:
+        - name: CivicVaultFactory
+          file: ./abis/CivicVaultFactory.json
+        - name: CivicVault
+          file: ./abis/CivicVault.json
+      eventHandlers:
+        - event: DAOCreated(indexed address,string,string,indexed address,uint256)
+          handler: handleDAOCreated
+      file: ./src/factory.ts
+templates:
+  - kind: ethereum
+    name: CivicVault
+    network: arc-testnet
+    source:
+      abi: CivicVault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DAO
+        - Member
+        - Investment
+        - Vote
+        - YieldClaim
+        - PhaseRelease
+        - YieldProposal
+        - InvestmentCreatedEvent
+        - VoteCastEvent
+        - YieldDepositedEvent
+        - StakeWithdrawnEvent
+        - FundsLockedEvent
+      abis:
+        - name: CivicVault
+          file: ./abis/CivicVault.json
+      eventHandlers:
+        - event: MemberAdded(indexed address,uint256)
+          handler: handleMemberAdded
+        - event: MemberKYCVerified(indexed address,uint256)
+          handler: handleMemberKYCVerified
+        - event: MemberRemoved(indexed address,uint256)
+          handler: handleMemberRemoved
+        - event: InvestmentCreated(indexed uint256,string,uint256,uint8,uint256)
+          handler: handleInvestmentCreated
+        - event: InvestmentActivated(indexed uint256,uint256)
+          handler: handleInvestmentActivated
+        - event: InvestmentIncomplete(indexed uint256,uint256)
+          handler: handleInvestmentIncomplete
+        - event: InvestmentClosed(indexed uint256,uint256)
+          handler: handleInvestmentClosed
+        - event: VoteCast(indexed uint256,indexed address,uint256,uint8,uint256)
+          handler: handleVoteCast
+        - event: StakeWithdrawn(indexed uint256,indexed address,uint256)
+          handler: handleStakeWithdrawn
+        - event: FundsLocked(indexed uint256,uint256)
+          handler: handleFundsLocked
+        - event: FundsReleased(indexed uint256,uint8,uint256,indexed address)
+          handler: handleFundsReleased
+        - event: YieldDeposited(indexed uint256,uint256,string,uint256)
+          handler: handleYieldDeposited
+        - event: YieldClaimed(indexed uint256,indexed address,uint256,uint256)
+          handler: handleYieldClaimed
+        - event: YieldDepositProposed(indexed uint256,indexed uint256,uint256,address,uint256)
+          handler: handleYieldDepositProposed
+        - event: YieldDepositApproved(indexed uint256,indexed address,uint256)
+          handler: handleYieldDepositApproved
+        - event: YieldDepositExecuted(indexed uint256,indexed uint256,uint256,string,uint256)
+          handler: handleYieldDepositExecuted
+      file: ./src/civicVault.ts

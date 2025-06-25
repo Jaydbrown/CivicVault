@@ -1,0 +1,150 @@
+type DAO @entity {
+  id: ID!                       # DAO contract address
+  name: String!
+  location: String!
+  creator: Bytes!
+  createdAt: BigInt!
+  isActive: Boolean!
+  memberCount: BigInt!
+  totalValueLocked: BigInt!
+  investmentCount: BigInt!
+  activeInvestmentCount: BigInt!
+  investments: [Investment!]!  @derivedFrom(field: "dao")
+  members: [Member!]!          @derivedFrom(field: "dao")
+  yieldProposals: [YieldProposal!]! @derivedFrom(field: "dao")
+}
+
+type Member @entity {
+  id: ID!                       # daoAddress-walletAddress
+  dao: DAO!
+  wallet: Bytes!
+  kycVerified: Boolean!
+  joinedAt: BigInt!
+  isActive: Boolean!
+}
+
+type Investment @entity {
+  id: ID!                       # daoAddress-investmentId
+  dao: DAO!
+  investmentId: BigInt!
+  name: String!
+  status: Int!                  # 0=PENDING 1=ACTIVE 2=ENDED 3=INCOMPLETE
+  category: Int!
+  deadline: BigInt!
+  fundNeeded: BigInt!
+  expectedYield: BigInt!
+  grade: Int!
+  upvotes: BigInt!
+  downvotes: BigInt!
+  totalYieldGenerated: BigInt!
+  totalYieldDistributed: BigInt!
+  escrowedAmount: BigInt!
+  createdAt: BigInt!
+  createdBy: Bytes!
+  votes: [Vote!]!               @derivedFrom(field: "investment")
+  yieldClaims: [YieldClaim!]!  @derivedFrom(field: "investment")
+  phaseReleases: [PhaseRelease!]! @derivedFrom(field: "investment")
+}
+
+type Vote @entity {
+  id: ID!                       # daoAddress-investmentId-voterAddress
+  investment: Investment!
+  voter: Bytes!
+  numberOfVotes: BigInt!
+  voteValue: Int!               # 0=downvote 1=upvote
+  timestamp: BigInt!
+  hasClaimedYield: Boolean!
+  yieldClaimed: BigInt!
+  withdrawn: Boolean!
+}
+
+type YieldClaim @entity {
+  id: ID!                       # txHash-logIndex
+  dao: DAO!
+  investment: Investment!
+  claimer: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+}
+
+type PhaseRelease @entity {
+  id: ID!                       # txHash-logIndex
+  dao: DAO!
+  investment: Investment!
+  phase: Int!
+  amount: BigInt!
+  recipient: Bytes!
+  timestamp: BigInt!
+}
+
+type YieldProposal @entity {
+  id: ID!                       # daoAddress-proposalId
+  dao: DAO!
+  proposalId: BigInt!
+  investmentId: BigInt!
+  amount: BigInt!
+  expenseReportCID: String!
+  proposer: Bytes!
+  approvals: BigInt!
+  executed: Boolean!
+  createdAt: BigInt!
+}
+
+# ─── Event log entities (useful for The Graph Explorer / analytics dashboards) ───
+
+type DaoCreatedEvent @entity {
+  id: ID!
+  dao: DAO!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+}
+
+type InvestmentCreatedEvent @entity {
+  id: ID!
+  dao: DAO!
+  investment: Investment!
+  fundNeeded: BigInt!
+  grade: Int!
+  deadline: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+}
+
+type VoteCastEvent @entity {
+  id: ID!
+  dao: DAO!
+  investment: Investment!
+  voter: Bytes!
+  numberOfVotes: BigInt!
+  voteValue: Int!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+}
+
+type YieldDepositedEvent @entity {
+  id: ID!
+  dao: DAO!
+  investment: Investment!
+  amount: BigInt!
+  expenseReportCID: String!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+}
+
+type StakeWithdrawnEvent @entity {
+  id: ID!
+  dao: DAO!
+  investment: Investment!
+  voter: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+}
+
+type FundsLockedEvent @entity {
+  id: ID!
+  dao: DAO!
+  investment: Investment!
+  amount: BigInt!
+  blockNumber: BigInt!
+}

@@ -1,0 +1,915 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { Card } from "../components/UI";
+import { UserAvatar } from "../components/UserAvatar";
+import { ArrowLeft, MessageSquare, Search, Send, Bell, BellOff, Mail, Check, ImagePlus, X } from "lucide-react";
+import { type OnchainDao, fetchActiveDaos } from "../utils/civicVaultContracts";
+import { maskAddress } from "../utils/address";
+import {
+  getDaoChatTransportLabel,
+  loadDaoChatMessages,
+  MESSAGES_NAV_DAO_STORAGE_KEY,
+  sendDaoChatMessage,
+  subscribeDaoChat,
+  type DaoChatMessage,
+} from "../utils/daoChat";
+import { uploadImageToIpfs } from "../utils/ipfs";
+import { formatTxError, notifyError, notifySuccess, notifyWarning } from "../utils/toast";
+import { BACKEND_URL } from "../utils/backendUrl";
+import { getCanonicalWalletAddress } from "../utils/walletResolution";
+import {
+  PROFILE_AVATAR_CHANGED_EVENT,
+  getStoredProfileAvatarUrl,
+} from "../utils/profileAvatar";
+import {
+  getAccountDisplayName,
+  getAccountInitial,
+  normalizeMemberLabel,
+} from "../utils/userDisplay";
+
+type RoomSummary = {
+  lastMessage: DaoChatMessage | null;
+  unreadCount: number;
+  isSubscribed?: boolean;
+};
+
+const LAST_SEEN_KEY = "civicvault_chat_last_seen_by_room";
+const readStringPath = (value: unknown, path: string[]): string => {
+  let current: unknown = value;
+  for (const key of path) {
+    if (!current || typeof current !== "object") return "";
+    current = (current as Record<string, unknown>)[key];
+  }
+  return typeof current === "string" ? current.trim() : "";
+};
+
+const readLastSeen = (): Record<string, number> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(LAST_SEEN_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, number>;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeLastSeen = (value: Record<string, number>) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(LAST_SEEN_KEY, JSON.stringify(value));
+};
+
+const formatRoomTimestamp = (createdAt: number) => {
+  const date = new Date(createdAt);
+  const now = new Date();
+  const sameDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+  if (sameDay) return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+};
+
+const formatMessageTimestamp = (createdAt: number) => {
+  return new Date(createdAt).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
+const MAX_CHAT_IMAGE_BYTES = 4 * 1024 * 1024;
+const CHAT_IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+
+const roomListPreview = (msg: DaoChatMessage | null) => {
+  if (!msg) return "No messages yet";
+  if (msg.attachmentUrl?.trim()) {
+    const t = msg.content.trim();
+    return t ? `📷 ${t.slice(0, 40)}${t.length > 40 ? "…" : ""}` : "📷 Photo";
+  }
+  return msg.content;
+};
+
+const canUsePinataImages = () =>
+  Boolean((import.meta.env.VITE_PINATA_JWT as string | undefined)?.trim());
+
+// Component for Gmail notification settings
+const GmailNotificationSettings: React.FC<{
+  walletAddress: string;
+  daoAddress: string;
+  daoName: string;
+  /** Helps backfill subscriber email before Gmail OAuth completes. */
+  subscriberEmail?: string;
+  onSubscriptionChange?: (isSubscribed: boolean) => void;
+}> = ({ walletAddress, daoAddress, daoName, subscriberEmail, onSubscriptionChange }) => {
+  const [isConnected, setIsConnected] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    if (walletAddress) {
+      checkGmailConnection();
+      checkSubscription();
+    }
+  }, [walletAddress, daoAddress]);
+
+  const checkGmailConnection = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/preferences/${walletAddress}`);
+      const data = await response.json();
+      setIsConnected(!!data.gmailConnected);
+    } catch (error) {
+      console.error("Error checking Gmail connection:", error);
+    }
+  };
+
+  const checkSubscription = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/chat/subscriptions/${walletAddress}`);
+      const subs = await response.json();
+      const daoSub = subs.find((s: any) => s.daoAddress === daoAddress.toLowerCase());
+      setIsSubscribed(daoSub?.receiveNotifications || false);
+      onSubscriptionChange?.(daoSub?.receiveNotifications || false);
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+    }
+  };
+
+  const connectGmail = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/gmail/connect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress })
+      });
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error("Error connecting Gmail:", error);
+      notifyError("Failed to connect Gmail");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSubscription = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/chat/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress,
+          daoAddress,
+          receiveNotifications: !isSubscribed,
+          email: subscriberEmail?.trim() || undefined,
+        }),
+      });
+      
+      if (response.ok) {
+        const newStatus = !isSubscribed;
+        setIsSubscribed(newStatus);
+        onSubscriptionChange?.(newStatus);
+        notifySuccess(newStatus ? "Email notifications enabled for this DAO!" : "Email notifications disabled");
+      } else {
+        const error = await response.json();
+        notifyError(error.error || "Failed to update preferences");
+      }
+    } catch (error) {
+      console.error("Error toggling subscription:", error);
+      notifyError("Failed to update notification preferences");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowSettings(!showSettings)}
+        className="p-2 rounded-lg hover:bg-slate-100 transition"
+        title={isSubscribed ? "Email notifications enabled" : "Email notifications disabled"}
+      >
+        {isSubscribed ? (
+          <Bell className="w-4 h-4 text-emerald-600" />
+        ) : (
+          <BellOff className="w-4 h-4 text-slate-400" />
+        )}
+      </button>
+
+      {showSettings && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
+          <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-auto sm:right-0 left-auto top-auto sm:top-full sm:mt-2 w-auto sm:w-80 max-w-[min(calc(100vw-1.5rem),20rem)] max-h-[min(70vh,28rem)] overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+                <Mail className="w-4 h-4 text-emerald-600" />
+                Email Notifications
+              </h4>
+              <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600">
+                ✕
+              </button>
+            </div>
+
+            {!isConnected ? (
+              <div className="space-y-3">
+                <p className="text-sm text-slate-600">
+                  Get email notifications when someone messages in {daoName}
+                </p>
+                <button
+                  onClick={connectGmail}
+                  disabled={loading}
+                  className="w-full py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {loading ? "Connecting..." : "Connect Gmail Account"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-sm text-slate-700 break-words min-w-0">Receive notifications for {daoName}</span>
+                  <button
+                    onClick={toggleSubscription}
+                    disabled={loading}
+                    className={`px-3 py-1 rounded-full text-sm transition ${
+                      isSubscribed ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {isSubscribed ? (
+                      <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Enabled</span>
+                    ) : (
+                      <span className="flex items-center gap-1"><BellOff className="w-3 h-3" /> Disabled</span>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  {isSubscribed 
+                    ? "📧 You'll receive email notifications for new messages"
+                    : "🔕 Click enable to get email notifications"}
+                </p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const MessagesView: React.FC = () => {
+  const { user, ready: privyReady } = usePrivy();
+  const { wallets } = useWallets();
+  const [daos, setDaos] = useState<OnchainDao[]>([]);
+  const [selectedDao, setSelectedDao] = useState<OnchainDao | null>(null);
+  const [messages, setMessages] = useState<DaoChatMessage[]>([]);
+  const [draft, setDraft] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [subscriptionStatus, setSubscriptionStatus] = useState<Record<string, boolean>>({});
+  const [roomSummaries, setRoomSummaries] = useState<Record<string, RoomSummary>>({});
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [mobileShowRooms, setMobileShowRooms] = useState(true);
+  const [error, setError] = useState("");
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [myProfileAvatarUrl, setMyProfileAvatarUrl] = useState<string | null>(null);
+  /** Re-run message row avatars when any profile photo changes (localStorage). */
+  const [profileAvatarTick, setProfileAvatarTick] = useState(0);
+
+  const walletAddress = useMemo(
+    () => getCanonicalWalletAddress(user, wallets),
+    [user, wallets],
+  );
+
+  const senderLabel = useMemo(() => getAccountDisplayName(user, walletAddress), [user, walletAddress]);
+
+  useEffect(() => {
+    if (!walletAddress) {
+      setMyProfileAvatarUrl(null);
+      return;
+    }
+    setMyProfileAvatarUrl(getStoredProfileAvatarUrl(walletAddress));
+    const sync = (ev: Event) => {
+      const w = (ev as CustomEvent<{ wallet?: string }>).detail?.wallet;
+      setProfileAvatarTick((t) => t + 1);
+      if (w === walletAddress.toLowerCase()) {
+        setMyProfileAvatarUrl(getStoredProfileAvatarUrl(walletAddress));
+      }
+    };
+    window.addEventListener(PROFILE_AVATAR_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(PROFILE_AVATAR_CHANGED_EVENT, sync);
+  }, [walletAddress]);
+
+  // Function to send notification to backend when message is sent
+  const notifyBackendOfNewMessage = async (message: DaoChatMessage, daoName: string) => {
+    try {
+      console.log("📤 Sending webhook to backend:", {
+        daoAddress: message.daoAddress,
+        daoName: daoName,
+        message: message.content,
+        senderWallet: message.senderWallet,
+        senderName: message.senderLabel
+      });
+      
+      const emailPreview = message.attachmentUrl?.trim()
+        ? message.content.trim()
+          ? `${message.content.trim().slice(0, 200)} [Photo]`
+          : "[Photo shared]"
+        : message.content;
+
+      const response = await fetch(`${BACKEND_URL}/api/chat/webhook/new-message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          daoAddress: message.daoAddress,
+          daoName: daoName,
+          message: emailPreview,
+          senderWallet: message.senderWallet,
+          senderName: message.senderLabel,
+          timestamp: message.createdAt
+        })
+      });
+
+      const result = (await response.json()) as Record<string, unknown>;
+      if (!response.ok) {
+        const msg = typeof result.error === "string" ? result.error : response.statusText;
+        throw new Error(msg || "Webhook failed");
+      }
+
+      console.log("📧 Webhook result:", result);
+
+      const notified = typeof result.notified === "number" ? result.notified : 0;
+      if (!result.queued && notified === 0) {
+        console.log("⚠️ No email sent synchronously — check subscribers or mail config.");
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Failed to notify backend:", error);
+      return { success: false, notified: 0, queued: false };
+    }
+  };
+
+  const loadRoomSummaries = async (daoRows: OnchainDao[]) => {
+    if (daoRows.length === 0) {
+      setRoomSummaries({});
+      return;
+    }
+    try {
+      const result = await Promise.all(
+        daoRows.map(async (dao) => {
+          const roomMessages = await loadDaoChatMessages(dao.address, 200);
+          const lastMessage = roomMessages[roomMessages.length - 1] ?? null;
+          const lastSeenMap = readLastSeen();
+          const seenAt = lastSeenMap[dao.address.toLowerCase()] ?? 0;
+          const wal = walletAddress.trim().toLowerCase();
+          const unreadCount = wal
+            ? roomMessages.filter(
+                (msg) => msg.createdAt > seenAt && msg.senderWallet.toLowerCase() !== wal,
+              ).length
+            : 0;
+          return [dao.address.toLowerCase(), { lastMessage, unreadCount }] as const;
+        }),
+      );
+      setRoomSummaries(Object.fromEntries(result));
+    } catch {
+      setRoomSummaries({});
+    }
+  };
+
+  // Load subscription status for all DAOs
+  const loadSubscriptionStatus = async () => {
+    if (!walletAddress) return;
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/chat/subscriptions/${walletAddress}`);
+      const subs = await response.json();
+      const statusMap: Record<string, boolean> = {};
+      subs.forEach((sub: any) => {
+        statusMap[sub.daoAddress] = sub.receiveNotifications;
+      });
+      setSubscriptionStatus(statusMap);
+      console.log("📋 Subscription status loaded:", statusMap);
+    } catch (error) {
+      console.error("Failed to load subscription status:", error);
+    }
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const daoRows = await fetchActiveDaos();
+        setDaos(daoRows);
+        setSelectedDao((current) => current ?? daoRows[0] ?? null);
+        await loadRoomSummaries(daoRows);
+        await loadSubscriptionStatus();
+        setError("");
+      } catch (err) {
+        const message = formatTxError(err, "Failed to load communities.");
+        setError(message);
+        notifyError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void load();
+  }, []);
+
+  useEffect(() => {
+    if (daos.length === 0) return;
+    try {
+      const raw = sessionStorage.getItem(MESSAGES_NAV_DAO_STORAGE_KEY);
+      if (!raw?.trim()) return;
+      sessionStorage.removeItem(MESSAGES_NAV_DAO_STORAGE_KEY);
+      const match = daos.find((d) => d.address.toLowerCase() === raw.trim().toLowerCase());
+      if (match) {
+        setSelectedDao(match);
+        setMobileShowRooms(false);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [daos]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingImage?.previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(pendingImage.previewUrl);
+      }
+    };
+  }, [pendingImage?.previewUrl]);
+
+  useEffect(() => {
+    if (!selectedDao) {
+      setMessages([]);
+      return;
+    }
+    const runSync = async () => {
+      try {
+        const next = await loadDaoChatMessages(selectedDao.address);
+        setMessages(next);
+      } catch (err) {
+        const message = formatTxError(err, "Failed to sync messages.");
+        notifyError(message);
+      }
+    };
+    const sync = () => {
+      void runSync();
+    };
+    sync();
+    return subscribeDaoChat(selectedDao.address, sync);
+  }, [selectedDao]);
+
+  useEffect(() => {
+    if (!selectedDao) return;
+    if (messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+    const map = readLastSeen();
+    map[selectedDao.address.toLowerCase()] = lastMessage.createdAt;
+    writeLastSeen(map);
+    setRoomSummaries((current) => ({
+      ...current,
+      [selectedDao.address.toLowerCase()]: {
+        lastMessage,
+        unreadCount: 0,
+      },
+    }));
+  }, [selectedDao?.address, messages]);
+
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+    scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+  }, [messages.length, selectedDao?.address]);
+
+  useEffect(() => {
+    if (daos.length === 0) return;
+    void loadRoomSummaries(daos);
+  }, [daos.length, walletAddress]);
+
+  const filteredDaos = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return daos;
+    return daos.filter(
+      (dao) => dao.name.toLowerCase().includes(q) || dao.location.toLowerCase().includes(q),
+    );
+  }, [daos, searchTerm]);
+
+  const roomMessages = useMemo(() => {
+    return messages.map((msg) => ({
+      ...msg,
+      mine: walletAddress ? msg.senderWallet.toLowerCase() === walletAddress.toLowerCase() : false,
+      displayLabel: normalizeMemberLabel(msg.senderLabel, msg.senderWallet),
+      peerAvatarUrl: getStoredProfileAvatarUrl(msg.senderWallet),
+    }));
+  }, [messages, walletAddress, profileAvatarTick]);
+
+  const handleSend = async () => {
+    if (!selectedDao) return;
+    try {
+      if (!walletAddress) {
+        notifyWarning("Connect your wallet first to send messages.");
+        return;
+      }
+      const text = draft.trim();
+      if (!text && !pendingImage) return;
+      if (pendingImage && !canUsePinataImages()) {
+        notifyError("Image upload needs VITE_PINATA_JWT in your environment.");
+        return;
+      }
+      setSending(true);
+
+      let attachmentUrl: string | undefined;
+      if (pendingImage) {
+        const { gatewayUrl } = await uploadImageToIpfs(pendingImage.file);
+        attachmentUrl = gatewayUrl;
+        if (pendingImage.previewUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(pendingImage.previewUrl);
+        }
+        setPendingImage(null);
+      }
+
+      const sent = await sendDaoChatMessage({
+        daoAddress: selectedDao.address,
+        senderWallet: walletAddress,
+        senderLabel,
+        content: text,
+        attachmentUrl,
+      });
+
+      console.log("📧 Notifying backend to send emails...");
+      const webhookResult = await notifyBackendOfNewMessage(sent, selectedDao.name);
+
+      type Wr = Record<string, unknown>;
+      const wr = webhookResult as Wr;
+      const queued = Boolean(wr.queued);
+      const estimated =
+        typeof wr.estimatedRecipients === "number"
+          ? wr.estimatedRecipients
+          : typeof wr.estimatedRecipients === "string"
+            ? Number(wr.estimatedRecipients)
+            : null;
+      const emailsSent =
+        typeof wr.notified === "number" ? wr.notified : Number(wr.notified ?? 0);
+      const inApp =
+        typeof wr.inAppNotifications === "number"
+          ? wr.inAppNotifications
+          : Number(wr.inAppNotifications ?? 0);
+
+      if (queued) {
+        notifySuccess(
+          estimated != null && !Number.isNaN(estimated) && estimated > 0
+            ? `Message sent! Subscriber notifications queued (~${estimated} recipients). Workers will deliver shortly.`
+            : "Message sent! Subscriber notifications queued; workers will process shortly.",
+        );
+      } else if (emailsSent > 0) {
+        notifySuccess("Message sent! Subscribers notified by email.");
+      } else if (inApp > 0) {
+        notifySuccess("Message sent! In-app notifications created for subscribers.");
+      } else {
+        notifySuccess("Message sent!");
+      }
+      
+      setDraft("");
+      const next = await loadDaoChatMessages(selectedDao.address);
+      setMessages(next);
+      await loadRoomSummaries(daos);
+    } catch (err) {
+      const message = formatTxError(err, "Failed to send message.");
+      notifyError(message);
+      console.error("Error in handleSend:", err);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-500 w-full min-w-0 px-0">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Community Chat</h1>
+          <p className="text-slate-500 mt-1">Real-time rooms, one room per DAO.</p>
+          {!privyReady ? (
+            <p className="text-xs text-slate-400 mt-1">Checking your Privy session…</p>
+          ) : walletAddress ? (
+            <p className="text-xs text-slate-400 mt-1">
+              Signed in as {senderLabel} · Wallet {maskAddress(walletAddress)}
+              {subscriptionStatus[selectedDao?.address?.toLowerCase() || ""] && (
+                <span className="ml-2 text-emerald-600">🔔 Email notifications ON</span>
+              )}
+            </p>
+          ) : (
+            <p className="text-xs text-amber-800 mt-1">
+              Connect your Ethereum wallet to post in chat (header chip or Wallet screen).
+            </p>
+          )}
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-slate-500">Loading DAO rooms...</p>
+      ) : error ? (
+        <Card className="p-8">
+          <p className="text-slate-500">{error}</p>
+        </Card>
+      ) : daos.length === 0 ? (
+        <Card className="p-8">
+          <p className="text-slate-500">No active DAO rooms available.</p>
+        </Card>
+      ) : (
+        <Card className="p-0 overflow-hidden min-h-[calc(100dvh-11.5rem)] lg:min-h-[72vh]">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,280px)_1fr] xl:grid-cols-[320px_1fr] min-h-[inherit] h-full lg:h-auto">
+            <aside
+              className={`border-r border-slate-200 bg-white min-h-0 flex flex-col ${
+                mobileShowRooms ? "flex" : "hidden"
+              } lg:flex`}
+            >
+              <div className="p-4 border-b border-slate-100 space-y-3">
+                <h2 className="text-sm font-bold text-slate-900">Rooms</h2>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search DAO room"
+                    className="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 min-h-0 max-h-[50dvh] lg:max-h-none lg:h-[calc(72vh-92px)] overflow-y-auto p-2 space-y-1">
+                {filteredDaos.map((dao) => {
+                  const summary = roomSummaries[dao.address.toLowerCase()];
+                  const isSelected = selectedDao?.address.toLowerCase() === dao.address.toLowerCase();
+                  const isSubscribed = subscriptionStatus[dao.address.toLowerCase()] || false;
+                  return (
+                    <button
+                      key={dao.address}
+                      onClick={() => {
+                        setSelectedDao(dao);
+                        setMobileShowRooms(false);
+                      }}
+                      className={`w-full text-left rounded-xl px-3 py-3 border transition ${
+                        isSelected
+                          ? "border-emerald-300 bg-emerald-50"
+                          : "border-transparent hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-bold text-slate-900 text-sm line-clamp-1">{dao.name}</p>
+                        <div className="flex items-center gap-1">
+                          {isSubscribed && <Bell className="w-3 h-3 text-emerald-500" />}
+                          {summary?.unreadCount ? (
+                            <span className="min-w-5 h-5 px-1 inline-flex items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                              {summary.unreadCount > 99 ? "99+" : summary.unreadCount}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1">{maskAddress(dao.address)}</p>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <p className="text-xs text-slate-500 line-clamp-1">
+                          {roomListPreview(summary?.lastMessage ?? null)}
+                        </p>
+                        {summary?.lastMessage ? (
+                          <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                            {formatRoomTimestamp(summary.lastMessage.createdAt)}
+                          </span>
+                        ) : null}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <section
+              className={`flex flex-col bg-slate-50/50 min-h-[calc(100dvh-11.5rem)] lg:min-h-[72vh] ${
+                mobileShowRooms ? "hidden lg:flex" : "flex"
+              }`}
+            >
+              <div className="p-4 border-b border-slate-100 bg-white flex items-center gap-3 min-w-0">
+                <button
+                  onClick={() => setMobileShowRooms(true)}
+                  className="lg:hidden p-2 rounded-lg border border-slate-200 text-slate-600"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+                <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">
+                  {selectedDao?.name?.charAt(0).toUpperCase() ?? "#"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-slate-900 truncate">{selectedDao?.name ?? "Select a room"}</p>
+                  {selectedDao?.address && (
+                    <p className="text-xs text-slate-500 truncate">{maskAddress(selectedDao.address)}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="hidden sm:flex items-center gap-1 text-xs text-slate-500">
+                    <MessageSquare className="w-4 h-4" />
+                    {roomMessages.length}
+                  </div>
+                  {walletAddress && selectedDao && (
+                    <GmailNotificationSettings
+                      walletAddress={walletAddress}
+                      daoAddress={selectedDao.address}
+                      daoName={selectedDao.name}
+                      subscriberEmail={readStringPath(user, ["email", "address"]) || undefined}
+                      onSubscriptionChange={(isSubscribed) => {
+                        setSubscriptionStatus(prev => ({
+                          ...prev,
+                          [selectedDao.address.toLowerCase()]: isSubscribed
+                        }));
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+                {roomMessages.length === 0 ? (
+                  <div className="h-full grid place-items-center text-center px-4">
+                    <div>
+                      <div className="mx-auto w-12 h-12 rounded-full bg-slate-100 grid place-items-center mb-3">
+                        <MessageSquare className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <p className="text-sm text-slate-500">No messages yet. Start the conversation.</p>
+                    </div>
+                  </div>
+                ) : (
+                  roomMessages.map((msg) => {
+                    const bubble = (
+                      <div
+                        className={`max-w-[min(100%,calc(100%-2.75rem))] sm:max-w-[70%] rounded-2xl px-3.5 py-2.5 shadow-sm min-w-0 ${msg.mine ? "bg-emerald-600 text-white" : "bg-white border border-slate-200 text-slate-900"}`}
+                      >
+                        <div className={`text-[11px] mb-1 ${msg.mine ? "text-emerald-100" : "text-slate-500"}`}>
+                          {msg.mine ? "You" : msg.displayLabel}
+                        </div>
+                        {msg.attachmentUrl?.trim() ? (
+                          <a
+                            href={msg.attachmentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`block mt-0.5 ${msg.mine ? "text-emerald-50" : ""}`}
+                          >
+                            <img
+                              src={msg.attachmentUrl}
+                              alt=""
+                              className={`rounded-xl max-h-52 max-w-full object-cover border ${msg.mine ? "border-emerald-400/40" : "border-slate-200"}`}
+                              loading="lazy"
+                            />
+                          </a>
+                        ) : null}
+                        {msg.content.trim() ? (
+                          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed mt-1">{msg.content}</p>
+                        ) : null}
+                        {!msg.content.trim() && !msg.attachmentUrl?.trim() ? (
+                          <p className="text-sm opacity-80">(empty)</p>
+                        ) : null}
+                        <div className={`text-[10px] mt-1.5 ${msg.mine ? "text-emerald-100" : "text-slate-400"}`}>
+                          {formatMessageTimestamp(msg.createdAt)}
+                        </div>
+                      </div>
+                    );
+                    const face = (
+                      <UserAvatar
+                        imageUrl={msg.mine ? myProfileAvatarUrl : msg.peerAvatarUrl}
+                        initials={getAccountInitial(msg.displayLabel)}
+                        size={36}
+                        className="shrink-0 ring-2 ring-white shadow-sm mb-px"
+                      />
+                    );
+                    return (
+                      <div key={msg.id} className="flex w-full">
+                        {msg.mine ? (
+                          <div className="flex w-full justify-end items-end gap-2 pl-10 sm:pl-14">
+                            {bubble}
+                            {face}
+                          </div>
+                        ) : (
+                          <div className="flex w-full justify-start items-end gap-2 pr-10 sm:pr-14">
+                            {face}
+                            {bubble}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="p-3 sm:p-4 border-t border-slate-100 bg-white">
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    if (!CHAT_IMAGE_MIME.has(file.type)) {
+                      notifyWarning("Please choose a JPEG, PNG, GIF, or WebP image.");
+                      return;
+                    }
+                    if (file.size > MAX_CHAT_IMAGE_BYTES) {
+                      notifyWarning("Image must be 4 MB or smaller.");
+                      return;
+                    }
+                    if (pendingImage?.previewUrl.startsWith("blob:")) {
+                      URL.revokeObjectURL(pendingImage.previewUrl);
+                    }
+                    setPendingImage({
+                      file,
+                      previewUrl: URL.createObjectURL(file),
+                    });
+                  }}
+                />
+                {pendingImage ? (
+                  <div className="mb-3 flex items-start gap-2 p-2 rounded-xl border border-emerald-200 bg-emerald-50/80">
+                    <img
+                      src={pendingImage.previewUrl}
+                      alt=""
+                      className="h-16 w-16 rounded-lg object-cover border border-emerald-200"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800">Image ready to send</p>
+                      <p className="text-[11px] text-slate-500 truncate">{pendingImage.file.name}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (pendingImage.previewUrl.startsWith("blob:")) {
+                          URL.revokeObjectURL(pendingImage.previewUrl);
+                        }
+                        setPendingImage(null);
+                      }}
+                      className="p-1.5 rounded-lg text-slate-500 hover:bg-white border border-transparent hover:border-slate-200"
+                      aria-label="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : null}
+                <div className="flex items-end gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    disabled={!selectedDao || sending || !canUsePinataImages()}
+                    onClick={() => imageInputRef.current?.click()}
+                    title={
+                      canUsePinataImages()
+                        ? "Attach image (stored on IPFS)"
+                        : "Set VITE_PINATA_JWT to enable image uploads"
+                    }
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ImagePlus className="w-5 h-5" />
+                  </button>
+                  <textarea
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value.slice(0, 1000))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (!sending && selectedDao && (draft.trim() || pendingImage)) void handleSend();
+                      }
+                    }}
+                    rows={2}
+                    placeholder={selectedDao ? "Type a message (optional with image)…" : "Select a room first"}
+                    className="flex-1 p-3 border border-slate-200 rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                  <button
+                    onClick={() => void handleSend()}
+                    disabled={!selectedDao || (!draft.trim() && !pendingImage) || sending}
+                    className="h-11 px-4 navy-bg text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                  >
+                    <Send className="w-4 h-4" />
+                    {sending ? "Sending" : "Send"}
+                  </button>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <p className="text-xs text-slate-500">
+                    {!privyReady
+                      ? "Checking your session…"
+                      : walletAddress
+                        ? `Posting as ${senderLabel}`
+                        : "Connect your wallet in the app header or Wallet tab to send messages."}
+                    {canUsePinataImages() ? "" : walletAddress ? " · Add VITE_PINATA_JWT for photos." : ""}
+                  </p>
+                  <p className="text-[11px] text-slate-400">{draft.length}/1000</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default MessagesView; //change one thing

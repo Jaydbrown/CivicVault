@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CivicVault Whitepaper</title>
+    <style>
+      :root {
+        --bg: #f7f8fb;
+        --paper: #ffffff;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: #e2e8f0;
+        --accent: #065f46;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 16px 60px;
+      }
+      .paper {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+      }
+      .top-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 14px;
+      }
+      .action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 8px 12px;
+        transition: all 0.2s ease;
+      }
+      .action:hover {
+        background: #f8fafc;
+      }
+      h1, h2, h3 { line-height: 1.3; margin: 0 0 12px; }
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.25rem; margin-top: 28px; }
+      h3 { font-size: 1rem; margin-top: 18px; color: var(--accent); }
+      p, ul, ol { margin: 0 0 12px; }
+      ul, ol { padding-left: 20px; }
+      .meta {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin-bottom: 16px;
+      }
+      .tag {
+        display: inline-block;
+        color: var(--accent);
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        margin-bottom: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .callout {
+        background: #f0fdf4;
+        border-left: 4px solid #34d399;
+        border-radius: 0 8px 8px 0;
+        padding: 14px 16px;
+        margin: 16px 0;
+        font-size: 0.95rem;
+        color: #065f46;
+      }
+      .formula {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin: 16px 0;
+        font-family: ui-monospace, monospace;
+        font-size: 0.9rem;
+        color: #1e293b;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0 18px;
+        font-size: 0.9rem;
+      }
+      th {
+        background: #f1f5f9;
+        text-align: left;
+        padding: 8px 12px;
+        font-weight: 700;
+        border: 1px solid var(--border);
+      }
+      td {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .signature-wrap {
+        margin-top: 30px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--border);
+        text-align: right;
+      }
+      .signature {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #334155;
+        font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+        letter-spacing: 0.02em;
+      }
+      .signature-date {
+        margin: 4px 0 0;
+        font-size: 1rem;
+        color: var(--muted);
+      }
+      @media print {
+        .top-actions { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <article class="paper">
+        <div class="top-actions">
+          <button class="action" type="button" onclick="window.print()">Download Document</button>
+        </div>
+        <span class="tag">CivicVault Whitepaper</span>
+        <h1>CivicVault: Transparent Community Investment Governance</h1>
+        <p class="meta">Version 1.2 · May 2026 · Built on Circle's Arc Network</p>
+
+        <h2>1. Executive Summary</h2>
+        <p>
+          CivicVault is a community-governance and treasury framework for neighborhood investment
+          groups. It enables communities to form DAOs, fund local projects with USDC stablecoins,
+          vote transparently, and distribute project returns using auditable smart contracts deployed
+          on Circle's Arc — an EVM-compatible L1 where USDC is the native currency.
+        </p>
+
+        <h2>2. Problem</h2>
+        <ul>
+          <li>Community investment decisions are often opaque and hard to audit.</li>
+          <li>Manual spreadsheets and chat records create disputes over contributions and payouts.</li>
+          <li>Leadership transitions can break continuity and trust.</li>
+          <li>Members have limited visibility into who approved decisions and when.</li>
+          <li>Stablecoin-based investment groups have no shared infrastructure for governance.</li>
+        </ul>
+
+        <h2>3. Solution</h2>
+        <p>
+          CivicVault provides an on-chain operating model with clear roles and immutable records:
+        </p>
+        <ul>
+          <li>A factory contract deploys community DAOs as lightweight EIP-1167 proxy instances.</li>
+          <li>Admins onboard KYC-verified members and create project proposals.</li>
+          <li>Members vote by staking USDC for support, or casting a free downvote.</li>
+          <li>Finance leads propose yield deposits which require 3-of-5 admin multi-sig approval.</li>
+          <li>Members claim yields proportionally to their recorded stake — all on-chain.</li>
+          <li>All transactions settle in USDC with no gas-token price risk.</li>
+        </ul>
+
+        <h2>4. The Arc Network</h2>
+        <p>
+          CivicVault is deployed on <strong>Circle's Arc</strong> (Chain ID: 5042002), an
+          EVM-compatible L1 where USDC is the native gas currency. Key properties:
+        </p>
+        <ul>
+          <li>Every stake, vote weight, and yield payout is denominated in USDC.</li>
+          <li>No wrapped token conversions — the same ERC-20 address is used throughout.</li>
+          <li>Full EVM compatibility means all Solidity tooling (Foundry, Hardhat, Viem) works without changes.</li>
+          <li>Transactions are verifiable at <a href="https://testnet.arcscan.app" target="_blank">testnet.arcscan.app</a>.</li>
+        </ul>
+
+        <h2>5. Contract System</h2>
+        <h3>CivicVaultFactory</h3>
+        <ul>
+          <li>Deploys a new CivicVault proxy for each community DAO via EIP-1167 minimal clone.</li>
+          <li>Stores and exposes a registry of all deployed DAO addresses and metadata.</li>
+          <li>One shared implementation — gas-efficient onboarding for any number of communities.</li>
+        </ul>
+
+        <h3>CivicVault (per DAO)</h3>
+        <ul>
+          <li>Role management: creator, admin, finance manager, verified member.</li>
+          <li>Investment lifecycle: create → pending → active → ended/incomplete.</li>
+          <li>Treasury actions: vote stake, multi-sig yield deposit, yield claim, and stake refund.</li>
+          <li>Phase-based escrow: 30% / 40% / 30% milestone release to investment recipients.</li>
+          <li>Activity timeline: every action is logged on-chain with an event and a structured entry.</li>
+        </ul>
+
+        <h3>CivicVaultView (read-only helper)</h3>
+        <ul>
+          <li>Aggregates DAO and investment data across multiple contracts in a single call.</li>
+          <li>Used by the frontend to minimize RPC round-trips.</li>
+        </ul>
+
+        <h2>6. Governance Model</h2>
+        <table>
+          <thead>
+            <tr><th>Role</th><th>Permissions</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Creator</strong></td>
+              <td>Appoints and removes admins and finance managers. Emergency pause control. Cannot be replaced.</td>
+            </tr>
+            <tr>
+              <td><strong>Admin</strong></td>
+              <td>Onboards KYC-verified members, creates proposals, activates investments, closes them, and approves yield deposits.</td>
+            </tr>
+            <tr>
+              <td><strong>Finance Manager</strong></td>
+              <td>Extends deadlines and proposes yield deposits (subject to 3-of-5 admin multi-sig approval).</td>
+            </tr>
+            <tr>
+              <td><strong>Verified Member</strong></td>
+              <td>Stakes USDC to upvote proposals, downvotes for free, claims yield, and exits the DAO.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>7. How Returns Are Shared</h2>
+        <p>
+          This is the core economic mechanism of CivicVault. Every step is enforced by the smart
+          contract — no manual calculation, no off-chain spreadsheet.
+        </p>
+
+        <h3>Step 1 — Members stake USDC to vote</h3>
+        <p>
+          When a verified member upvotes a proposal they send real USDC to the contract. This stake
+          is locked until the proposal is either activated (funds go into escrow) or marked
+          Incomplete (funds are returned in full). A member's stake is also their proportional
+          claim to any future yield from that investment.
+        </p>
+
+        <h3>Step 2 — Investment is activated and funds are escrowed</h3>
+        <p>
+          Once the upvote total meets or exceeds the funding target before the deadline, an admin
+          can activate the investment. The contract moves the collected stake into an internal
+          escrow. From this point the funds belong to the investment.
+        </p>
+
+        <h3>Step 3 — Funds are released in three phases</h3>
+        <p>
+          Admins release capital to the investment recipient in three milestone tranches so that
+          recipients remain accountable:
+        </p>
+        <table>
+          <thead><tr><th>Phase</th><th>Amount</th><th>Trigger</th></tr></thead>
+          <tbody>
+            <tr><td>Phase 1</td><td>30% of escrowed total</td><td>Admin releases after project start</td></tr>
+            <tr><td>Phase 2</td><td>40% of escrowed total</td><td>Admin releases at mid-point milestone</td></tr>
+            <tr><td>Phase 3</td><td>Remaining 30%</td><td>Admin releases on completion</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Step 4 — Finance manager proposes a yield deposit</h3>
+        <p>
+          When the investment generates a return (rent, loan repayment, revenue share, etc.),
+          a finance manager calls <code>proposeYieldDeposit(investmentId, amount, expenseReportCID)</code>.
+          This creates a pending proposal on-chain with a reference to the expense report pinned to IPFS.
+        </p>
+
+        <h3>Step 5 — Admins approve with multi-sig (3-of-5)</h3>
+        <p>
+          At least <strong>3 out of 5</strong> admins must each call
+          <code>approveYieldDeposit(proposalId)</code> before the yield can be deposited.
+          This prevents a single actor from unilaterally moving money. Each approval is recorded
+          on-chain and emits an event.
+        </p>
+
+        <h3>Step 6 — Yield is deposited into the contract</h3>
+        <p>
+          Once 3 approvals are recorded, the proposer (or any admin / creator) calls
+          <code>executeYieldDeposit(proposalId)</code>. The contract pulls the USDC from the
+          finance manager's wallet into the contract and credits the investment's yield balance.
+        </p>
+
+        <h3>Step 7 — Members claim their proportional share</h3>
+        <p>
+          Each upvoting member calls <code>claimYield(investmentId)</code>. The contract
+          calculates their share using the formula:
+        </p>
+        <div class="formula">
+memberYield = (memberStake / totalUpvoteStake) × totalYieldDeposited
+        </div>
+        <p>
+          For example: if the total upvote stake was 10,000 USDC and a member staked 1,000 USDC
+          (10%), and the total yield deposited was 2,000 USDC, that member receives 200 USDC.
+        </p>
+        <div class="callout">
+          Every payout is proportional to contribution. Members who stake more receive a larger
+          share. Members who downvoted receive no yield. Unclaimed yield is held on-chain for a
+          90-day grace period before admins may recover it to the DAO treasury.
+        </div>
+
+        <h3>Grace period and unclaimed yield</h3>
+        <p>
+          After an investment is closed, members have <strong>90 days</strong> to claim their
+          yield. After the grace period expires, an admin can call
+          <code>sweepUnclaimedYield(investmentId, recipient)</code> to recover the remaining
+          balance to any address (typically the DAO treasury). This prevents funds from being
+          permanently stranded on-chain.
+        </p>
+
+        <h2>8. Investment Lifecycle Diagram</h2>
+        <table>
+          <thead><tr><th>State</th><th>Condition to enter</th><th>What members can do</th></tr></thead>
+          <tbody>
+            <tr><td>PENDING</td><td>Investment created by admin</td><td>Upvote (stake USDC) or downvote</td></tr>
+            <tr><td>ACTIVE</td><td>Upvote stake ≥ funding target before deadline</td><td>Claim yield once deposited</td></tr>
+            <tr><td>ENDED</td><td>Admin closes after full yield distribution</td><td>Claim yield within grace period</td></tr>
+            <tr><td>INCOMPLETE</td><td>Upvote stake &lt; target at deadline</td><td>Withdraw staked USDC in full</td></tr>
+          </tbody>
+        </table>
+
+        <h2>9. Current Product (Implemented)</h2>
+        <ul>
+          <li>Landing experience: trust, features, governance overview, and investment categories.</li>
+          <li>Dashboard: wallet-connected portfolio, metric cards, activity feed, and role indicators.</li>
+          <li>DAO discovery and detail views with investment, member, and timeline tabs.</li>
+          <li>DAO chat rooms with member labels, real-time sync via Supabase, and unread tracking.</li>
+          <li>Notification center: vote-needed and claimable-yield alerts with email delivery via Gmail OAuth.</li>
+          <li>AI assistant on the landing page powered by Gemini.</li>
+          <li>Backend REST API: user profiles, notification preferences, platform statistics.</li>
+        </ul>
+
+        <h2>10. Risks</h2>
+        <ul>
+          <li>Smart contract vulnerabilities and integration defects — mitigated by Foundry test suite.</li>
+          <li>Role-key compromise and operational misuse — mitigated by multi-sig yield controls.</li>
+          <li>Off-chain project execution risk — CivicVault governs treasury, not physical delivery.</li>
+          <li>Regulatory and legal compliance — each DAO community is responsible for local compliance.</li>
+        </ul>
+
+        <h2>11. Roadmap</h2>
+        <ul>
+          <li>Mainnet deployment on Arc after security audit.</li>
+          <li>Configurable grace periods and quorum thresholds per DAO.</li>
+          <li>Batch member onboarding and KYC hash update flows.</li>
+          <li>Investment document update and category-based discovery.</li>
+          <li>DAO reputation and participation scoring.</li>
+        </ul>
+
+        <h2>12. Conclusion</h2>
+        <p>
+          CivicVault turns informal neighborhood investment coordination into a transparent,
+          rules-driven system. By combining on-chain role governance, USDC staking, multi-sig yield
+          approval, and proportional payout logic, it makes every contribution, decision, and payout
+          verifiable — for every member, at any time.
+        </p>
+        <div class="signature-wrap">
+          <p class="signature">with love, Group 6</p>
+          <p id="signature-date" class="signature-date"></p>
+        </div>
+      </article>
+    </div>
+    <script>
+      (function () {
+        var dateNode = document.getElementById("signature-date");
+        if (!dateNode) return;
+        var now = new Date();
+        dateNode.textContent = now.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        });
+      })();
+    </script>
+  </body>
+</html>

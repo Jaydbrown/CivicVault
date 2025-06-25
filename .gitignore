@@ -1,0 +1,13 @@
+# dependencies
+node_modules
+# env
+.env
+.env.*
+!.env.example
+# build
+dist
+.vite
+# misc
+.DS_Store
+*.tar.gz
+*.zip

@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>CivicVault | Invest in Your Neighborhood</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html {
+      overflow-x: clip;
+      -webkit-text-size-adjust: 100%;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow-x: clip;
+      max-width: 100vw;
+    }
+    /* Horizontal scroll rails (mobile nav dock) — hide scrollbar, keep swipe */
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .sage-bg { background-color: #2d7a4f; }
+    .sage-text { color: #2d7a4f; }
+    .cream-bg { background-color: #0e1117; }
+    .navy-text { color: #e2e8f5; }
+    .navy-bg { background-color: #1a4731; }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="cream-bg navy-text antialiased min-h-screen min-h-[100dvh]">
+  <div id="root" class="min-h-screen min-h-[100dvh] w-full overflow-x-clip"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
