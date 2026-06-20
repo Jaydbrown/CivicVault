@@ -229,48 +229,39 @@ This model works because the alternative costs far more. A lawyer to structure a
 
 ---
 
-## Grant Budget: $80,000
+## Grant Budget: $42,000
 
-### Security — $23,000
+### Security — $15,000
 
-**Smart contract audit — $20,000**
-Reputable audit firms (Cyfrin, Halborn, Code4rena) charge $5,000–$8,000 per week of review. CivicVault's codebase spans six contracts and ~3,000 lines of Solidity covering DAO lifecycle management, staked voting, phased escrow, multi-sig yield governance, EIP-1167 proxy factory logic, and yield distribution math. A thorough engagement covering all attack surfaces — reentrancy, flash loan vectors, proxy storage collisions, yield accounting edge cases, and access control — requires a minimum of 2.5 to 3 weeks. $20,000 is the realistic lower bound for a firm credible enough to provide assurance to communities putting real USDC into the protocol.
+**Smart contract audit — $15,000**
+Reputable audit firms — Cyfrin, Halborn, Code4rena — charge between $5,000 and $8,000 per week of review. CivicVault's codebase spans six contracts and approximately 3,000 lines of Solidity covering DAO lifecycle management, staked voting, phased escrow, multi-sig yield governance, EIP-1167 proxy factory logic, and yield distribution math. A thorough engagement covering all attack surfaces — reentrancy, flash loan vectors, proxy storage collisions, yield accounting edge cases, and access control — requires a minimum of two weeks with a firm credible enough to provide assurance to communities putting real USDC into the protocol. The audit is the single remaining blocker between the completed codebase and a mainnet deployment communities can trust.
 
-**Bug bounty program — $3,000**
-Three months on Immunefi post-audit, running concurrently with the mainnet soft launch. Funds the bounty pool for any critical or high-severity findings surfaced by independent researchers before significant capital concentrations build in DAO treasuries.
+### Launch — $9,600
 
-### Launch — $12,000
+**Arc Mainnet deployment and initial DAO seeding — $2,000**
+Covers factory contract deployment gas, implementation contract deployment, the first three DAO deployments seeded as pilot communities, and a contingency buffer for redeployment if post-audit changes require contract modifications.
 
-**Arc Mainnet deployment and DAO seeding — $3,000**
-Factory contract deployment gas, implementation contract deployment, the first five DAO deployments seeded as pilot communities, and a contingency buffer for redeployment if post-audit changes require contract modifications.
+**12 months production infrastructure — $3,600**
+Vercel Pro ($20/month), Supabase Pro ($25/month) for Realtime chat and database, Pinata IPFS ($100/month) for DAO logos, member avatars, proposal documents, and chat attachments, RabbitMQ cloud hosting ($50/month) for async email delivery queuing, and domain registration with SSL ($100/year). Total infrastructure burn is approximately $2,400 per year; the remainder covers scaling costs as DAO count and member activity grow through Q4 2026.
 
-**12 months production infrastructure — $5,000**
-Vercel Pro ($20/month), Supabase Pro ($25/month), Pinata IPFS ($100/month), RabbitMQ cloud ($50/month), domain and SSL ($100/year). Total infrastructure burn is approximately $2,400/year; the remainder covers scaling costs as DAO count and member activity grow through Q4 2026.
+**Facilitation of 3 pilot DAOs — $4,000**
+Each pilot DAO receives two in-person facilitation sessions — one for onboarding and wallet setup, one for running the first proposal and vote — plus printed materials, transport to community venues, and ongoing support through the first complete investment cycle. At approximately $1,300 per DAO this covers real facilitator time for street community groups, PTA committees, and university student unions where the organizer cannot be expected to self-onboard without guidance. These three pilot DAOs are not placeholders — they are the first working case studies that every subsequent community onboarding references.
 
-**5 pilot DAO facilitations — $4,000**
-Each pilot DAO receives two in-person facilitation sessions — one for onboarding and wallet setup, one for running the first proposal and vote — plus printed materials, transport to community venues, and ongoing support through the first complete investment cycle. At $800 per DAO this covers real facilitator time for street community groups, PTA committees, and university student unions.
+### Growth — $17,400
 
-### Growth — $45,000
+CivicVault is building across two live client surfaces with a third on the roadmap.
 
-**Mobile app deployment and maintenance — $8,000**
-Apple Developer Program ($99), Google Play ($25), professional QA testing across Android and iOS devices representative of what target users in Nigeria and East Africa carry, app store submission and optimization, and 12 months of patch maintenance to keep the app current with OS updates and protocol changes.
+The web app is already live — a full React 19 frontend with 11 views covering every protocol action from DAO creation to yield claiming. This is the primary interface for desktop users and requires ongoing maintenance, performance optimization, and feature additions as the protocol grows. Maintenance is folded into the developer stipend below.
 
-**DApp (IPFS-hosted decentralized frontend) — $7,000**
-ENS domain registration, Fleek Pro hosting, six to eight weeks of development adapting the current frontend to a fully trustless deployment with no backend dependency for core protocol functions, and testing across the decentralized deployment pipeline. This gives CivicVault a frontend that cannot be taken offline by any single provider — critical for communities in markets with infrastructure instability.
+The mobile app is already built as a React Native application using Expo. Grant funding of $3,000 covers the Apple Developer Program enrollment ($99), Google Play registration ($25), professional QA testing across Android and iOS devices representative of what target users in Nigeria and East Africa actually carry, app store submission and optimization, and patch maintenance to keep the app current with OS updates. This is the most critical surface for the African market where mobile is the primary computing device and many users will never open a laptop.
 
-**Multi-language localization — $5,000**
-Professional translation and UI adaptation for Portuguese, Hausa, Swahili, and French across all 11 views and all system messages. Four languages at approximately $1,000 per language for translation plus $250 per language for in-app testing and layout correction. Covers Nigeria, Kenya, Tanzania, Senegal, and Brazil.
+**Multi-language localization — $2,400**
+Professional translation and UI adaptation for Portuguese, Hausa, and Swahili across all 11 views and all system messages. These three languages cover Nigeria, Kenya, and Brazil — the three highest-priority markets for the rotating savings group and cooperative finance use case. Each language receives approximately $700 for translation and $100 for in-app layout testing and correction.
 
-**Community growth and outreach — $5,000**
-Attendance at cooperative society association events in Lagos and Abuja, university outreach visits to student union bodies, social media content production for @CivicVaultDAO, and stipends for the first wave of community leads — trusted individuals inside pilot communities who champion CivicVault adoption within their existing networks.
+**Developer stipend — $12,000**
+Six months at $2,000 per month covering continued smart contract maintenance, security patch response, subgraph updates, feature development across both client surfaces, and integration groundwork for Circle Paymaster and CCTP in Q1 2027. As a solo build, this stipend is what keeps the protocol actively maintained and responsive rather than stagnant between funding rounds.
 
-**Developer stipend — $15,000**
-12 months at $1,250/month covering continued smart contract maintenance, security patch response, subgraph updates, feature development across all three client surfaces (web app, mobile app, DApp), and integration work for Circle Paymaster and CCTP in Q1 2027.
-
-**Mobile PWA optimization — $5,000**
-Service worker implementation, offline mode for low-bandwidth environments, push notifications, install prompt, and Lighthouse performance optimization for the web app on mobile browsers.
-
-### Total: $80,000
+### Total: $42,000
 
 ---
 
@@ -330,5 +321,3 @@ Communities deserve tools that are as secure as they are accessible. This grant 
 **X:** @CivicVaultDAO
 
 ---
-
-*CivicVault is open-source and built in the public interest. All contract code is available for review. We welcome technical questions, audit inquiries, and partnership discussions.*
