@@ -305,7 +305,7 @@ Communities deserve tools that are as secure as they are accessible. That's what
 
 | | |
 |---|---|
-| Live Demo | https://final-project-sol-lx9v.vercel.app |
+| Live Demo | https://civic-vault-aupu.vercel.app/ |
 | Demo Video | https://youtu.be/mkdc0uo4waQ |
 | GitHub | https://github.com/Jaydbrown/CivicVault |
 | Arc Testnet Explorer | https://testnet.arcscan.app |
