@@ -1,14 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
-import Features from "../components/Features";
-import HowItWorks from "../components/HowItWorks";
-import Governance from "../components/Governance";
-import Properties from "../components/Properties";
-import TrustBadges from "../components/TrustBadges";
-import Faqs from "../components/Faqs";
 import Footer from "../components/Footer";
-import LandingAiChat from "../components/LandingAiChat";
 import { ViewState } from "@/App";
 
 interface LandingPageProps {
@@ -16,7 +9,6 @@ interface LandingPageProps {
   onLogin: () => void;
   isAuthenticated?: boolean;
 }
-
 
 const LandingPage: React.FC<LandingPageProps> = ({
   onViewChange,
@@ -34,17 +26,10 @@ const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar onLaunch={onLaunch} isAuthenticated={isAuthenticated} />
-      <main className="flex-grow space-y-8 lg:space-y-12">
+      <main className="flex-grow">
         <Hero onLaunch={onLaunch} isAuthenticated={isAuthenticated} />
-        <TrustBadges />
-        <Features />
-        <HowItWorks onLaunch={onLaunch} />
-        <Governance />
-        <Properties />
-        <Faqs />
       </main>
       <Footer />
-      <LandingAiChat />
     </div>
   );
 };
