@@ -110,9 +110,9 @@ const Navbar: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
           className="relative w-full overflow-hidden rounded-full transition-all duration-300"
           style={{
             height: isScrolled ? "2.75rem" : "3.25rem",
-            background: "rgba(255,255,255,0.07)",
-            border: "1px solid rgba(255,255,255,0.11)",
-            boxShadow: "0 4px 32px rgba(0,0,0,0.45)",
+            background: "rgba(8,10,16,0.72)",
+            border: "1px solid rgba(255,255,255,0.13)",
+            boxShadow: "0 4px 32px rgba(0,0,0,0.5)",
             backdropFilter: "blur(14px)",
             WebkitBackdropFilter: "blur(14px)",
           }}

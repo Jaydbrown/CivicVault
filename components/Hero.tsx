@@ -177,24 +177,23 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
 
       {/* ── Screen 2: Editorial split (sticky inside 200vh wrapper) ─────── */}
       <div ref={section2Ref} className="relative h-[200vh]">
-      <section className="sticky top-0 w-full h-screen bg-[#0e1117] flex items-center overflow-hidden">
-        {/* Large image panel — bleeds in from right edge, drifts slowly on scroll */}
+      <section className="sticky top-0 w-full h-screen bg-[#c8c6c1] flex items-center overflow-hidden">
+        {/* Large image panel — bleeds in from right edge */}
         <motion.div style={{ y: s2ImageY }} className="absolute inset-y-0 right-0 w-[52%] hidden md:block pointer-events-none select-none">
           <img
             src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1200&q=85"
             alt="Community"
             className="w-full h-full object-cover"
           />
-          {/* Gradient: fades left edge into dark bg */}
+          {/* Gradient: fades left edge into light bg */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to right, #0e1117 0%, #0e1117 8%, transparent 45%)",
+                "linear-gradient(to right, #c8c6c1 0%, #c8c6c1 8%, transparent 45%)",
             }}
           />
-          {/* Subtle dark veil over the photo */}
-          <div className="absolute inset-0 bg-[#0e1117]/30" />
+          <div className="absolute inset-0 bg-[#c8c6c1]/15" />
         </motion.div>
 
         {/* Text — left column, compact editorial */}
@@ -202,14 +201,13 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
           style={{ y: s2TextY, opacity: s2ExitAlpha }}
           className="relative z-10 px-8 sm:px-14 lg:px-20 xl:px-28 py-24 w-full md:max-w-[54%]"
         >
-
           {/* Eyebrow */}
           <motion.p
             initial={{ opacity: 0, x: -16 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, ease: EASE }}
-            className="text-emerald-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-5"
+            className="text-emerald-600 text-[10px] font-bold uppercase tracking-[0.2em] mb-5"
           >
             What is our Goal?
           </motion.p>
@@ -220,33 +218,33 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.65, ease: EASE, delay: 0.07 }}
-            className="text-xl sm:text-2xl font-extrabold text-white leading-snug tracking-tight mb-5"
+            className="text-xl sm:text-2xl font-extrabold text-neutral-900 leading-snug tracking-tight mb-5"
           >
             CivicVault turns{" "}
             <CursorCard
               image="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=480&q=80"
               description="Neighborhoods pool resources to invest in what matters most to them."
-              className="text-emerald-400 hover:bg-emerald-500/15"
+              className="text-emerald-600 hover:bg-emerald-50"
             >
               neighborhoods
             </CursorCard>{" "}
             into investors.
           </motion.h2>
 
-          {/* Body — small, dense, editorial */}
+          {/* Body */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.65, ease: EASE, delay: 0.15 }}
-            className="space-y-4 text-sm text-white/45 leading-[1.9] max-w-sm"
+            className="space-y-4 text-sm text-neutral-500 leading-[1.9] max-w-sm"
           >
             <p>
               We built this because{" "}
               <CursorCard
                 image="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=480&q=80"
                 description="Local communities deserve the same financial tools as institutions."
-                className="text-white/70 hover:bg-white/8"
+                className="text-neutral-700 hover:bg-neutral-100"
               >
                 local communities
               </CursorCard>{" "}
@@ -260,7 +258,7 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
               <CursorCard
                 image="https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=480&q=80"
                 description="Every vote is recorded on-chain. No black boxes, no back rooms."
-                className="text-white/70 hover:bg-white/8"
+                className="text-neutral-700 hover:bg-neutral-100"
               >
                 transparent on-chain governance
               </CursorCard>
@@ -268,7 +266,7 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
               <CursorCard
                 image="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=480&q=80"
                 description="From community gardens to local co-ops — you decide what gets funded."
-                className="text-white/70 hover:bg-white/8"
+                className="text-neutral-700 hover:bg-neutral-100"
               >
                 local projects
               </CursorCard>
@@ -280,7 +278,7 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
               <CursorCard
                 image="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=480&q=80"
                 description="Smart contracts handle every transaction. Auditable by anyone."
-                className="text-white/70 hover:bg-white/8"
+                className="text-neutral-700 hover:bg-neutral-100"
               >
                 smart contract
               </CursorCard>{" "}
@@ -294,7 +292,7 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, ease: EASE, delay: 0.28 }}
-            className="mt-10 flex gap-8 border-t border-white/8 pt-8"
+            className="mt-10 flex gap-8 border-t border-neutral-200 pt-8"
           >
             {[
               { value: "100%", label: "On-chain"       },
@@ -302,8 +300,8 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
               { value: "DAO",  label: "Governed by you" },
             ].map(({ value, label }) => (
               <div key={label}>
-                <p className="text-base font-extrabold text-white">{value}</p>
-                <p className="text-[10px] text-white/30 uppercase tracking-widest mt-0.5">{label}</p>
+                <p className="text-base font-extrabold text-neutral-900">{value}</p>
+                <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{label}</p>
               </div>
             ))}
           </motion.div>
@@ -311,21 +309,22 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
       </section>
       </div>{/* end section2Ref wrapper */}
 
-      {/* ── Screen 3: Parallax community gallery ────────────────────────── */}
-      <HeroParallax
-        products={COMMUNITY_PRODUCTS}
-        title={<>Communities<br />investing together.</>}
-        subtitle="Every project below is run by a real neighborhood DAO — funded by residents, governed on-chain, and open to anyone."
-      />
+      {/* ── Screen 3: Parallax community gallery (dark) ─────────────────── */}
+      <div className="dark">
+        <HeroParallax
+          products={COMMUNITY_PRODUCTS}
+          title={<>Communities<br />investing together.</>}
+          subtitle="Every project below is run by a real neighborhood DAO — funded by residents, governed on-chain, and open to anyone."
+        />
+      </div>
 
-      {/* ── Screen 4: FAQ ───────────────────────────────────────────────── */}
-      <section className="w-full min-h-screen bg-[#0e1117] flex flex-col items-center justify-center px-4 py-24">
+      {/* ── Screen 4: FAQ (warm ash — light mode) ───────────────────────── */}
+      <section className="w-full min-h-screen bg-[#c2c0bb] flex flex-col items-center justify-center px-4 py-24">
         <div className="w-full max-w-3xl mx-auto">
-          {/* Eyebrow */}
-          <p className="text-center text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em] mb-4">
+          <p className="text-center text-emerald-600 text-[11px] font-bold uppercase tracking-[0.2em] mb-4">
             Got questions?
           </p>
-          <h2 className="text-center text-3xl sm:text-4xl font-extrabold text-white mb-14 tracking-tight">
+          <h2 className="text-center text-3xl sm:text-4xl font-extrabold text-neutral-900 mb-14 tracking-tight">
             Frequently asked questions
           </h2>
           <FaqAccordion
