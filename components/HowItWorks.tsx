@@ -72,13 +72,13 @@ const HowItWorks: React.FC<{ onLaunch: () => void }> = ({ onLaunch }) => {
   );
 
   return (
-    <section id="how-it-works" ref={sectionRef} className="py-24 bg-white">
+    <section id="how-it-works" ref={sectionRef} className="py-24 bg-card backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl mb-4">
+          <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-4">
             How It Works
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             A simple flow for setting up a community and funding local projects.
           </p>
         </div>
@@ -87,7 +87,7 @@ const HowItWorks: React.FC<{ onLaunch: () => void }> = ({ onLaunch }) => {
           <div className="relative">
             <motion.div
               style={{ width: progressWidth }}
-              className="absolute left-6 top-8 h-[2px] bg-[#1a4731]/20 lg:hidden"
+              className="absolute left-6 top-8 h-[2px] bg-primary/20 lg:hidden"
             />
             <div className="space-y-8 lg:space-y-10">
               {steps.map((step, index) => {
@@ -104,26 +104,26 @@ const HowItWorks: React.FC<{ onLaunch: () => void }> = ({ onLaunch }) => {
                       transition={{ duration: 0.35, ease: "easeOut" }}
                       className={`relative rounded-2xl border p-5 sm:p-6 transition-all duration-300 ${
                         isActive
-                          ? "bg-white border-[#1a4731]/40 shadow-lg shadow-[#1a4731]/10"
-                          : "bg-white/70 border-slate-200"
+                          ? "bg-card backdrop-blur-md border-primary/40 shadow-lg shadow-[#1a4731]/10"
+                          : "bg-card backdrop-blur-md/70 border-border"
                       }`}
                     >
                       <div className="flex items-start gap-4">
                         <div
                           className={`relative w-12 h-12 rounded-xl border flex items-center justify-center transition-colors ${
                             isActive
-                              ? "navy-bg text-white border-[#1a4731]"
-                              : "bg-slate-50 text-slate-500 border-slate-200"
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white/5 text-muted-foreground border-border"
                           }`}
                         >
                           <Icon className="w-5 h-5" />
-                          <div className="absolute -top-2 -right-2 w-6 h-6 navy-bg rounded-full text-white text-[10px] flex items-center justify-center font-bold">
+                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full text-white text-[10px] flex items-center justify-center font-bold">
                             {step.number}
                           </div>
                         </div>
                         <div>
-                          <h4 className="text-lg font-bold text-slate-900">{step.title}</h4>
-                          <p className="text-sm text-slate-600 leading-relaxed mt-2">{step.description}</p>
+                          <h4 className="text-lg font-bold text-foreground">{step.title}</h4>
+                          <p className="text-sm text-muted-foreground leading-relaxed mt-2">{step.description}</p>
                         </div>
                       </div>
                     </motion.div>
@@ -133,7 +133,7 @@ const HowItWorks: React.FC<{ onLaunch: () => void }> = ({ onLaunch }) => {
                         <div className="h-[2px] w-24 sm:w-28 lg:w-32 bg-slate-200" />
                         <motion.div
                           style={{ width: `${fill * 100}%`, opacity: segmentOpacity(fill) }}
-                          className="absolute left-6 h-[2px] bg-[#1a4731]"
+                          className="absolute left-6 h-[2px] bg-primary"
                         />
                       </div>
                     )}
@@ -144,7 +144,7 @@ const HowItWorks: React.FC<{ onLaunch: () => void }> = ({ onLaunch }) => {
           </div>
 
           <div className="lg:sticky lg:top-28">
-            <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-900/10 bg-slate-50">
+            <div className="rounded-3xl overflow-hidden border border-border shadow-xl shadow-slate-900/10 bg-white/5">
               {/* Community investment illustration */}
               <svg viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg" className="w-full">
                 <rect width="480" height="360" fill="#f8fafc"/>
@@ -210,8 +210,8 @@ const HowItWorks: React.FC<{ onLaunch: () => void }> = ({ onLaunch }) => {
               </svg>
 
               <div className="px-6 py-5 border-t border-green-100">
-                <p className="text-sm font-semibold text-[#1a4731]">Your community, on-chain</p>
-                <p className="text-xs text-slate-600 mt-1">
+                <p className="text-sm font-semibold text-primary">Your community, on-chain</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   DAOs connect members, votes fund projects, and every yield payout settles transparently in USDC.
                 </p>
               </div>
@@ -222,7 +222,7 @@ const HowItWorks: React.FC<{ onLaunch: () => void }> = ({ onLaunch }) => {
         <div className="mt-20 text-center">
           <button
             onClick={onLaunch}
-            className="navy-bg text-white px-10 py-4 rounded-xl font-bold hover:shadow-xl transition-shadow"
+            className="bg-primary text-white px-10 py-4 rounded-xl font-bold hover:shadow-xl transition-shadow"
           >
             Get Started Now
           </button>

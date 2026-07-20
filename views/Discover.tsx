@@ -40,53 +40,53 @@ type DiscoverDao = {
 };
 
 const DAOBrowseCard = ({ dao, onViewDetails }: { dao: DiscoverDao; onViewDetails: (dao: DiscoverDao) => void }) => (
-  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-emerald-200 hover:shadow-xl transition-all group flex flex-col">
+  <div className="bg-card backdrop-blur-md rounded-2xl border border-border overflow-hidden hover:border-emerald-200 hover:shadow-xl transition-all group flex flex-col">
     <div className="h-32 bg-slate-200 relative overflow-hidden">
       <img src={dao.img} alt={dao.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
       <div className="absolute top-3 left-3 flex gap-2">
         {dao.isNew && <span className="bg-blue-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider">New</span>}
         {dao.verified && <span className="bg-emerald-600 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> Verified</span>}
       </div>
-      <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+      <div className="absolute bottom-3 left-3 bg-card backdrop-blur-md/90 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
         <MapPin className="w-3 h-3 text-emerald-600" />
-        <span className="text-[10px] font-bold text-slate-800">{dao.location}</span>
+        <span className="text-[10px] font-bold text-foreground">{dao.location}</span>
       </div>
     </div>
     
     <div className="p-5 flex-grow flex flex-col">
       <div className="flex justify-between items-start mb-2">
-        <h3 className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">{dao.name}</h3>
-        <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase tracking-tighter">{dao.type}</span>
+        <h3 className="font-bold text-foreground group-hover:text-emerald-600 transition-colors">{dao.name}</h3>
+        <span className="text-[10px] font-bold text-muted-foreground bg-white/5 px-1.5 py-0.5 rounded uppercase tracking-tighter">{dao.type}</span>
       </div>
       
-      <p className="text-xs text-slate-500 line-clamp-2 mb-6 leading-relaxed">{dao.description}</p>
+      <p className="text-xs text-muted-foreground line-clamp-2 mb-6 leading-relaxed">{dao.description}</p>
       
       <div className="grid grid-cols-2 gap-4 mt-auto mb-6">
         <div className="space-y-1">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Treasury</p>
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Treasury</p>
           <div className="flex items-center gap-1.5">
             <TrendingUp className="w-3 h-3 text-emerald-500" />
-            <p className="text-sm font-bold text-slate-900">{dao.tvl}</p>
+            <p className="text-sm font-bold text-foreground">{dao.tvl}</p>
           </div>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Members</p>
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Members</p>
           <div className="flex items-center gap-1.5">
-            <Users className="w-3 h-3 text-slate-400" />
-            <p className="text-sm font-bold text-slate-900">{dao.members}</p>
+            <Users className="w-3 h-3 text-muted-foreground" />
+            <p className="text-sm font-bold text-foreground">{dao.members}</p>
           </div>
         </div>
       </div>
       
       <div className="flex flex-wrap gap-2 mb-6">
         {dao.tags.map((tag: string) => (
-          <span key={tag} className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{tag}</span>
+          <span key={tag} className="text-[9px] font-bold text-muted-foreground bg-white/10 px-2 py-1 rounded-md">{tag}</span>
         ))}
       </div>
 
       <button
         onClick={() => onViewDetails(dao)}
-        className="w-full py-3 navy-bg text-white rounded-xl text-xs font-bold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
+        className="w-full py-3 bg-primary text-white rounded-xl text-xs font-bold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
       >
         Open
         <ChevronRight className="w-4 h-4" />
@@ -315,8 +315,8 @@ const Discover: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="mb-10 text-center lg:text-left">
-        <h1 className="text-3xl font-bold text-slate-900">Discover Neighborhood DAOs</h1>
-        <p className="text-slate-500 mt-2">Find and join investment clubs powered by your neighbors.</p>
+        <h1 className="text-3xl font-bold text-foreground">Discover Neighborhood DAOs</h1>
+        <p className="text-muted-foreground mt-2">Find and join investment clubs powered by your neighbors.</p>
       </div>
 
       {daos.length > 0 && (
@@ -328,7 +328,7 @@ const Discover: React.FC = () => {
             </div>
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">{daos[0].name}</h2>
             <p className="text-emerald-100 text-lg mb-8 leading-relaxed">{daos[0].description}</p>
-            <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 inline-block">
+            <div className="bg-card backdrop-blur-md/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 inline-block">
               <p className="text-[10px] font-bold text-emerald-300 uppercase">Current TVL</p>
               <p className="text-lg font-bold">{daos[0].tvl}</p>
             </div>
@@ -345,7 +345,7 @@ const Discover: React.FC = () => {
       {/* Search & Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="flex-grow relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input 
             type="text" 
             placeholder="Search by neighborhood, city, or keywords..." 
@@ -354,22 +354,22 @@ const Discover: React.FC = () => {
               setSearchTerm(e.target.value);
               setVisibleCount(6);
             }}
-            className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-sm"
+            className="w-full pl-12 pr-4 py-3.5 bg-card backdrop-blur-md border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-sm"
           />
         </div>
-        <button className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-          <Filter className="w-5 h-5 text-slate-400" />
+        <button className="flex items-center justify-center gap-2 px-6 py-3.5 bg-card backdrop-blur-md border border-border rounded-2xl text-sm font-bold text-foreground/90 hover:bg-white/5 transition-colors shadow-sm">
+          <Filter className="w-5 h-5 text-muted-foreground" />
           Filters
         </button>
       </div>
 
       {/* Results Grid */}
       {loading ? (
-        <div className="py-20 text-center text-slate-500">Loading active DAOs from Arc Testnet...</div>
+        <div className="py-20 text-center text-muted-foreground">Loading active DAOs from Arc Testnet...</div>
       ) : error ? (
         <div className="py-20 text-center">
-          <h3 className="text-xl font-bold text-slate-900">Could not load DAOs</h3>
-          <p className="text-slate-500 mt-2 max-w-md mx-auto">{error}</p>
+          <h3 className="text-xl font-bold text-foreground">Could not load DAOs</h3>
+          <p className="text-muted-foreground mt-2 max-w-md mx-auto">{error}</p>
         </div>
       ) : filteredDAOs.length > 0 ? (
         <>
@@ -382,7 +382,7 @@ const Discover: React.FC = () => {
           <div className="flex justify-center mb-12">
             <button
               onClick={() => setVisibleCount((count) => count + 6)}
-              className="px-5 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50"
+              className="px-5 py-3 border border-border rounded-xl text-sm font-bold text-foreground/90 hover:bg-white/5"
             >
               Load More ({filteredDAOs.length - visibleCount} remaining)
             </button>
@@ -391,32 +391,32 @@ const Discover: React.FC = () => {
         </>
       ) : (
         <div className="py-20 text-center">
-          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <Search className="w-10 h-10 text-slate-300" />
           </div>
-          <h3 className="text-xl font-bold text-slate-900">No DAOs found matching your criteria</h3>
-          <p className="text-slate-500 mt-2 max-w-sm mx-auto">Try adjusting your filters or searching for a different neighborhood.</p>
-          <button className="mt-8 px-6 py-3 navy-bg text-white font-bold rounded-xl">Create First DAO in this Area</button>
+          <h3 className="text-xl font-bold text-foreground">No DAOs found matching your criteria</h3>
+          <p className="text-muted-foreground mt-2 max-w-sm mx-auto">Try adjusting your filters or searching for a different neighborhood.</p>
+          <button className="mt-8 px-6 py-3 bg-primary text-white font-bold rounded-xl">Create First DAO in this Area</button>
         </div>
       )}
 
       {/* Pagination / Load More */}
       {filteredDAOs.length > 0 && (
         <div className="flex flex-col items-center gap-4 py-8">
-          <button className="px-8 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+          <button className="px-8 py-3 bg-card backdrop-blur-md border border-border rounded-xl text-sm font-bold text-foreground/90 hover:bg-white/5 transition-colors shadow-sm">
             Load More DAOs
           </button>
-          <p className="text-xs text-slate-400 font-medium tracking-wide">Showing {filteredDAOs.length} of {daos.length} neighborhood DAOs</p>
+          <p className="text-xs text-muted-foreground font-medium tracking-wide">Showing {filteredDAOs.length} of {daos.length} neighborhood DAOs</p>
         </div>
       )}
 
       {selectedDao && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedDao(null)} />
-          <div className="relative w-full max-w-4xl max-h-[88vh] overflow-y-auto bg-white rounded-[2rem] shadow-2xl p-6 lg:p-8">
+          <div className="absolute inset-0 bg-black/60/60 backdrop-blur-sm" onClick={() => setSelectedDao(null)} />
+          <div className="relative w-full max-w-4xl max-h-[88vh] overflow-y-auto bg-card backdrop-blur-md rounded-[2rem] shadow-2xl p-6 lg:p-8">
             <button
               onClick={() => setSelectedDao(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200"
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-slate-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -424,42 +424,42 @@ const Discover: React.FC = () => {
             <div className="space-y-4">
               <img src={selectedDao.img} alt={selectedDao.name} className="w-full h-48 rounded-2xl object-cover" />
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">{selectedDao.name}</h2>
-                <p className="text-slate-500 mt-1 flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-foreground">{selectedDao.name}</h2>
+                <p className="text-muted-foreground mt-1 flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   {selectedDao.location}
                 </p>
               </div>
-              <p className="text-sm text-slate-600">{selectedDao.description}</p>
+              <p className="text-sm text-muted-foreground">{selectedDao.description}</p>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Treasury</p>
-                  <p className="font-bold text-slate-900 mt-1">{selectedDao.tvl}</p>
+                <div className="p-4 rounded-xl bg-white/5 border border-border/40">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Treasury</p>
+                  <p className="font-bold text-foreground mt-1">{selectedDao.tvl}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Members</p>
-                  <p className="font-bold text-slate-900 mt-1">{selectedDao.members}</p>
+                <div className="p-4 rounded-xl bg-white/5 border border-border/40">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Members</p>
+                  <p className="font-bold text-foreground mt-1">{selectedDao.members}</p>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">DAO Contract</p>
-                <p className="text-sm font-mono text-slate-700 mt-1">{maskAddress(selectedDao.address)}</p>
+              <div className="p-4 rounded-xl bg-white/5 border border-border">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">DAO Contract</p>
+                <p className="text-sm font-mono text-foreground/90 mt-1">{maskAddress(selectedDao.address)}</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                  <h3 className="text-sm font-bold text-slate-900">Investment Voting (Same Interface)</h3>
+                <div className="p-4 rounded-xl bg-white/5 border border-border space-y-3">
+                  <h3 className="text-sm font-bold text-foreground">Investment Voting (Same Interface)</h3>
                   <p className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg p-2">
                     Each vote equals one USDC.
                   </p>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Choose Investment</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">Choose Investment</label>
                     <select
                       value={selectedInvestmentId}
                       onChange={(e) => setSelectedInvestmentId(e.target.value)}
-                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                      className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                     >
                       {daoInvestments.length === 0 && <option value="">No investment found</option>}
                       {daoInvestments.map((inv) => (
@@ -470,7 +470,7 @@ const Discover: React.FC = () => {
                     </select>
                   </div>
                   {selectedInvestment && (
-                    <div className="p-3 rounded-xl border border-slate-200 bg-white space-y-2">
+                    <div className="p-3 rounded-xl border border-border bg-card backdrop-blur-md space-y-2">
                       <div className="flex items-center gap-2">
                         <StatusChip status={statusLabel(selectedInvestment.status)} />
                         <DeadlineChip secondsLeft={Number(selectedInvestment.deadline) - Math.floor(Date.now() / 1000)} />
@@ -480,11 +480,11 @@ const Discover: React.FC = () => {
                   )}
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Participant Wallets + Upvotes</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">Participant Wallets + Upvotes</label>
                     <select
                       value={participantAddress}
                       onChange={(e) => setParticipantAddress(e.target.value)}
-                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                      className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                     >
                       {participants.length === 0 && <option value="">No participants found</option>}
                       {participants.map((participant) => {
@@ -499,13 +499,13 @@ const Discover: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Your Upvote Amount (USDC)</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">Your Upvote Amount (USDC)</label>
                     <input
                       type="number"
                       min="1"
                       value={upvoteAmount}
                       onChange={(e) => setUpvoteAmount(e.target.value)}
-                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                      className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                     />
                   </div>
 
@@ -533,86 +533,86 @@ const Discover: React.FC = () => {
                   )}
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="p-4 rounded-xl bg-white/5 border border-border space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-bold text-slate-900">Create Investment Proposal</h3>
+                    <h3 className="text-sm font-bold text-foreground">Create Investment Proposal</h3>
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-amber-100 text-amber-700">
                       Creator Only
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500">This form submits `createInvestment(...)` on-chain for the selected DAO.</p>
+                  <p className="text-xs text-muted-foreground">This form submits `createInvestment(...)` on-chain for the selected DAO.</p>
                   {!walletAddress && <p className="text-xs text-amber-700">Connect wallet to create proposal.</p>}
                   {walletAddress && daoRole && !daoRole.isCreator && (
                     <p className="text-xs text-amber-700">Only creator can create proposal here.</p>
                   )}
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Proposal Name</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">Proposal Name</label>
                     <input
                       type="text"
                       value={proposalName}
                       onChange={(e) => setProposalName(e.target.value)}
                       placeholder="e.g. Community Health Center Upgrade"
-                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                      className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Category (0-7)</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Category (0-7)</label>
                       <input
                         type="number"
                         value={proposalCategory}
                         onChange={(e) => setProposalCategory(e.target.value)}
                         placeholder="0 = HEALTH"
-                        className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                        className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Grade (0-3)</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Grade (0-3)</label>
                       <input
                         type="number"
                         value={proposalGrade}
                         onChange={(e) => setProposalGrade(e.target.value)}
                         placeholder="0 = A"
-                        className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                        className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Fund Needed (USDC)</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Fund Needed (USDC)</label>
                       <input
                         type="number"
                         value={proposalFundNeeded}
                         onChange={(e) => setProposalFundNeeded(e.target.value)}
                         placeholder="1000"
-                        className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                        className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Expected Yield (%)</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Expected Yield (%)</label>
                       <input
                         type="number"
                         value={proposalExpectedYield}
                         onChange={(e) => setProposalExpectedYield(e.target.value)}
                         placeholder="10"
-                        className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                        className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Voting Deadline (Days)</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">Voting Deadline (Days)</label>
                     <input
                       type="number"
                       value={proposalDeadlineDays}
                       onChange={(e) => setProposalDeadlineDays(e.target.value)}
                       placeholder="14"
-                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                      className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                     />
                   </div>
                   <button
                     onClick={() => void handleCreateProposal()}
                     disabled={!daoRole?.isCreator || busyAction.length > 0}
-                    className="w-full min-w-0 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold navy-bg text-white disabled:opacity-50 whitespace-nowrap overflow-hidden text-ellipsis"
+                    className="w-full min-w-0 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold bg-primary text-white disabled:opacity-50 whitespace-nowrap overflow-hidden text-ellipsis"
                   >
                     {busyAction === 'create-proposal' ? 'Creating...' : 'Create Proposal'}
                   </button>
@@ -634,7 +634,7 @@ const Discover: React.FC = () => {
                       href={getTxExplorerUrl(lastTxHash, 1)}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs font-bold text-slate-500 hover:underline"
+                      className="text-xs font-bold text-muted-foreground hover:underline"
                     >
                       Backup Explorer
                     </a>
@@ -649,7 +649,7 @@ const Discover: React.FC = () => {
                     if (ok) notifySuccess('Address copied.');
                     else notifyError('Unable to copy address.');
                   }}
-                  className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-50"
+                  className="px-4 py-2.5 border border-border rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-white/5"
                 >
                   <Copy className="w-4 h-4" />
                   Copy Address
@@ -658,7 +658,7 @@ const Discover: React.FC = () => {
                   href={getAddressExplorerUrl(selectedDao.address)}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2.5 navy-bg text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                  className="px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
                 >
                   View on Explorer
                   <ExternalLink className="w-4 h-4" />

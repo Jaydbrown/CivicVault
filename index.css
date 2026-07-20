@@ -3,9 +3,53 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Roboto', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  
+  /* AWSMD Inspired Theme Colors (Light) */
+  --color-background: #FFFFFF;
+  --color-foreground: #000000;
+  --color-primary: #FF5A00;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F3F4F6;
+  --color-secondary-foreground: #111827;
+  --color-accent: #000000; 
+  --color-accent-foreground: #FFFFFF;
+  --color-muted: #F9FAFB;
+  --color-muted-foreground: #6B7280;
+  --color-border: #E5E7EB;
+  --color-card: #FFFFFF; 
+  
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+  --radius-sm: 0.5rem;
+}
+
+.dark {
+  --color-background: #0B0F19;
+  --color-foreground: #F8FAFC;
+  --color-primary: #FF5A00;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #1E293B;
+  --color-secondary-foreground: #F8FAFC;
+  --color-accent: #FFFFFF;
+  --color-accent-foreground: #000000;
+  --color-muted: #334155;
+  --color-muted-foreground: #94A3B8;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-card: rgba(30, 41, 59, 0.5);
 }
 
 * {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  overflow-x: clip;
 }

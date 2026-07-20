@@ -191,33 +191,33 @@ const GmailNotificationSettings: React.FC<{
     <div className="relative">
       <button
         onClick={() => setShowSettings(!showSettings)}
-        className="p-2 rounded-lg hover:bg-slate-100 transition"
+        className="p-2 rounded-lg hover:bg-white/10 transition"
         title={isSubscribed ? "Email notifications enabled" : "Email notifications disabled"}
       >
         {isSubscribed ? (
           <Bell className="w-4 h-4 text-emerald-600" />
         ) : (
-          <BellOff className="w-4 h-4 text-slate-400" />
+          <BellOff className="w-4 h-4 text-muted-foreground" />
         )}
       </button>
 
       {showSettings && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
-          <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-auto sm:right-0 left-auto top-auto sm:top-full sm:mt-2 w-auto sm:w-80 max-w-[min(calc(100vw-1.5rem),20rem)] max-h-[min(70vh,28rem)] overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50">
+          <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-auto sm:right-0 left-auto top-auto sm:top-full sm:mt-2 w-auto sm:w-80 max-w-[min(calc(100vw-1.5rem),20rem)] max-h-[min(70vh,28rem)] overflow-y-auto bg-card backdrop-blur-md rounded-xl shadow-xl border border-border p-4 z-50">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
                 <Mail className="w-4 h-4 text-emerald-600" />
                 Email Notifications
               </h4>
-              <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowSettings(false)} className="text-muted-foreground hover:text-muted-foreground">
                 ✕
               </button>
             </div>
 
             {!isConnected ? (
               <div className="space-y-3">
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   Get email notifications when someone messages in {daoName}
                 </p>
                 <button
@@ -231,12 +231,12 @@ const GmailNotificationSettings: React.FC<{
             ) : (
               <div className="space-y-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-sm text-slate-700 break-words min-w-0">Receive notifications for {daoName}</span>
+                  <span className="text-sm text-foreground/90 break-words min-w-0">Receive notifications for {daoName}</span>
                   <button
                     onClick={toggleSubscription}
                     disabled={loading}
                     className={`px-3 py-1 rounded-full text-sm transition ${
-                      isSubscribed ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                      isSubscribed ? "bg-emerald-100 text-emerald-700" : "bg-white/10 text-muted-foreground"
                     }`}
                   >
                     {isSubscribed ? (
@@ -246,7 +246,7 @@ const GmailNotificationSettings: React.FC<{
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   {isSubscribed 
                     ? "📧 You'll receive email notifications for new messages"
                     : "🔕 Click enable to get email notifications"}
@@ -591,12 +591,12 @@ const MessagesView: React.FC = () => {
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-500 w-full min-w-0 px-0">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Community Chat</h1>
-          <p className="text-slate-500 mt-1">Real-time rooms, one room per DAO.</p>
+          <h1 className="text-2xl font-bold text-foreground">Community Chat</h1>
+          <p className="text-muted-foreground mt-1">Real-time rooms, one room per DAO.</p>
           {!privyReady ? (
-            <p className="text-xs text-slate-400 mt-1">Checking your Privy session…</p>
+            <p className="text-xs text-muted-foreground mt-1">Checking your Privy session…</p>
           ) : walletAddress ? (
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Signed in as {senderLabel} · Wallet {maskAddress(walletAddress)}
               {subscriptionStatus[selectedDao?.address?.toLowerCase() || ""] && (
                 <span className="ml-2 text-emerald-600">🔔 Email notifications ON</span>
@@ -611,33 +611,33 @@ const MessagesView: React.FC = () => {
       </div>
 
       {loading ? (
-        <p className="text-slate-500">Loading DAO rooms...</p>
+        <p className="text-muted-foreground">Loading DAO rooms...</p>
       ) : error ? (
         <Card className="p-8">
-          <p className="text-slate-500">{error}</p>
+          <p className="text-muted-foreground">{error}</p>
         </Card>
       ) : daos.length === 0 ? (
         <Card className="p-8">
-          <p className="text-slate-500">No active DAO rooms available.</p>
+          <p className="text-muted-foreground">No active DAO rooms available.</p>
         </Card>
       ) : (
         <Card className="p-0 overflow-hidden min-h-[calc(100dvh-11.5rem)] lg:min-h-[72vh]">
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,280px)_1fr] xl:grid-cols-[320px_1fr] min-h-[inherit] h-full lg:h-auto">
             <aside
-              className={`border-r border-slate-200 bg-white min-h-0 flex flex-col ${
+              className={`border-r border-border bg-card backdrop-blur-md min-h-0 flex flex-col ${
                 mobileShowRooms ? "flex" : "hidden"
               } lg:flex`}
             >
-              <div className="p-4 border-b border-slate-100 space-y-3">
-                <h2 className="text-sm font-bold text-slate-900">Rooms</h2>
+              <div className="p-4 border-b border-border/40 space-y-3">
+                <h2 className="text-sm font-bold text-foreground">Rooms</h2>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search DAO room"
-                    className="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full pl-9 pr-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
                   />
                 </div>
               </div>
@@ -657,11 +657,11 @@ const MessagesView: React.FC = () => {
                       className={`w-full text-left rounded-xl px-3 py-3 border transition ${
                         isSelected
                           ? "border-emerald-300 bg-emerald-50"
-                          : "border-transparent hover:bg-slate-50"
+                          : "border-transparent hover:bg-white/5"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="font-bold text-slate-900 text-sm line-clamp-1">{dao.name}</p>
+                        <p className="font-bold text-foreground text-sm line-clamp-1">{dao.name}</p>
                         <div className="flex items-center gap-1">
                           {isSubscribed && <Bell className="w-3 h-3 text-emerald-500" />}
                           {summary?.unreadCount ? (
@@ -671,13 +671,13 @@ const MessagesView: React.FC = () => {
                           ) : null}
                         </div>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-1">{maskAddress(dao.address)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">{maskAddress(dao.address)}</p>
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <p className="text-xs text-slate-500 line-clamp-1">
+                        <p className="text-xs text-muted-foreground line-clamp-1">
                           {roomListPreview(summary?.lastMessage ?? null)}
                         </p>
                         {summary?.lastMessage ? (
-                          <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                             {formatRoomTimestamp(summary.lastMessage.createdAt)}
                           </span>
                         ) : null}
@@ -689,14 +689,14 @@ const MessagesView: React.FC = () => {
             </aside>
 
             <section
-              className={`flex flex-col bg-slate-50/50 min-h-[calc(100dvh-11.5rem)] lg:min-h-[72vh] ${
+              className={`flex flex-col bg-white/5/50 min-h-[calc(100dvh-11.5rem)] lg:min-h-[72vh] ${
                 mobileShowRooms ? "hidden lg:flex" : "flex"
               }`}
             >
-              <div className="p-4 border-b border-slate-100 bg-white flex items-center gap-3 min-w-0">
+              <div className="p-4 border-b border-border/40 bg-card backdrop-blur-md flex items-center gap-3 min-w-0">
                 <button
                   onClick={() => setMobileShowRooms(true)}
-                  className="lg:hidden p-2 rounded-lg border border-slate-200 text-slate-600"
+                  className="lg:hidden p-2 rounded-lg border border-border text-muted-foreground"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
@@ -704,13 +704,13 @@ const MessagesView: React.FC = () => {
                   {selectedDao?.name?.charAt(0).toUpperCase() ?? "#"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-slate-900 truncate">{selectedDao?.name ?? "Select a room"}</p>
+                  <p className="font-bold text-foreground truncate">{selectedDao?.name ?? "Select a room"}</p>
                   {selectedDao?.address && (
-                    <p className="text-xs text-slate-500 truncate">{maskAddress(selectedDao.address)}</p>
+                    <p className="text-xs text-muted-foreground truncate">{maskAddress(selectedDao.address)}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="hidden sm:flex items-center gap-1 text-xs text-slate-500">
+                  <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
                     <MessageSquare className="w-4 h-4" />
                     {roomMessages.length}
                   </div>
@@ -735,19 +735,19 @@ const MessagesView: React.FC = () => {
                 {roomMessages.length === 0 ? (
                   <div className="h-full grid place-items-center text-center px-4">
                     <div>
-                      <div className="mx-auto w-12 h-12 rounded-full bg-slate-100 grid place-items-center mb-3">
-                        <MessageSquare className="w-5 h-5 text-slate-400" />
+                      <div className="mx-auto w-12 h-12 rounded-full bg-white/10 grid place-items-center mb-3">
+                        <MessageSquare className="w-5 h-5 text-muted-foreground" />
                       </div>
-                      <p className="text-sm text-slate-500">No messages yet. Start the conversation.</p>
+                      <p className="text-sm text-muted-foreground">No messages yet. Start the conversation.</p>
                     </div>
                   </div>
                 ) : (
                   roomMessages.map((msg) => {
                     const bubble = (
                       <div
-                        className={`max-w-[min(100%,calc(100%-2.75rem))] sm:max-w-[70%] rounded-2xl px-3.5 py-2.5 shadow-sm min-w-0 ${msg.mine ? "bg-emerald-600 text-white" : "bg-white border border-slate-200 text-slate-900"}`}
+                        className={`max-w-[min(100%,calc(100%-2.75rem))] sm:max-w-[70%] rounded-2xl px-3.5 py-2.5 shadow-sm min-w-0 ${msg.mine ? "bg-emerald-600 text-white" : "bg-card backdrop-blur-md border border-border text-foreground"}`}
                       >
-                        <div className={`text-[11px] mb-1 ${msg.mine ? "text-emerald-100" : "text-slate-500"}`}>
+                        <div className={`text-[11px] mb-1 ${msg.mine ? "text-emerald-100" : "text-muted-foreground"}`}>
                           {msg.mine ? "You" : msg.displayLabel}
                         </div>
                         {msg.attachmentUrl?.trim() ? (
@@ -760,7 +760,7 @@ const MessagesView: React.FC = () => {
                             <img
                               src={msg.attachmentUrl}
                               alt=""
-                              className={`rounded-xl max-h-52 max-w-full object-cover border ${msg.mine ? "border-emerald-400/40" : "border-slate-200"}`}
+                              className={`rounded-xl max-h-52 max-w-full object-cover border ${msg.mine ? "border-emerald-400/40" : "border-border"}`}
                               loading="lazy"
                             />
                           </a>
@@ -771,7 +771,7 @@ const MessagesView: React.FC = () => {
                         {!msg.content.trim() && !msg.attachmentUrl?.trim() ? (
                           <p className="text-sm opacity-80">(empty)</p>
                         ) : null}
-                        <div className={`text-[10px] mt-1.5 ${msg.mine ? "text-emerald-100" : "text-slate-400"}`}>
+                        <div className={`text-[10px] mt-1.5 ${msg.mine ? "text-emerald-100" : "text-muted-foreground"}`}>
                           {formatMessageTimestamp(msg.createdAt)}
                         </div>
                       </div>
@@ -803,7 +803,7 @@ const MessagesView: React.FC = () => {
                 )}
               </div>
 
-              <div className="p-3 sm:p-4 border-t border-slate-100 bg-white">
+              <div className="p-3 sm:p-4 border-t border-border/40 bg-card backdrop-blur-md">
                 <input
                   ref={imageInputRef}
                   type="file"
@@ -838,8 +838,8 @@ const MessagesView: React.FC = () => {
                       className="h-16 w-16 rounded-lg object-cover border border-emerald-200"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-slate-800">Image ready to send</p>
-                      <p className="text-[11px] text-slate-500 truncate">{pendingImage.file.name}</p>
+                      <p className="text-xs font-semibold text-foreground">Image ready to send</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{pendingImage.file.name}</p>
                     </div>
                     <button
                       type="button"
@@ -849,7 +849,7 @@ const MessagesView: React.FC = () => {
                         }
                         setPendingImage(null);
                       }}
-                      className="p-1.5 rounded-lg text-slate-500 hover:bg-white border border-transparent hover:border-slate-200"
+                      className="p-1.5 rounded-lg text-muted-foreground hover:bg-card backdrop-blur-md border border-transparent hover:border-border"
                       aria-label="Remove image"
                     >
                       <X className="w-4 h-4" />
@@ -866,7 +866,7 @@ const MessagesView: React.FC = () => {
                         ? "Attach image (stored on IPFS)"
                         : "Set VITE_PINATA_JWT to enable image uploads"
                     }
-                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl border border-border text-muted-foreground hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <ImagePlus className="w-5 h-5" />
                   </button>
@@ -881,19 +881,19 @@ const MessagesView: React.FC = () => {
                     }}
                     rows={2}
                     placeholder={selectedDao ? "Type a message (optional with image)…" : "Select a room first"}
-                    className="flex-1 p-3 border border-slate-200 rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="flex-1 p-3 border border-border rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-500/20"
                   />
                   <button
                     onClick={() => void handleSend()}
                     disabled={!selectedDao || (!draft.trim() && !pendingImage) || sending}
-                    className="h-11 px-4 navy-bg text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                    className="h-11 px-4 bg-primary text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                   >
                     <Send className="w-4 h-4" />
                     {sending ? "Sending" : "Send"}
                   </button>
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     {!privyReady
                       ? "Checking your session…"
                       : walletAddress
@@ -901,7 +901,7 @@ const MessagesView: React.FC = () => {
                         : "Connect your wallet in the app header or Wallet tab to send messages."}
                     {canUsePinataImages() ? "" : walletAddress ? " · Add VITE_PINATA_JWT for photos." : ""}
                   </p>
-                  <p className="text-[11px] text-slate-400">{draft.length}/1000</p>
+                  <p className="text-[11px] text-muted-foreground">{draft.length}/1000</p>
                 </div>
               </div>
             </section>

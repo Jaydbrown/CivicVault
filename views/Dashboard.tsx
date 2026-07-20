@@ -39,28 +39,28 @@ const Metric: React.FC<{
 }> = ({ label, value, sublabel, icon, variant = 'white' }) => {
   const base = 'rounded-2xl p-5 flex flex-col gap-3';
   const styles: Record<string, string> = {
-    forest: `${base} bg-[#1a4731] text-white shadow-lg shadow-[#1a4731]/20`,
+    forest: `${base} bg-primary text-white shadow-lg shadow-[#1a4731]/20`,
     leaf:   `${base} bg-[#2d7a4f] text-white shadow-lg shadow-[#2d7a4f]/20`,
     cream:  `${base} bg-[#161b27] border border-slate-700`,
-    white:  `${base} bg-white border border-slate-200 shadow-sm`,
+    white:  `${base} bg-card backdrop-blur-md border border-border shadow-sm`,
   };
   const iconWrap: Record<string, string> = {
-    forest: 'bg-white/15 p-2 rounded-xl w-fit',
-    leaf:   'bg-white/15 p-2 rounded-xl w-fit',
-    cream:  'bg-green-100 text-[#1a4731] p-2 rounded-xl w-fit',
-    white:  'bg-slate-100 text-[#2d7a4f] p-2 rounded-xl w-fit',
+    forest: 'bg-card backdrop-blur-md/15 p-2 rounded-xl w-fit',
+    leaf:   'bg-card backdrop-blur-md/15 p-2 rounded-xl w-fit',
+    cream:  'bg-green-100 text-primary p-2 rounded-xl w-fit',
+    white:  'bg-white/10 text-[#2d7a4f] p-2 rounded-xl w-fit',
   };
   const valueStyle: Record<string, string> = {
     forest: 'text-2xl font-extrabold text-white',
     leaf:   'text-2xl font-extrabold text-white',
     cream:  'text-2xl font-extrabold text-white',
-    white:  'text-2xl font-extrabold text-slate-900',
+    white:  'text-2xl font-extrabold text-foreground',
   };
   const labelStyle: Record<string, string> = {
     forest: 'text-xs font-medium text-white/70 uppercase tracking-wider',
     leaf:   'text-xs font-medium text-white/70 uppercase tracking-wider',
-    cream:  'text-xs font-medium text-slate-400 uppercase tracking-wider',
-    white:  'text-xs font-medium text-slate-500 uppercase tracking-wider',
+    cream:  'text-xs font-medium text-muted-foreground uppercase tracking-wider',
+    white:  'text-xs font-medium text-muted-foreground uppercase tracking-wider',
   };
   return (
     <div className={styles[variant]}>
@@ -110,8 +110,8 @@ const GmailConnectionStatus: React.FC<{ walletAddress: string }> = ({ walletAddr
         onClick={() => setOpen(!open)}
         className={`px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 border ${
           isConnected
-            ? 'bg-green-50 text-[#1a4731] border-green-200'
-            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            ? 'bg-green-50 text-primary border-green-200'
+            : 'bg-card backdrop-blur-md text-muted-foreground border-border hover:bg-white/5'
         }`}
       >
         <Mail className="w-3.5 h-3.5" />
@@ -121,29 +121,29 @@ const GmailConnectionStatus: React.FC<{ walletAddress: string }> = ({ walletAddr
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-5 z-50">
+          <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 bg-card backdrop-blur-md rounded-2xl shadow-xl border border-border p-5 z-50">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-bold text-slate-900 flex items-center gap-2 text-sm">
+              <h4 className="font-bold text-foreground flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-[#2d7a4f]" /> Email Notifications
               </h4>
-              <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-muted-foreground text-lg leading-none">✕</button>
             </div>
             {isConnected ? (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-[#1a4731] bg-green-50 p-3 rounded-xl border border-green-100">
+                <div className="flex items-center gap-2 text-sm text-primary bg-green-50 p-3 rounded-xl border border-green-100">
                   <Check className="w-4 h-4 shrink-0" /> Gmail is connected
                 </div>
-                <button onClick={connectGmail} className="w-full py-2.5 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50">
+                <button onClick={connectGmail} className="w-full py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-white/5">
                   Reconnect Gmail
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-slate-600">Get alerts for investment proposals, yield deposits, and DAO chat.</p>
+                <p className="text-sm text-muted-foreground">Get alerts for investment proposals, yield deposits, and DAO chat.</p>
                 <button
                   onClick={connectGmail}
                   disabled={loading}
-                  className="w-full py-2.5 navy-bg text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+                  className="w-full py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50"
                 >
                   {loading ? 'Connecting…' : 'Connect Gmail Account'}
                 </button>
@@ -195,7 +195,7 @@ const DaoNotificationToggle: React.FC<{
     <button
       onClick={toggle} disabled={loading}
       title={subscribed ? 'Disable email notifications' : 'Enable email notifications'}
-      className={`p-2 rounded-xl transition ${subscribed ? 'bg-green-50 text-[#2d7a4f]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+      className={`p-2 rounded-xl transition ${subscribed ? 'bg-green-50 text-[#2d7a4f]' : 'bg-white/10 text-muted-foreground hover:bg-slate-200'}`}
     >
       {subscribed ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
     </button>
@@ -318,7 +318,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
     return (
       <div className="max-w-7xl mx-auto py-20 flex flex-col items-center gap-4 text-[#2d7a4f]">
         <Leaf className="w-7 h-7 animate-spin" />
-        <p className="text-sm font-medium text-slate-500">Loading your dashboard…</p>
+        <p className="text-sm font-medium text-muted-foreground">Loading your dashboard…</p>
       </div>
     );
   }
@@ -327,7 +327,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
     <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500 w-full min-w-0">
 
       {/* ── Welcome banner ─────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl navy-bg px-6 py-8 sm:px-8 sm:py-10">
+      <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-8 sm:px-8 sm:py-10">
         {/* Decorative leaf shape */}
         <svg className="absolute right-0 top-0 h-full opacity-10 pointer-events-none" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
           <path d="M300 0 C200 0 80 60 100 200 L300 200Z" fill="white"/>
@@ -348,14 +348,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
             {walletAddress && <GmailConnectionStatus walletAddress={walletAddress} />}
             <button
               type="button" onClick={() => void loadData(true)} disabled={refreshing}
-              className="px-3 py-2 bg-white/10 border border-white/20 text-white rounded-xl text-xs font-semibold hover:bg-white/20 flex items-center gap-2 transition"
+              className="px-3 py-2 bg-card backdrop-blur-md/10 border border-white/20 text-white rounded-xl text-xs font-semibold hover:bg-card backdrop-blur-md/20 flex items-center gap-2 transition"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
             <button
               type="button" onClick={() => onViewChange('discover')}
-              className="px-3 py-2 bg-white/10 border border-white/20 text-white rounded-xl text-xs font-semibold hover:bg-white/20 flex items-center gap-2 transition"
+              className="px-3 py-2 bg-card backdrop-blur-md/10 border border-white/20 text-white rounded-xl text-xs font-semibold hover:bg-card backdrop-blur-md/20 flex items-center gap-2 transition"
             >
               <Search className="w-3.5 h-3.5" /> Discover
             </button>
@@ -390,17 +390,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Active DAOs */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <div className="bg-card backdrop-blur-md rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[#5cb87a]" />
-              <h2 className="text-sm font-bold text-slate-900">Active DAOs</h2>
+              <h2 className="text-sm font-bold text-foreground">Active DAOs</h2>
             </div>
-            <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">{daos.length}</span>
+            <span className="text-xs text-muted-foreground font-medium bg-white/10 px-2 py-0.5 rounded-full">{daos.length}</span>
           </div>
           {daos.length === 0 ? (
-            <div className="py-14 flex flex-col items-center gap-3 text-slate-400 px-6">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <div className="py-14 flex flex-col items-center gap-3 text-muted-foreground px-6">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-[#2d7a4f] opacity-50" />
               </div>
               <p className="text-sm text-center">No DAOs deployed yet.<br/>Be the first in your community.</p>
@@ -417,18 +417,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
                 {pagedDaos.map((dao) => {
                   const userRole = rolesByDao[dao.address.toLowerCase()];
                   return (
-                    <div key={dao.address} className="px-5 py-4 hover:bg-slate-100/60 transition-colors group">
+                    <div key={dao.address} className="px-5 py-4 hover:bg-white/10/60 transition-colors group">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-xl navy-bg flex items-center justify-center shrink-0 shadow-sm shadow-[#1a4731]/20">
+                          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-[#1a4731]/20">
                             <Leaf className="w-4 h-4 text-[#5cb87a]" />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-slate-900 text-sm truncate">{dao.name}</p>
-                            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                            <p className="font-bold text-foreground text-sm truncate">{dao.name}</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                               <MapPin className="w-3 h-3 shrink-0" />{dao.location || 'No location'}
                             </p>
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-xs text-slate-500">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1 text-[#2d7a4f] font-semibold">
                                 <CircleDollarSign className="w-3 h-3" />{dao.tvlFormatted}
                               </span>
@@ -453,12 +453,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
                 })}
               </div>
               {daoPages > 1 && (
-                <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-slate-100">
+                <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border/40">
                   <button onClick={() => setDaoPage((p) => Math.max(1, p - 1))} disabled={daoPage <= 1}
-                    className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">Prev</button>
-                  <p className="text-xs text-slate-400">{daoPage} / {daoPages}</p>
+                    className="px-3 py-1.5 text-xs font-bold border border-border rounded-lg disabled:opacity-40 hover:bg-white/5">Prev</button>
+                  <p className="text-xs text-muted-foreground">{daoPage} / {daoPages}</p>
                   <button onClick={() => setDaoPage((p) => Math.min(daoPages, p + 1))} disabled={daoPage >= daoPages}
-                    className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">Next</button>
+                    className="px-3 py-1.5 text-xs font-bold border border-border rounded-lg disabled:opacity-40 hover:bg-white/5">Next</button>
                 </div>
               )}
             </>
@@ -466,17 +466,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
         </div>
 
         {/* Proposals */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <div className="bg-card backdrop-blur-md rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-amber-400" />
-              <h2 className="text-sm font-bold text-slate-900">Open Proposals</h2>
+              <h2 className="text-sm font-bold text-foreground">Open Proposals</h2>
             </div>
-            <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">{totals.proposed.length}</span>
+            <span className="text-xs text-muted-foreground font-medium bg-white/10 px-2 py-0.5 rounded-full">{totals.proposed.length}</span>
           </div>
           {totals.proposed.length === 0 ? (
-            <div className="py-14 flex flex-col items-center gap-3 text-slate-400 px-6">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <div className="py-14 flex flex-col items-center gap-3 text-muted-foreground px-6">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
                 <Zap className="w-6 h-6 text-[#2d7a4f] opacity-50" />
               </div>
               <p className="text-sm text-center">No pending proposals right now.<br/>All caught up!</p>
@@ -490,14 +490,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
                   const secsLeft = Number(proposal.deadline) - Math.floor(Date.now() / 1000);
                   return (
                     <div key={`${proposal.daoAddress}-${proposal.id}`}
-                      className="px-5 py-4 hover:bg-slate-100/60 transition-colors">
+                      className="px-5 py-4 hover:bg-white/10/60 transition-colors">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[proposal.status] ?? 'bg-slate-300'}`} />
-                            <p className="font-bold text-slate-900 text-sm truncate">{proposal.name}</p>
+                            <p className="font-bold text-foreground text-sm truncate">{proposal.name}</p>
                           </div>
-                          <p className="text-xs text-slate-500 mb-2">{proposal.daoName}</p>
+                          <p className="text-xs text-muted-foreground mb-2">{proposal.daoName}</p>
                           <div className="flex flex-wrap items-center gap-2">
                             <StatusChip status={statusLabel(proposal.status)} />
                             <DeadlineChip secondsLeft={secsLeft} />
@@ -510,12 +510,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
                           {canVote ? (
                             <button
                               onClick={() => onVote(`${proposal.daoAddress}:${proposal.id.toString()}`)}
-                              className="px-4 py-2 navy-bg text-white text-xs font-bold rounded-xl hover:opacity-90 transition"
+                              className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition"
                             >Vote</button>
                           ) : (
                             <button
                               onClick={() => onViewChange('kyc')}
-                              className="px-3 py-2 text-xs font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
+                              className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-white/10 hover:bg-slate-200 rounded-xl transition"
                             >Join</button>
                           )}
                         </div>
@@ -525,12 +525,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
                 })}
               </div>
               {proposalPages > 1 && (
-                <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-slate-100">
+                <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border/40">
                   <button onClick={() => setProposalPage((p) => Math.max(1, p - 1))} disabled={proposalPage <= 1}
-                    className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">Prev</button>
-                  <p className="text-xs text-slate-400">{proposalPage} / {proposalPages}</p>
+                    className="px-3 py-1.5 text-xs font-bold border border-border rounded-lg disabled:opacity-40 hover:bg-white/5">Prev</button>
+                  <p className="text-xs text-muted-foreground">{proposalPage} / {proposalPages}</p>
                   <button onClick={() => setProposalPage((p) => Math.min(proposalPages, p + 1))} disabled={proposalPage >= proposalPages}
-                    className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">Next</button>
+                    className="px-3 py-1.5 text-xs font-bold border border-border rounded-lg disabled:opacity-40 hover:bg-white/5">Next</button>
                 </div>
               )}
             </>
@@ -539,11 +539,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
       </div>
 
       {/* ── Recent Activity ──────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+      <div className="bg-card backdrop-blur-md rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#2d7a4f]" />
-            <h2 className="text-sm font-bold text-slate-900">Recent Activity</h2>
+            <h2 className="text-sm font-bold text-foreground">Recent Activity</h2>
           </div>
           <button onClick={() => onViewChange('investments')}
             className="text-xs font-bold text-[#2d7a4f] hover:underline flex items-center gap-1">
@@ -551,8 +551,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
           </button>
         </div>
         {recentActivity.length === 0 ? (
-          <div className="py-14 flex flex-col items-center gap-3 text-slate-400">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+          <div className="py-14 flex flex-col items-center gap-3 text-muted-foreground">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
               <Activity className="w-6 h-6 text-[#2d7a4f] opacity-50" />
             </div>
             <p className="text-sm">No activity yet.</p>
@@ -561,15 +561,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
           <div className="divide-y divide-slate-50">
             {recentActivity.map((item) => (
               <div key={`${item.daoAddress}-${item.id}`}
-                className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-100/50 transition-colors">
+                className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/10/50 transition-colors">
                 <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[item.status] ?? 'bg-slate-300'}`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">{item.name}</p>
-                  <p className="text-xs text-slate-500 truncate">{item.daoName}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{item.daoName}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <StatusChip status={statusLabel(item.status)} />
-                  <span className="text-[10px] text-slate-400">{timeAgo(Number(item.createdAt))}</span>
+                  <span className="text-[10px] text-muted-foreground">{timeAgo(Number(item.createdAt))}</span>
                 </div>
               </div>
             ))}
@@ -580,13 +580,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
       {/* ── Bottom CTA strip ─────────────────────────────────────────────────── */}
       {walletAddress && (
         <div className="rounded-2xl overflow-hidden">
-          <div className="bg-slate-100 border border-green-100 px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-10 h-10 rounded-xl navy-bg flex items-center justify-center shrink-0 shadow-sm shadow-[#1a4731]/20">
+          <div className="bg-white/10 border border-green-100 px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-[#1a4731]/20">
               <Mail className="w-5 h-5 text-[#5cb87a]" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-[#1a4731] text-sm">Stay updated via email</h3>
-              <p className="text-xs text-slate-600 mt-0.5">
+              <h3 className="font-bold text-primary text-sm">Stay updated via email</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {daos.some((d) => rolesByDao[d.address.toLowerCase()]?.isVerifiedMember)
                   ? "You're a verified DAO member. Enable email alerts for proposals and yield deposits."
                   : 'Complete KYC in a DAO to receive investment notifications.'}
@@ -594,11 +594,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
             </div>
             <div className="flex flex-wrap gap-2 shrink-0">
               <button onClick={() => onViewChange('kyc')}
-                className="px-4 py-2 text-xs font-semibold border border-green-200 text-[#1a4731] rounded-xl bg-white hover:bg-green-50 transition flex items-center gap-1.5">
+                className="px-4 py-2 text-xs font-semibold border border-green-200 text-primary rounded-xl bg-card backdrop-blur-md hover:bg-green-50 transition flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5" /> KYC / Admin
               </button>
               <button onClick={() => onViewChange('messages')}
-                className="px-4 py-2 text-xs font-semibold navy-bg text-white rounded-xl hover:opacity-90 transition">
+                className="px-4 py-2 text-xs font-semibold bg-primary text-white rounded-xl hover:opacity-90 transition">
                 Open Chat
               </button>
             </div>

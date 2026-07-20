@@ -84,11 +84,11 @@ const LandingAiChat: React.FC = () => {
     <div className="fixed z-[100] flex flex-col items-end gap-2 right-[max(0.75rem,env(safe-area-inset-right,0px)+0.5rem)] bottom-[max(0.75rem,env(safe-area-inset-bottom,0px)+0.5rem)]">
       {open && (
         <div
-          className="w-[min(100vw-2rem,400px)] h-[min(70vh,480px)] flex flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 overflow-hidden"
+          className="w-[min(100vw-2rem,400px)] h-[min(70vh,480px)] flex flex-col rounded-2xl border border-border bg-card backdrop-blur-md shadow-2xl shadow-slate-900/15 overflow-hidden"
           role="dialog"
           aria-label="CivicVault assistant"
         >
-          <div className="navy-bg text-white px-4 py-3 flex items-center justify-between gap-2">
+          <div className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/20 to-white/5 ring-1 ring-white/20">
                 <AssistantBadgeIcon size="header" />
@@ -101,7 +101,7 @@ const LandingAiChat: React.FC = () => {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-card backdrop-blur-md/10 transition-colors"
               aria-label="Close chat"
             >
               <X className="w-5 h-5" />
@@ -110,10 +110,10 @@ const LandingAiChat: React.FC = () => {
 
           <div
             ref={listRef}
-            className="flex-1 overflow-y-auto px-3 py-3 space-y-3 bg-slate-50/80"
+            className="flex-1 overflow-y-auto px-3 py-3 space-y-3 bg-white/5/80"
           >
             <div className="flex justify-start">
-              <div className="max-w-[92%] rounded-2xl rounded-bl-md px-3 py-2 text-sm leading-relaxed bg-white border border-slate-200 text-slate-800">
+              <div className="max-w-[92%] rounded-2xl rounded-bl-md px-3 py-2 text-sm leading-relaxed bg-card backdrop-blur-md border border-border text-foreground">
                 Hi—I can explain how CivicVault works (DAOs on-chain, memberships, proposals, votes,
                 yields). Ask anything in plain language.
               </div>
@@ -126,8 +126,8 @@ const LandingAiChat: React.FC = () => {
                 <div
                   className={`max-w-[92%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
                     m.role === "user"
-                      ? "navy-bg text-white rounded-br-md"
-                      : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
+                      ? "bg-primary text-white rounded-br-md"
+                      : "bg-card backdrop-blur-md border border-border text-foreground rounded-bl-md"
                   }`}
                 >
                   {m.content}
@@ -136,7 +136,7 @@ const LandingAiChat: React.FC = () => {
             ))}
             {busy && (
               <div className="flex justify-start">
-                <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-md px-3 py-2 flex items-center gap-2 text-slate-500 text-sm">
+                <div className="bg-card backdrop-blur-md border border-border rounded-2xl rounded-bl-md px-3 py-2 flex items-center gap-2 text-muted-foreground text-sm">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Thinking…
                 </div>
@@ -150,7 +150,7 @@ const LandingAiChat: React.FC = () => {
             </p>
           )}
 
-          <div className="p-3 border-t border-slate-200 bg-white flex gap-2">
+          <div className="p-3 border-t border-border bg-card backdrop-blur-md flex gap-2">
             <input
               type="text"
               value={input}
@@ -163,13 +163,13 @@ const LandingAiChat: React.FC = () => {
               }}
               placeholder="Ask about CivicVault…"
               disabled={busy}
-              className="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500"
+              className="flex-1 min-w-0 rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500"
             />
             <button
               type="button"
               onClick={() => void send()}
               disabled={busy || !input.trim()}
-              className="navy-bg text-white rounded-xl px-3 py-2 disabled:opacity-45 disabled:cursor-not-allowed hover:opacity-95 transition-opacity"
+              className="bg-primary text-white rounded-xl px-3 py-2 disabled:opacity-45 disabled:cursor-not-allowed hover:opacity-95 transition-opacity"
               aria-label="Send message"
             >
               <Send className="w-5 h-5" />

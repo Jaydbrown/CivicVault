@@ -131,11 +131,11 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
   };
 
   if (loading) {
-    return <div className="max-w-4xl mx-auto py-8 px-4 text-slate-500">Loading proposal...</div>;
+    return <div className="max-w-4xl mx-auto py-8 px-4 text-muted-foreground">Loading proposal...</div>;
   }
 
   if (!investment) {
-    return <div className="max-w-4xl mx-auto py-8 px-4 text-slate-500">No proposal available for voting.</div>;
+    return <div className="max-w-4xl mx-auto py-8 px-4 text-muted-foreground">No proposal available for voting.</div>;
   }
 
   const status = statusLabel(investment.status);
@@ -147,7 +147,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
     <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-4 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full min-w-0">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 group"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 group"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
         <span className="text-sm font-bold">Back to Dashboard</span>
@@ -155,9 +155,9 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-8 space-y-4 sm:space-y-6">
+          <div className="bg-card backdrop-blur-md rounded-2xl sm:rounded-3xl border border-border p-4 sm:p-8 space-y-4 sm:space-y-6">
             <div className="flex items-center gap-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-white/10 px-3 py-1 rounded">
                 Proposal #{investment.id}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded flex items-center gap-1">
@@ -165,22 +165,22 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
                 {status}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 break-words">{investment.name}</h1>
-            <p className="text-slate-500 text-sm">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-words">{investment.name}</h1>
+            <p className="text-muted-foreground text-sm">
               {investment.daoName} ({maskAddress(investment.daoAddress)})
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Treasury Ask</p>
-                <p className="text-lg font-bold text-slate-900">{formatUsdcAmount(investment.fundNeeded)}</p>
+              <div className="p-4 bg-white/5 rounded-2xl border border-border/40">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Treasury Ask</p>
+                <p className="text-lg font-bold text-foreground">{formatUsdcAmount(investment.fundNeeded)}</p>
               </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Target Yield</p>
+              <div className="p-4 bg-white/5 rounded-2xl border border-border/40">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Target Yield</p>
                 <p className="text-lg font-bold text-emerald-600">{investment.expectedYield.toString()}%</p>
               </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Funding</p>
+              <div className="p-4 bg-white/5 rounded-2xl border border-border/40">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Funding</p>
                 <p className="text-lg font-bold">{formatUsdcAmount(investment.upvotes)}</p>
               </div>
             </div>
@@ -195,10 +195,10 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl sm:rounded-[2rem] border border-slate-200 p-4 sm:p-8 shadow-sm space-y-4 sm:space-y-6 max-lg:relative lg:sticky lg:top-24">
+          <div className="bg-card backdrop-blur-md rounded-2xl sm:rounded-[2rem] border border-border p-4 sm:p-8 shadow-sm space-y-4 sm:space-y-6 max-lg:relative lg:sticky lg:top-24">
             <div className="text-center">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Time Remaining</p>
-              <span className="text-2xl font-bold text-slate-900">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Time Remaining</p>
+              <span className="text-2xl font-bold text-foreground">
                 {secondsLeft > 0 ? `${Math.floor(secondsLeft / 86400)}d` : 'Ended'}
               </span>
             </div>
@@ -206,9 +206,9 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
             <div className="space-y-3">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-emerald-600">YES ({voteStats.yesPct}%)</span>
-                <span className="text-slate-400">NO ({voteStats.noPct}%)</span>
+                <span className="text-muted-foreground">NO ({voteStats.noPct}%)</span>
               </div>
-              <div className="h-8 w-full bg-slate-100 rounded-xl overflow-hidden flex">
+              <div className="h-8 w-full bg-white/10 rounded-xl overflow-hidden flex">
                 <div className="h-full bg-emerald-500" style={{ width: `${voteStats.yesPct}%` }} />
                 <div className="h-full bg-red-400" style={{ width: `${voteStats.noPct}%` }} />
               </div>
@@ -226,13 +226,13 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
                     This wallet is not an active verified member of this DAO.
                   </div>
                 )}
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Upvote Amount (USDC)</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Upvote Amount (USDC)</label>
                 <input
                   type="number"
                   min="1"
                   value={upvoteAmount}
                   onChange={(e) => setUpvoteAmount(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded-xl outline-none"
+                  className="w-full p-3 border border-border rounded-xl outline-none"
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -252,7 +252,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-slate-50 text-slate-600 text-sm text-center">
+              <div className="p-4 rounded-xl bg-white/5 text-muted-foreground text-sm text-center">
                 Voting is closed for this proposal.
               </div>
             )}
@@ -277,7 +277,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
                     href={getTxExplorerUrl(txHash, 1)}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-block text-xs font-bold text-slate-500 hover:underline"
+                    className="inline-block text-xs font-bold text-muted-foreground hover:underline"
                   >
                     Backup Explorer
                   </a>
@@ -286,11 +286,11 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
             )}
           </div>
 
-          <div className="p-6 border border-slate-100 rounded-3xl flex items-center gap-4 bg-white">
-            {canVote ? <CheckCircle className="w-6 h-6 text-emerald-600" /> : <XCircle className="w-6 h-6 text-slate-400" />}
+          <div className="p-6 border border-border/40 rounded-3xl flex items-center gap-4 bg-card backdrop-blur-md">
+            {canVote ? <CheckCircle className="w-6 h-6 text-emerald-600" /> : <XCircle className="w-6 h-6 text-muted-foreground" />}
             <div>
-              <h4 className="text-sm font-bold text-slate-900">On-chain voting</h4>
-              <p className="text-xs text-slate-500">Votes require wallet signature and gas on Fuji.</p>
+              <h4 className="text-sm font-bold text-foreground">On-chain voting</h4>
+              <p className="text-xs text-muted-foreground">Votes require wallet signature and gas on Fuji.</p>
             </div>
           </div>
         </div>

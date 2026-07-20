@@ -451,12 +451,12 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
           {steps.map((s) => (
             <div key={s.id} className="flex flex-col items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                step >= s.id ? 'navy-bg text-white' : 'bg-slate-200 text-slate-500'
+                step >= s.id ? 'bg-primary text-white' : 'bg-slate-200 text-muted-foreground'
               }`}>
                 {step > s.id ? <CheckCircle className="w-5 h-5" /> : s.id}
               </div>
               <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                step >= s.id ? 'text-slate-900' : 'text-slate-400'
+                step >= s.id ? 'text-foreground' : 'text-muted-foreground'
               }`}>
                 {s.label}
               </span>
@@ -465,35 +465,35 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
         </div>
         <div className="h-1 bg-slate-200 rounded-full relative">
           <div
-            className="absolute h-full navy-bg rounded-full transition-all duration-500"
+            className="absolute h-full bg-primary rounded-full transition-all duration-500"
             style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}
           ></div>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+      <div className="bg-card backdrop-blur-md rounded-3xl border border-border p-8 shadow-sm">
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">DAO Basics</h2>
-              <p className="text-slate-500 text-sm">Let's start with the fundamental identity of your community.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-1">DAO Basics</h2>
+              <p className="text-muted-foreground text-sm">Let's start with the fundamental identity of your community.</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">DAO Name</label>
+                <label className="block text-sm font-bold text-foreground/90 mb-2">DAO Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Marina District Investments"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                  className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-bold text-slate-700">Location</label>
+                  <label className="block text-sm font-bold text-foreground/90">Location</label>
                   <button
                     type="button"
                     onClick={handleUseCurrentLocation}
@@ -504,34 +504,34 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
                   </button>
                 </div>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={formData.location}
                     onChange={e => setFormData({ ...formData, location: e.target.value })}
                     placeholder="City, Neighborhood"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
+                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-border rounded-xl text-sm outline-none"
                   />
                 </div>
-                {locationStatus && <p className="text-xs text-slate-500 mt-2">{locationStatus}</p>}
+                {locationStatus && <p className="text-xs text-muted-foreground mt-2">{locationStatus}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Description</label>
+                <label className="block text-sm font-bold text-foreground/90 mb-2">Description</label>
                 <textarea
                   rows={4}
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe your investment focus and community..."
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none resize-none"
+                  className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm outline-none resize-none"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">DAO Logo</label>
-                <label className="w-full p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-slate-100 transition-colors">
-                  <Upload className="w-4 h-4 text-slate-500" />
-                  <span className="text-slate-600">{logoFile ? `Selected: ${logoFile.name}` : 'Upload logo image'}</span>
+                <label className="block text-sm font-bold text-foreground/90 mb-2">DAO Logo</label>
+                <label className="w-full p-4 bg-white/5 border border-dashed border-slate-300 rounded-xl text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
+                  <Upload className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{logoFile ? `Selected: ${logoFile.name}` : 'Upload logo image'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -546,35 +546,35 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
                   />
                 </label>
                 {logoPreview && (
-                  <img src={logoPreview} alt="DAO logo preview" className="mt-3 w-20 h-20 rounded-xl object-cover border border-slate-200" />
+                  <img src={logoPreview} alt="DAO logo preview" className="mt-3 w-20 h-20 rounded-xl object-cover border border-border" />
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Coordinates</label>
+                  <label className="block text-sm font-bold text-foreground/90 mb-2">Coordinates</label>
                   <input
                     type="text"
                     value={formData.coordinates}
                     onChange={e => setFormData({ ...formData, coordinates: e.target.value })}
                     placeholder="e.g. 4.975700,8.341700"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                    className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Postal Code</label>
+                  <label className="block text-sm font-bold text-foreground/90 mb-2">Postal Code</label>
                   <input
                     type="text"
                     value={formData.postalCode}
                     onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
                     placeholder="e.g. 540001"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                    className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Investment Focus</label>
+                <label className="block text-sm font-bold text-foreground/90 mb-2">Investment Focus</label>
                 <div className="flex flex-wrap gap-2">
                   {focusOptions.map(option => (
                     <button
@@ -582,8 +582,8 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
                       onClick={() => setFormData({ ...formData, focus: option })}
                       className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                         formData.focus === option
-                          ? 'navy-bg text-white'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                          ? 'bg-primary text-white'
+                          : 'bg-white/10 text-muted-foreground hover:bg-slate-200'
                       }`}
                     >
                       {option}
@@ -598,53 +598,53 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Governance Rules</h2>
-              <p className="text-slate-500 text-sm">Define how decisions are made in your DAO.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-1">Governance Rules</h2>
+              <p className="text-muted-foreground text-sm">Define how decisions are made in your DAO.</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-3">Voting System</label>
+                <label className="block text-sm font-bold text-foreground/90 mb-3">Voting System</label>
                 <div className={`p-4 rounded-xl border text-left transition-all ${
-                  formData.votingSystem === 'token-weighted' ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 hover:bg-slate-50'
+                  formData.votingSystem === 'token-weighted' ? 'border-emerald-500 bg-emerald-50/50' : 'border-border hover:bg-white/5'
                 }`}>
-                  <span className="text-sm font-bold text-slate-900">Token-weighted:</span>
-                  <span className="text-xs text-slate-500 mt-1"> 1 share = 1 vote. Larger stakes have more influence.</span>
+                  <span className="text-sm font-bold text-foreground">Token-weighted:</span>
+                  <span className="text-xs text-muted-foreground mt-1"> 1 share = 1 vote. Larger stakes have more influence.</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Proposal Threshold (%)</label>
+                  <label className="block text-sm font-bold text-foreground/90 mb-2">Proposal Threshold (%)</label>
                   <input
                     type="number"
                     min={1}
                     max={100}
                     value={formData.threshold}
                     onChange={e => setFormData({ ...formData, threshold: Number(e.target.value) })}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
+                    className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Voting Period (Days)</label>
+                  <label className="block text-sm font-bold text-foreground/90 mb-2">Voting Period (Days)</label>
                   <input
                     type="number"
                     min={1}
                     value={formData.period}
                     onChange={e => setFormData({ ...formData, period: Number(e.target.value) })}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
+                    className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Minimum Investment (USDC)</label>
+                <label className="block text-sm font-bold text-foreground/90 mb-2">Minimum Investment (USDC)</label>
                 <input
                   type="number"
                   min={1}
                   value={formData.minInvestment}
                   onChange={e => setFormData({ ...formData, minInvestment: Number(e.target.value) })}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
+                  className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm outline-none"
                 />
               </div>
             </div>
@@ -654,37 +654,37 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Membership & Compliance</h2>
-              <p className="text-slate-500 text-sm">Control who can participate in your neighborhood DAO.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-1">Membership & Compliance</h2>
+              <p className="text-muted-foreground text-sm">Control who can participate in your neighborhood DAO.</p>
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-border">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-900">KYC Required</p>
-                    <p className="text-xs text-slate-500">Identity verification for all members</p>
+                    <p className="text-sm font-bold text-foreground">KYC Required</p>
+                    <p className="text-xs text-muted-foreground">Identity verification for all members</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setFormData({ ...formData, kycRequired: !formData.kycRequired })}
                   className={`w-12 h-6 rounded-full transition-colors relative ${formData.kycRequired ? 'bg-emerald-500' : 'bg-slate-300'}`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${formData.kycRequired ? 'translate-x-7' : 'translate-x-1'}`}></div>
+                  <div className={`absolute top-1 w-4 h-4 bg-card backdrop-blur-md rounded-full transition-transform ${formData.kycRequired ? 'translate-x-7' : 'translate-x-1'}`}></div>
                 </button>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Maximum Members</label>
+                <label className="block text-sm font-bold text-foreground/90 mb-2">Maximum Members</label>
                 <input
                   type="number"
                   min={1}
                   value={formData.maxMembers}
                   onChange={e => setFormData({ ...formData, maxMembers: e.target.value })}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
+                  className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm outline-none"
                 />
               </div>
             </div>
@@ -694,39 +694,39 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Review DAO</h2>
-              <p className="text-slate-500 text-sm">One last check before deploying your neighborhood DAO.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-1">Review DAO</h2>
+              <p className="text-muted-foreground text-sm">One last check before deploying your neighborhood DAO.</p>
             </div>
 
             <div className="space-y-4 border rounded-2xl overflow-hidden divide-y">
               <div className="p-4 flex justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Basics</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Basics</p>
                   <p className="text-sm font-bold">{formData.name}</p>
-                  <p className="text-xs text-slate-500">{formData.location}</p>
+                  <p className="text-xs text-muted-foreground">{formData.location}</p>
                 </div>
                 <button onClick={() => setStep(1)} className="text-xs text-emerald-600 font-bold">Edit</button>
               </div>
               <div className="p-4 flex justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Governance</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Governance</p>
                   <p className="text-sm font-bold">{formData.votingSystem.replace('-', ' ')}</p>
-                  <p className="text-xs text-slate-500">{formData.threshold}% threshold, {formData.period}d period</p>
+                  <p className="text-xs text-muted-foreground">{formData.threshold}% threshold, {formData.period}d period</p>
                 </div>
                 <button onClick={() => setStep(2)} className="text-xs text-emerald-600 font-bold">Edit</button>
               </div>
               <div className="p-4 flex justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Compliance</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Compliance</p>
                   <p className="text-sm font-bold">{formData.kycRequired ? 'KYC Required' : 'No KYC'}</p>
-                  <p className="text-xs text-slate-500">{formData.membershipType} access</p>
+                  <p className="text-xs text-muted-foreground">{formData.membershipType} access</p>
                 </div>
                 <button onClick={() => setStep(3)} className="text-xs text-emerald-600 font-bold">Edit</button>
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-              <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+            <div className="p-4 bg-white/5 rounded-xl border border-dashed border-slate-300">
+              <div className="flex justify-between items-center text-xs font-bold text-muted-foreground">
                 <span>Network</span>
                 <span>{APP_CHAIN_NAME} ({APP_CHAIN_ID})</span>
               </div>
@@ -740,21 +740,21 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
               <CheckCircle className="w-10 h-10" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">DAO Created Successfully!</h2>
-              <p className="text-slate-500 mt-2">Your neighborhood investment club is now live on {APP_CHAIN_NAME}.</p>
+              <h2 className="text-2xl font-bold text-foreground">DAO Created Successfully!</h2>
+              <p className="text-muted-foreground mt-2">Your neighborhood investment club is now live on {APP_CHAIN_NAME}.</p>
             </div>
             {createdDaoAddress && (
-              <div className="p-4 bg-slate-50 rounded-xl font-mono text-xs text-slate-500 border border-slate-200">
+              <div className="p-4 bg-white/5 rounded-xl font-mono text-xs text-muted-foreground border border-border">
                 DAO: {maskAddress(createdDaoAddress)}
               </div>
             )}
             {logoIpfsUri && (
-              <div className="p-4 bg-slate-50 rounded-xl font-mono text-xs text-slate-500 border border-slate-200 break-all">
+              <div className="p-4 bg-white/5 rounded-xl font-mono text-xs text-muted-foreground border border-border break-all">
                 Logo URI: {logoIpfsUri}
               </div>
             )}
             {txHash && (
-              <div className="p-4 bg-slate-50 rounded-xl font-mono text-xs text-slate-500 border border-slate-200">
+              <div className="p-4 bg-white/5 rounded-xl font-mono text-xs text-muted-foreground border border-border">
                 Tx: {maskAddress(txHash, 10, 8)}
               </div>
             )}
@@ -770,7 +770,7 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
                     href={getTxExplorerUrl(txHash)}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm"
+                    className="px-6 py-3 bg-card backdrop-blur-md border border-border rounded-xl font-bold text-sm"
                   >
                     View on Explorer
                   </a>
@@ -779,16 +779,16 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
                       href={getTxExplorerUrl(txHash, 1)}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm"
+                      className="px-6 py-3 bg-card backdrop-blur-md border border-border rounded-xl font-bold text-sm"
                     >
                       Backup
                     </a>
                   )}
                 </>
               ) : (
-                <button className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm">Share Link</button>
+                <button className="px-6 py-3 bg-card backdrop-blur-md border border-border rounded-xl font-bold text-sm">Share Link</button>
               )}
-              <button onClick={onComplete} className="px-6 py-3 navy-bg text-white rounded-xl font-bold text-sm">Go to Dashboard</button>
+              <button onClick={onComplete} className="px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm">Go to Dashboard</button>
             </div>
           </div>
         )}
@@ -800,7 +800,7 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
                 onClick={handleBack}
                 disabled={step === 1}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-colors ${
-                  step === 1 ? 'text-slate-300' : 'text-slate-500 hover:bg-slate-50'
+                  step === 1 ? 'text-slate-300' : 'text-muted-foreground hover:bg-white/5'
                 }`}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -810,7 +810,7 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
                 <button
                   onClick={handleDeploy}
                   disabled={loading}
-                  className="navy-bg text-white px-8 py-3 rounded-xl font-bold text-sm shadow-lg shadow-slate-900/10 flex items-center gap-2"
+                  className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-sm shadow-lg shadow-slate-900/10 flex items-center gap-2"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Deploy DAO
@@ -818,7 +818,7 @@ const CreateDAO: React.FC<CreateDAOProps> = ({ onComplete }) => {
               ) : (
                 <button
                   onClick={handleNext}
-                  className="navy-bg text-white px-8 py-3 rounded-xl font-bold text-sm flex items-center gap-2"
+                  className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-sm flex items-center gap-2"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />

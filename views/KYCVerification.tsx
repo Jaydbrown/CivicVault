@@ -260,29 +260,29 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
 
   return (
     <div className="max-w-xl mx-auto py-12 px-4">
-      <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-xl shadow-slate-200/50">
-        <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-card backdrop-blur-md rounded-[2rem] border border-border overflow-hidden shadow-xl shadow-slate-200/50">
+        <div className="p-8 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-50 rounded-lg">
               <Shield className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Team Access</h1>
-              <p className="text-xs text-slate-400 font-medium">Manage team roles and members</p>
+              <h1 className="text-xl font-bold text-foreground">Team Access</h1>
+              <p className="text-xs text-muted-foreground font-medium">Manage team roles and members</p>
             </div>
           </div>
-          {/* {step > 0 && step < 2 && <div className="text-xs font-bold text-slate-400">Step {step} of 1</div>} */}
+          {/* {step > 0 && step < 2 && <div className="text-xs font-bold text-muted-foreground">Step {step} of 1</div>} */}
         </div>
 
         <div className="p-8">
           {step === 0 && (
             <div className="space-y-6 text-center">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                <FileText className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                <FileText className="w-8 h-8 text-muted-foreground" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Member Setup</h2>
-                <p className="text-slate-500 mt-2 text-sm leading-relaxed">
+                <h2 className="text-xl font-bold text-foreground">Member Setup</h2>
+                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                   Add people to your community and manage who can do what.
                 </p>
               </div>
@@ -294,7 +294,7 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                   </p>
                 </div>
               </div>
-              <button onClick={() => setStep(1)} className="w-full py-4 navy-bg text-white rounded-xl font-bold shadow-lg shadow-slate-900/10">
+              <button onClick={() => setStep(1)} className="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-slate-900/10">
                 Continue
               </button>
             </div>
@@ -302,18 +302,18 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
 
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-              <h3 className="font-bold text-slate-900">Add Member</h3>
+              <h3 className="font-bold text-foreground">Add Member</h3>
 
               {loadingDaos ? (
-                <p className="text-sm text-slate-500">Loading communities...</p>
+                <p className="text-sm text-muted-foreground">Loading communities...</p>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Community</label>
+                    <label className="block text-sm font-bold text-foreground/90 mb-2">Community</label>
                     <select
                       value={selectedDao}
                       onChange={(e) => setSelectedDao(e.target.value)}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
+                      className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm outline-none"
                     >
                       {daos.length === 0 && <option value="">No active community found</option>}
                       {daos.map((dao) => (
@@ -325,27 +325,27 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Member Address</label>
+                    <label className="block text-sm font-bold text-foreground/90 mb-2">Member Address</label>
                     <input
                       type="text"
                       value={memberWallet}
                       onChange={(e) => setMemberWallet(e.target.value)}
                       placeholder="0x..."
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                      className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm"
                     />
                     
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Identity Reference (optional)</label>
+                    <label className="block text-sm font-bold text-foreground/90 mb-2">Identity Reference (optional)</label>
                     <input
                       type="text"
                       value={proofReference}
                       onChange={(e) => setProofReference(e.target.value)}
                       placeholder="Case ID or reference note"
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                      className="w-full p-3 bg-white/5 border border-border rounded-xl text-sm"
                     />
-                    {/* <p className="text-xs text-slate-500 mt-2">
+                    {/* <p className="text-xs text-muted-foreground mt-2">
                       You get this from your off-chain process. If empty, we generate a fallback internal reference for MVP.
                     </p> */}
                   </div>
@@ -353,14 +353,14 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                   <button
                     onClick={handleAddMember}
                     disabled={submitting || daos.length === 0}
-                    className="w-full py-4 navy-bg text-white rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-4 bg-primary text-white rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Saving...' : 'Add Member'}
                   </button>
 
-                  <div className="pt-4 border-t border-slate-200 space-y-4">
-                    <h4 className="text-sm font-bold text-slate-900">Founder/Admin Controls</h4>
-                    <p className="text-xs text-slate-500">
+                  <div className="pt-4 border-t border-border space-y-4">
+                    <h4 className="text-sm font-bold text-foreground">Founder/Admin Controls</h4>
+                    <p className="text-xs text-muted-foreground">
                       Active roles: {daoRole ? [
                         daoRole.isCreator ? 'Founder' : '',
                         daoRole.isAdmin ? 'Admin' : '',
@@ -370,17 +370,17 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                     </p>
 
                     {daoRole?.isCreator && (
-                      <div className="space-y-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
-                        <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Founder Actions</p>
-                        <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
-                          <label className="block text-xs font-bold text-slate-700">Wallet to grant/revoke Admin role</label>
-                          <p className="text-[11px] text-slate-500">Use this when you want someone to manage members and projects.</p>
+                      <div className="space-y-3 p-3 rounded-xl border border-border bg-white/5">
+                        <p className="text-xs font-bold text-foreground/90 uppercase tracking-wider">Founder Actions</p>
+                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
+                          <label className="block text-xs font-bold text-foreground/90">Wallet to grant/revoke Admin role</label>
+                          <p className="text-[11px] text-muted-foreground">Use this when you want someone to manage members and projects.</p>
                           <input
                             type="text"
                             value={adminWalletInput}
                             onChange={(e) => setAdminWalletInput(e.target.value)}
                             placeholder="Enter wallet address (0x...)"
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                            className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                           />
                           <div className="flex gap-2">
                             <button
@@ -395,7 +395,7 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                                 });
                               }}
                               disabled={actionBusy.length > 0 || !adminWalletInput}
-                              className="flex-1 py-2 navy-bg text-white rounded-lg text-xs font-bold disabled:opacity-50"
+                              className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold disabled:opacity-50"
                             >
                               {actionBusy === 'add-admin' ? 'Adding...' : 'Add Admin'}
                             </button>
@@ -418,15 +418,15 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                           </div>
                         </div>
 
-                        <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
-                          <label className="block text-xs font-bold text-slate-700">Wallet to grant/revoke Finance Lead role</label>
-                          <p className="text-[11px] text-slate-500">Finance leads can deposit investment returns and extend deadlines.</p>
+                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
+                          <label className="block text-xs font-bold text-foreground/90">Wallet to grant/revoke Finance Lead role</label>
+                          <p className="text-[11px] text-muted-foreground">Finance leads can deposit investment returns and extend deadlines.</p>
                           <input
                             type="text"
                             value={financeWalletInput}
                             onChange={(e) => setFinanceWalletInput(e.target.value)}
                             placeholder="Enter wallet address (0x...)"
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                            className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                           />
                           <div className="flex gap-2">
                             <button
@@ -441,7 +441,7 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                                 });
                               }}
                               disabled={actionBusy.length > 0 || !financeWalletInput}
-                              className="flex-1 py-2 navy-bg text-white rounded-lg text-xs font-bold disabled:opacity-50"
+                              className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold disabled:opacity-50"
                             >
                               {actionBusy === 'add-fm' ? 'Adding...' : 'Add Finance Lead'}
                             </button>
@@ -464,9 +464,9 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                           </div>
                         </div>
 
-                        <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
-                          <p className="text-xs font-bold text-slate-700">Community emergency controls</p>
-                          <p className="text-[11px] text-slate-500">Pause temporarily blocks sensitive actions. Resume re-enables them.</p>
+                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
+                          <p className="text-xs font-bold text-foreground/90">Community emergency controls</p>
+                          <p className="text-[11px] text-muted-foreground">Pause temporarily blocks sensitive actions. Resume re-enables them.</p>
                           <div className="flex gap-2">
                           <button
                             onClick={() => {
@@ -504,17 +504,17 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                     )}
 
                     {(daoRole?.isAdmin || daoRole?.isCreator) && (
-                      <div className="space-y-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
-                        <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Admin Actions</p>
-                        <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
-                          <label className="block text-xs font-bold text-slate-700">Member wallet for verification/removal</label>
-                          <p className="text-[11px] text-slate-500">Use Verify when identity checks are complete. Remove to disable access.</p>
+                      <div className="space-y-3 p-3 rounded-xl border border-border bg-white/5">
+                        <p className="text-xs font-bold text-foreground/90 uppercase tracking-wider">Admin Actions</p>
+                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
+                          <label className="block text-xs font-bold text-foreground/90">Member wallet for verification/removal</label>
+                          <p className="text-[11px] text-muted-foreground">Use Verify when identity checks are complete. Remove to disable access.</p>
                           <input
                             type="text"
                             value={memberMgmtWallet}
                             onChange={(e) => setMemberMgmtWallet(e.target.value)}
                             placeholder="Enter member wallet (0x...)"
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                            className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                           />
                           <div className="flex gap-2">
                             <button
@@ -529,7 +529,7 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                                 });
                               }}
                               disabled={actionBusy.length > 0 || !memberMgmtWallet}
-                              className="flex-1 py-2 navy-bg text-white rounded-lg text-xs font-bold disabled:opacity-50"
+                              className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold disabled:opacity-50"
                             >
                               {actionBusy === 'verify-member' ? 'Verifying...' : 'Verify Member'}
                             </button>
@@ -552,13 +552,13 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                           </div>
                         </div>
 
-                        <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
-                          <label className="block text-xs font-bold text-slate-700">Select project for project actions</label>
-                          <p className="text-[11px] text-slate-500">Activate when vote requirements are met, or mark as incomplete if funding failed.</p>
+                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
+                          <label className="block text-xs font-bold text-foreground/90">Select project for project actions</label>
+                          <p className="text-[11px] text-muted-foreground">Activate when vote requirements are met, or mark as incomplete if funding failed.</p>
                           <select
                             value={investmentIdInput}
                             onChange={(e) => setInvestmentIdInput(e.target.value)}
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                            className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                           >
                             <option value="">Select project</option>
                             {investments.map((inv) => (
@@ -581,7 +581,7 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                                 });
                               }}
                               disabled={actionBusy.length > 0 || !investmentIdInput}
-                              className="py-2 navy-bg text-white rounded-lg text-xs font-bold disabled:opacity-50"
+                              className="py-2 bg-primary text-white rounded-lg text-xs font-bold disabled:opacity-50"
                             >
                               {actionBusy === 'activate-investment' ? 'Activating...' : 'Activate'}
                             </button>
@@ -605,9 +605,9 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                           </div>
                         </div>
 
-                        <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
-                          <label className="block text-xs font-bold text-slate-700">Close project (after full payout)</label>
-                          <p className="text-[11px] text-slate-500">Use this after all yield has been distributed to members.</p>
+                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
+                          <label className="block text-xs font-bold text-foreground/90">Close project (after full payout)</label>
+                          <p className="text-[11px] text-muted-foreground">Use this after all yield has been distributed to members.</p>
                           <button
                             onClick={() => {
                               if (!requireWalletAndDao()) return;
@@ -627,9 +627,9 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                           </button>
                         </div>
 
-                        <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
-                          <label className="block text-xs font-bold text-slate-700">Move unclaimed funds</label>
-                          <p className="text-[11px] text-slate-500">
+                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
+                          <label className="block text-xs font-bold text-foreground/90">Move unclaimed funds</label>
+                          <p className="text-[11px] text-muted-foreground">
                             After grace period ends, move remaining unclaimed yield for the selected project to this recipient wallet.
                           </p>
                           <input
@@ -637,7 +637,7 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                             value={sweepRecipient}
                             onChange={(e) => setSweepRecipient(e.target.value)}
                             placeholder="Recipient wallet address (0x...)"
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                            className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
                           />
                           <button
                             onClick={() => {
@@ -673,15 +673,15 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                 <Loader2 className="w-10 h-10 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Member Added Successfully</h2>
-                <p className="text-slate-500 mt-2 text-sm">Member setup is complete.</p>
+                <h2 className="text-2xl font-bold text-foreground">Member Added Successfully</h2>
+                <p className="text-muted-foreground mt-2 text-sm">Member setup is complete.</p>
               </div>
 
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-left space-y-2">
-                <p className="text-xs text-slate-500">Reference Used</p>
-                <p className="text-xs font-mono text-slate-700 break-all">{proofReferenceUsed}</p>
-                <p className="text-xs text-slate-500 pt-2">kycProofHash</p>
-                <p className="text-xs font-mono text-slate-700 break-all">{kycProofHash}</p>
+              <div className="p-4 bg-white/5 border border-border rounded-xl text-left space-y-2">
+                <p className="text-xs text-muted-foreground">Reference Used</p>
+                <p className="text-xs font-mono text-foreground/90 break-all">{proofReferenceUsed}</p>
+                <p className="text-xs text-muted-foreground pt-2">kycProofHash</p>
+                <p className="text-xs font-mono text-foreground/90 break-all">{kycProofHash}</p>
                 <div className="pt-1">
                   <button
                     onClick={async () => {
@@ -703,7 +703,7 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                   href={getTxExplorerUrl(txHash)}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 py-3 border border-slate-200 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                  className="flex-1 py-3 border border-border rounded-xl font-bold text-sm flex items-center justify-center gap-2"
                 >
                   View Transaction
                   <ExternalLink className="w-4 h-4" />
@@ -713,13 +713,13 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                     href={getTxExplorerUrl(txHash, 1)}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 py-3 border border-slate-200 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                    className="flex-1 py-3 border border-border rounded-xl font-bold text-sm flex items-center justify-center gap-2"
                   >
                     Backup Explorer
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 )}
-                <button onClick={onComplete} className="flex-1 py-3 navy-bg text-white rounded-xl font-bold text-sm">
+                <button onClick={onComplete} className="flex-1 py-3 bg-primary text-white rounded-xl font-bold text-sm">
                   Return to Dashboard
                 </button>
               </div>

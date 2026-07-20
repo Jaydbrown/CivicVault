@@ -236,7 +236,7 @@ const ProfileView: React.FC = () => {
             <CheckCircle className="w-3 h-3 mr-1" />
             Authenticated
           </Badge>
-          <p className="text-[10px] text-slate-500 flex items-center gap-1 justify-end max-w-[10rem] leading-tight">
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1 justify-end max-w-[10rem] leading-tight">
             <Globe className="w-3 h-3 text-emerald-500 shrink-0" />
             App: {APP_CHAIN_NAME}
           </p>
@@ -247,13 +247,13 @@ const ProfileView: React.FC = () => {
             <UserAvatar imageUrl={profileAvatarUrl} initials={accountInitial} size={88} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 break-words">{displayName}</h1>
-            <p className="text-sm text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-words">{displayName}</h1>
+            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
               <Mail className="w-4 h-4 shrink-0 opacity-60" />
               {user?.email?.address ?? "No email linked"}
             </p>
             {walletChainLabel && walletAddress ? (
-              <p className="text-xs text-slate-400 mt-2">Wallet network: {walletChainLabel}</p>
+              <p className="text-xs text-muted-foreground mt-2">Wallet network: {walletChainLabel}</p>
             ) : null}
             {walletAddress ? (
               <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -270,7 +270,7 @@ const ProfileView: React.FC = () => {
                   <button
                     type="button"
                     onClick={removeAvatar}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-foreground/90 text-sm font-semibold hover:bg-white/5 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                     Remove
@@ -278,7 +278,7 @@ const ProfileView: React.FC = () => {
                 ) : null}
               </div>
             ) : (
-              <p className="text-xs text-slate-400 mt-3">Connect an Ethereum wallet to see your DAO memberships.</p>
+              <p className="text-xs text-muted-foreground mt-3">Connect an Ethereum wallet to see your DAO memberships.</p>
             )}
             {!pinataConfigured() ? (
               <p className="text-xs text-amber-700 mt-2 max-w-lg">
@@ -286,7 +286,7 @@ const ProfileView: React.FC = () => {
                 URL is stored in this browser per wallet.
               </p>
             ) : walletAddress ? (
-              <p className="text-xs text-slate-400 mt-2 max-w-lg">
+              <p className="text-xs text-muted-foreground mt-2 max-w-lg">
                 Avatar appears in the sidebar, header, and community chat. Stored locally for this device only.
               </p>
             ) : null}
@@ -301,8 +301,8 @@ const ProfileView: React.FC = () => {
             <div className="flex items-start gap-3">
               <Wallet className="w-5 h-5 text-emerald-700 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-slate-900">Link your MetaMask wallet</p>
-                <p className="text-xs text-slate-600 mt-0.5">
+                <p className="text-sm font-semibold text-foreground">Link your MetaMask wallet</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   You're signed in with Gmail. Link MetaMask so both login methods use the same wallet address and dashboard.
                 </p>
               </div>
@@ -326,8 +326,8 @@ const ProfileView: React.FC = () => {
           <div className="flex items-start gap-3 mb-3">
             <Mail className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-slate-900">Add email for DAO notifications</p>
-              <p className="text-xs text-slate-600 mt-0.5">
+              <p className="text-sm font-semibold text-foreground">Add email for DAO notifications</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Get emailed when investments are created, yield is deposited, or your DAO has important updates.
               </p>
             </div>
@@ -338,7 +338,7 @@ const ProfileView: React.FC = () => {
               value={notifEmail}
               onChange={(e) => setNotifEmail(e.target.value)}
               placeholder="your@email.com"
-              className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="flex-1 px-3 py-2 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400"
             />
             <button
               type="button"
@@ -358,7 +358,7 @@ const ProfileView: React.FC = () => {
         </Card>
       ) : loading ? (
         <Card className="p-8">
-          <p className="text-slate-500 text-sm">Loading your on-chain profile…</p>
+          <p className="text-muted-foreground text-sm">Loading your on-chain profile…</p>
         </Card>
       ) : (
         <>
@@ -382,8 +382,8 @@ const ProfileView: React.FC = () => {
                   <Building2 className="w-5 h-5" />
                   <span className="text-xs font-bold uppercase tracking-widest">Memberships</span>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900">Your DAO communities</h2>
-                <p className="text-sm text-slate-500 mt-1 max-w-xl">
+                <h2 className="text-xl font-bold text-foreground">Your DAO communities</h2>
+                <p className="text-sm text-muted-foreground mt-1 max-w-xl">
                   DAOs where you are creator, admin, finance lead, verified member, or on the roster pending KYC
                   verification.
                 </p>
@@ -391,10 +391,10 @@ const ProfileView: React.FC = () => {
             </div>
 
             {sortedCommunities.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center">
+              <div className="rounded-2xl border border-dashed border-border bg-white/5/70 p-8 text-center">
                 <Building2 className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                <p className="text-sm text-slate-600 font-medium">No DAO memberships yet for this wallet.</p>
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-sm text-muted-foreground font-medium">No DAO memberships yet for this wallet.</p>
+                <p className="text-xs text-muted-foreground mt-2">
                   Ask a DAO admin to add your address, complete KYC in the app, or create a DAO from the dashboard.
                 </p>
               </div>
@@ -406,22 +406,22 @@ const ProfileView: React.FC = () => {
                   return (
                     <div
                       key={row.daoAddress}
-                      className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm hover:border-emerald-200/80 transition-colors"
+                      className="rounded-2xl border border-border bg-card backdrop-blur-md p-4 sm:p-5 shadow-sm hover:border-emerald-200/80 transition-colors"
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                         <div className="min-w-0 flex-1 space-y-2">
-                          <h3 className="text-lg font-bold text-slate-900">{row.daoName}</h3>
-                          <p className="text-sm text-slate-500 flex items-start gap-2">
+                          <h3 className="text-lg font-bold text-foreground">{row.daoName}</h3>
+                          <p className="text-sm text-muted-foreground flex items-start gap-2">
                             <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
                             <span>{row.location || "Location not set"}</span>
                           </p>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                             <span className="inline-flex items-center gap-1">
                               <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
                               TVL {row.tvlFormatted}
                             </span>
                             <span className="inline-flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 text-slate-400" />
+                              <Users className="w-3.5 h-3.5 text-muted-foreground" />
                               {row.memberCount} members
                             </span>
                             {claimableDao > 0n ? (
@@ -431,12 +431,12 @@ const ProfileView: React.FC = () => {
                             ) : null}
                           </div>
                           <div className="flex flex-wrap items-center gap-2 pt-1">
-                            <code className="text-[11px] bg-slate-100 px-2 py-1 rounded-lg font-mono text-slate-700">
+                            <code className="text-[11px] bg-white/10 px-2 py-1 rounded-lg font-mono text-foreground/90">
                               {maskAddress(row.daoAddress)}
                             </code>
                             <button
                               type="button"
-                              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
+                              className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground"
                               onClick={() => void copyText(row.daoAddress)}
                               aria-label="Copy DAO address"
                             >
@@ -462,18 +462,18 @@ const ProfileView: React.FC = () => {
                         </div>
                       </div>
                       {yRows.length > 0 ? (
-                        <div className="mt-4 pt-4 border-t border-slate-100">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                        <div className="mt-4 pt-4 border-t border-border/40">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
                             Your yield positions here
                           </p>
                           <ul className="space-y-2">
                             {yRows.map((y) => (
                               <li
                                 key={`${y.daoAddress}-${y.investmentId}`}
-                                className="flex flex-wrap justify-between gap-2 text-sm bg-slate-50 rounded-xl px-3 py-2"
+                                className="flex flex-wrap justify-between gap-2 text-sm bg-white/5 rounded-xl px-3 py-2"
                               >
-                                <span className="text-slate-800 font-medium truncate min-w-0">{y.investmentName}</span>
-                                <span className="text-slate-600 tabular-nums shrink-0">
+                                <span className="text-foreground font-medium truncate min-w-0">{y.investmentName}</span>
+                                <span className="text-muted-foreground tabular-nums shrink-0">
                                   Claimable{" "}
                                   <span className="font-bold text-emerald-700">{formatUsdcAmount(y.claimable)}</span>
                                 </span>
@@ -491,14 +491,14 @@ const ProfileView: React.FC = () => {
 
           {yields.length > 0 && (
             <Card className="p-4 sm:p-8">
-              <h2 className="text-lg font-bold text-slate-900 mb-1">Yield summary</h2>
-              <p className="text-sm text-slate-500 mb-4">
+              <h2 className="text-lg font-bold text-foreground mb-1">Yield summary</h2>
+              <p className="text-sm text-muted-foreground mb-4">
                 Investments where you have staked votes or claims. Totals mirror the Yields screen.
               </p>
               <div className="overflow-x-auto -mx-1">
                 <table className="w-full text-sm min-w-[320px]">
                   <thead>
-                    <tr className="border-b border-slate-100 text-left text-[10px] uppercase tracking-widest text-slate-400">
+                    <tr className="border-b border-border/40 text-left text-[10px] uppercase tracking-widest text-muted-foreground">
                       <th className="pb-2 pr-3 font-bold">DAO</th>
                       <th className="pb-2 pr-3 font-bold">Investment</th>
                       <th className="pb-2 pr-3 font-bold">Claimable</th>
@@ -508,12 +508,12 @@ const ProfileView: React.FC = () => {
                   <tbody>
                     {yields.map((y) => (
                       <tr key={`${y.daoAddress}-${y.investmentId}`} className="border-b border-slate-50 last:border-0">
-                        <td className="py-2.5 pr-3 text-slate-700 font-medium">{y.daoName}</td>
-                        <td className="py-2.5 pr-3 text-slate-600">{y.investmentName}</td>
+                        <td className="py-2.5 pr-3 text-foreground/90 font-medium">{y.daoName}</td>
+                        <td className="py-2.5 pr-3 text-muted-foreground">{y.investmentName}</td>
                         <td className="py-2.5 pr-3 text-emerald-700 font-semibold tabular-nums">
                           {formatUsdcAmount(y.claimable)}
                         </td>
-                        <td className="py-2.5 text-slate-500 tabular-nums">{formatUsdcAmount(y.distributed)}</td>
+                        <td className="py-2.5 text-muted-foreground tabular-nums">{formatUsdcAmount(y.distributed)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -525,29 +525,29 @@ const ProfileView: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <Card className="p-4 sm:p-8">
-                <h2 className="text-lg font-bold text-slate-900 mb-4">Connected wallet</h2>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <h2 className="text-lg font-bold text-foreground mb-4">Connected wallet</h2>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 bg-white/5 rounded-2xl border border-border/40">
                   <div className="flex items-center gap-4 min-w-0">
-                    <div className="p-3 bg-white rounded-xl shadow-sm shrink-0">
+                    <div className="p-3 bg-card backdrop-blur-md rounded-xl shadow-sm shrink-0">
                       <Wallet className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Address</p>
-                      <p className="text-sm font-mono font-bold text-slate-900 break-all">{walletAddress}</p>
-                      <p className="text-xs text-slate-500 mt-1">{maskAddress(walletAddress)}</p>
+                      <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Address</p>
+                      <p className="text-sm font-mono font-bold text-foreground break-all">{walletAddress}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{maskAddress(walletAddress)}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0 self-end sm:self-center">
                     <button
                       type="button"
-                      className="p-2 rounded-lg border border-slate-200 hover:bg-white"
+                      className="p-2 rounded-lg border border-border hover:bg-card backdrop-blur-md"
                       onClick={() => void copyText(walletAddress)}
                       aria-label="Copy wallet address"
                     >
                       <Copy className="w-4 h-4" />
                     </button>
                     <a
-                      className="p-2 rounded-lg border border-slate-200 hover:bg-white"
+                      className="p-2 rounded-lg border border-border hover:bg-card backdrop-blur-md"
                       target="_blank"
                       rel="noreferrer"
                       href={getAddressExplorerUrl(walletAddress)}
@@ -563,10 +563,10 @@ const ProfileView: React.FC = () => {
             <div className="space-y-6">
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <Shield className="w-5 h-5 text-slate-400" />
-                  <h2 className="text-lg font-bold text-slate-900">Security</h2>
+                  <Shield className="w-5 h-5 text-muted-foreground" />
+                  <h2 className="text-lg font-bold text-foreground">Security</h2>
                 </div>
-                <ul className="text-sm text-slate-600 space-y-3 list-disc list-inside">
+                <ul className="text-sm text-muted-foreground space-y-3 list-disc list-inside">
                   <li>Sign-in and recovery are handled by Privy.</li>
                   <li>
                     DAO permissions and member rosters live on-chain on <strong>{APP_CHAIN_NAME}</strong>.
@@ -580,11 +580,11 @@ const ProfileView: React.FC = () => {
                   href="/whitepaper.html"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full text-left text-sm font-medium text-slate-700 flex items-center gap-2 py-2 rounded-xl hover:bg-slate-50 px-2 -mx-2"
+                  className="w-full text-left text-sm font-medium text-foreground/90 flex items-center gap-2 py-2 rounded-xl hover:bg-white/5 px-2 -mx-2"
                 >
                   <Globe className="w-4 h-4 shrink-0" /> Whitepaper
                 </a>
-                <p className="text-xs text-slate-500 pl-7">Product details and DAO mechanics.</p>
+                <p className="text-xs text-muted-foreground pl-7">Product details and DAO mechanics.</p>
               </Card>
             </div>
           </div>

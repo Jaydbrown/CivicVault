@@ -245,10 +245,10 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
   const hasNotifications = notifications.length > 0 || unreadCount > 0;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-[#0e1117] flex flex-col w-full max-w-[100vw] overflow-x-clip">
+    <div className="min-h-screen min-h-[100dvh] bg-background flex flex-col w-full max-w-[100vw] overflow-x-clip">
 
       {/* ── Top Header ── */}
-      <header className="shrink-0 bg-white border-b border-slate-100 sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)]">
+      <header className="shrink-0 bg-card backdrop-blur-md border-b border-border/40 sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)]">
         <div className="h-14 flex items-center justify-between px-3 sm:px-5 max-w-screen-xl mx-auto w-full gap-3">
 
           {/* Logo */}
@@ -256,14 +256,14 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
             onClick={() => navigate('dashboard')}
             className="flex items-center gap-2 shrink-0"
           >
-            <div className="navy-bg p-1.5 rounded-xl flex items-center justify-center">
+            <div className="bg-primary p-1.5 rounded-xl flex items-center justify-center">
               <Leaf className="text-white w-4 h-4" />
             </div>
-            <span className="font-bold text-base sm:text-lg tracking-tight text-slate-900">CivicVault</span>
+            <span className="font-bold text-base sm:text-lg tracking-tight text-foreground">CivicVault</span>
           </button>
 
           {/* Page title — mobile only, centered */}
-          <span className="absolute left-1/2 -translate-x-1/2 sm:hidden font-semibold text-sm text-slate-700 truncate max-w-[40vw] pointer-events-none">
+          <span className="absolute left-1/2 -translate-x-1/2 sm:hidden font-semibold text-sm text-foreground/90 truncate max-w-[40vw] pointer-events-none">
             {PAGE_TITLES[currentView] ?? 'CivicVault'}
           </span>
 
@@ -272,7 +272,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
             {/* Back to landing — desktop only */}
             <button
               onClick={() => onViewChange('landing')}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-semibold transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-muted-foreground hover:bg-white/5 text-xs font-semibold transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Site
@@ -282,7 +282,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
             <div className="relative">
               <button
                 onClick={() => setIsNotificationsOpen((o) => !o)}
-                className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
+                className="relative p-2 text-muted-foreground hover:bg-white/10 rounded-xl transition-colors"
                 aria-label="Notifications"
               >
                 <Bell className="w-5 h-5" />
@@ -292,32 +292,32 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
               </button>
 
               {isNotificationsOpen && (
-                <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-full sm:right-0 mt-0 sm:mt-2 w-auto sm:w-80 max-w-[min(100vw-1.5rem,20rem)] max-h-[min(24rem,70vh)] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overscroll-contain">
-                  <div className="p-3 border-b border-slate-100 flex items-center justify-between">
-                    <p className="text-sm font-bold text-slate-900">Notifications</p>
+                <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-full sm:right-0 mt-0 sm:mt-2 w-auto sm:w-80 max-w-[min(100vw-1.5rem,20rem)] max-h-[min(24rem,70vh)] overflow-y-auto bg-card backdrop-blur-md border border-border rounded-2xl shadow-xl z-50 overscroll-contain">
+                  <div className="p-3 border-b border-border/40 flex items-center justify-between">
+                    <p className="text-sm font-bold text-foreground">Notifications</p>
                     <button
                       onClick={() => void refreshNotifications()}
-                      className="text-xs font-bold text-[#1a4731] hover:underline"
+                      className="text-xs font-bold text-primary hover:underline"
                     >
                       Refresh
                     </button>
                   </div>
                   <div className="p-2">
                     {notificationsLoading ? (
-                      <p className="text-sm text-slate-500 p-3">Loading…</p>
+                      <p className="text-sm text-muted-foreground p-3">Loading…</p>
                     ) : notifications.length === 0 ? (
                       unreadCount > 0 ? (
                         <div className="p-3">
-                          <p className="text-sm text-slate-600">You have unread community messages.</p>
+                          <p className="text-sm text-muted-foreground">You have unread community messages.</p>
                           <button
                             onClick={() => { navigate('messages'); setIsNotificationsOpen(false); }}
-                            className="mt-2 text-sm font-bold text-[#1a4731] hover:underline"
+                            className="mt-2 text-sm font-bold text-primary hover:underline"
                           >
                             Open Messages
                           </button>
                         </div>
                       ) : (
-                        <p className="text-sm text-slate-500 p-3">No new notifications.</p>
+                        <p className="text-sm text-muted-foreground p-3">No new notifications.</p>
                       )
                     ) : (
                       notifications.map((item) => (
@@ -328,10 +328,10 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
                             navigate(item.view);
                             setIsNotificationsOpen(false);
                           }}
-                          className="w-full text-left p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                          className="w-full text-left p-3 rounded-xl hover:bg-white/5 transition-colors"
                         >
-                          <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{item.subtitle}</p>
+                          <p className="text-sm font-bold text-foreground">{item.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{item.subtitle}</p>
                         </button>
                       ))
                     )}
@@ -343,15 +343,15 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
             {/* User chip — desktop */}
             <button
               onClick={() => navigate('profile')}
-              className="hidden sm:flex items-center gap-2 bg-slate-50 pl-1.5 pr-3 py-1 rounded-full border border-slate-200 hover:bg-slate-100 transition-colors max-w-[200px]"
+              className="hidden sm:flex items-center gap-2 bg-white/5 pl-1.5 pr-3 py-1 rounded-full border border-border hover:bg-white/10 transition-colors max-w-[200px]"
             >
               <UserAvatar imageUrl={profileAvatarUrl} initials={accountInitial} size={26} />
               <div className="flex flex-col items-start overflow-hidden">
-                <span className="text-xs font-bold text-slate-800 truncate max-w-[120px]">
+                <span className="text-xs font-bold text-foreground truncate max-w-[120px]">
                   {isWalletConnected ? accountDisplayName : user?.email?.address || 'User'}
                 </span>
                 {walletAddress && (
-                  <span className="text-[9px] text-slate-400 font-mono truncate max-w-[120px]">
+                  <span className="text-[9px] text-muted-foreground font-mono truncate max-w-[120px]">
                     {formatWalletEncapsulated(walletAddress)}
                   </span>
                 )}
@@ -367,7 +367,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
       </main>
 
       {/* ── Bottom Navigation ── */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100 pb-[env(safe-area-inset-bottom,0px)]">
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-card backdrop-blur-md/95 backdrop-blur-md border-t border-border/40 pb-[env(safe-area-inset-bottom,0px)]">
         <div className="max-w-screen-xl mx-auto px-1 sm:px-4">
           <div className="flex items-stretch justify-around h-16 sm:h-[4.5rem]">
 
@@ -380,15 +380,15 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
                   type="button"
                   onClick={() => navigate(item.id)}
                   className={`flex flex-col items-center justify-center gap-1 flex-1 rounded-none transition-colors relative ${
-                    isActive ? 'text-[#1a4731]' : 'text-slate-400 hover:text-slate-600'
+                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-muted-foreground'
                   }`}
                 >
                   {/* Active indicator bar */}
                   {isActive && (
-                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#1a4731] rounded-full" />
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
                   )}
 
-                  <div className={`relative p-1.5 rounded-xl transition-all ${isActive ? 'bg-[#1a4731]/10' : ''}`}>
+                  <div className={`relative p-1.5 rounded-xl transition-all ${isActive ? 'bg-primary/10' : ''}`}>
                     <Icon className="w-[1.25rem] h-[1.25rem] sm:w-[1.35rem] sm:h-[1.35rem]" />
                     {typeof item.badge === 'number' && item.badge > 0 && (
                       <span className="absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-[3px] flex items-center justify-center rounded-full bg-red-500 text-white text-[8px] font-bold leading-none border-2 border-white">
@@ -397,7 +397,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
                     )}
                   </div>
 
-                  <span className={`text-[9px] sm:text-[10px] font-semibold leading-none ${isActive ? 'text-[#1a4731]' : ''}`}>
+                  <span className={`text-[9px] sm:text-[10px] font-semibold leading-none ${isActive ? 'text-primary' : ''}`}>
                     {item.label}
                   </span>
                 </button>
@@ -409,16 +409,16 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
               type="button"
               onClick={() => setShowMoreSheet((o) => !o)}
               className={`flex flex-col items-center justify-center gap-1 flex-1 rounded-none transition-colors relative ${
-                showMoreSheet ? 'text-[#1a4731]' : 'text-slate-400 hover:text-slate-600'
+                showMoreSheet ? 'text-primary' : 'text-muted-foreground hover:text-muted-foreground'
               }`}
             >
               {showMoreSheet && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#1a4731] rounded-full" />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
               )}
-              <div className={`p-1.5 rounded-xl transition-all ${showMoreSheet ? 'bg-[#1a4731]/10' : ''}`}>
+              <div className={`p-1.5 rounded-xl transition-all ${showMoreSheet ? 'bg-primary/10' : ''}`}>
                 <LayoutGrid className="w-[1.25rem] h-[1.25rem] sm:w-[1.35rem] sm:h-[1.35rem]" />
               </div>
-              <span className={`text-[9px] sm:text-[10px] font-semibold leading-none ${showMoreSheet ? 'text-[#1a4731]' : ''}`}>
+              <span className={`text-[9px] sm:text-[10px] font-semibold leading-none ${showMoreSheet ? 'text-primary' : ''}`}>
                 More
               </span>
             </button>
@@ -430,9 +430,9 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
       {/* ── More Sheet ── */}
       {showMoreSheet && (
         <div className="fixed inset-0 z-50" onClick={() => setShowMoreSheet(false)}>
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/60/40 backdrop-blur-sm" />
           <div
-            className="absolute bottom-0 inset-x-0 bg-white rounded-t-3xl shadow-2xl overflow-hidden"
+            className="absolute bottom-0 inset-x-0 bg-card backdrop-blur-md rounded-t-3xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             style={{ maxHeight: '80dvh' }}
           >
@@ -442,14 +442,14 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
             </div>
 
             {/* Connection status + back link */}
-            <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-slate-100">
-              <div className={`flex items-center gap-2 text-xs font-semibold ${isWalletConnected ? 'text-[#1a4731]' : 'text-slate-400'}`}>
+            <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-border/40">
+              <div className={`flex items-center gap-2 text-xs font-semibold ${isWalletConnected ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Globe className="w-3.5 h-3.5" />
                 {connectionLabel}
               </div>
               <button
                 onClick={() => { onViewChange('landing'); setShowMoreSheet(false); }}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-muted-foreground font-medium transition-colors"
               >
                 <ArrowLeft className="w-3 h-3" />
                 Back to site
@@ -468,8 +468,8 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
                     onClick={() => navigate(item.id)}
                     className={`flex flex-col items-center gap-2.5 py-5 px-3 rounded-2xl border transition-all ${
                       isActive
-                        ? 'bg-[#1a4731]/8 border-[#1a4731]/20 text-[#1a4731]'
-                        : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-green-50 hover:border-green-100 hover:text-[#1a4731]'
+                        ? 'bg-primary/8 border-primary/20 text-primary'
+                        : 'bg-white/5 border-border/40 text-muted-foreground hover:bg-green-50 hover:border-green-100 hover:text-primary'
                     }`}
                   >
                     <Icon className="w-6 h-6" />
@@ -484,7 +484,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
               <button
                 type="button"
                 onClick={() => navigate('create-dao')}
-                className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl navy-bg text-white font-bold text-sm hover:opacity-90 active:opacity-80 transition-opacity shadow-lg shadow-[#1a4731]/20"
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-primary text-white font-bold text-sm hover:opacity-90 active:opacity-80 transition-opacity shadow-lg shadow-[#1a4731]/20"
               >
                 <Plus className="w-4 h-4" />
                 Create New DAO
@@ -518,7 +518,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
           </>
         }
       >
-        <p className="text-sm text-slate-600">Are you sure you want to sign out from this device?</p>
+        <p className="text-sm text-muted-foreground">Are you sure you want to sign out from this device?</p>
       </Modal>
     </div>
   );

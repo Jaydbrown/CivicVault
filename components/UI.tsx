@@ -15,10 +15,10 @@ export const Button: React.FC<{
 }> = ({ variant = 'primary', size = 'md', loading, disabled, onClick, children, className = '' }) => {
   const base = "inline-flex items-center justify-center font-bold transition-all rounded-xl disabled:opacity-50 disabled:cursor-not-allowed";
   const variants = {
-    primary: "navy-bg text-white shadow-lg shadow-slate-900/10 hover:shadow-xl",
+    primary: "bg-primary text-white shadow-lg shadow-slate-900/10 hover:shadow-xl",
     secondary: "bg-emerald-600 text-white hover:bg-emerald-700",
-    outline: "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50",
-    ghost: "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
+    outline: "bg-card backdrop-blur-md border border-border text-foreground/90 hover:bg-white/5",
+    ghost: "text-muted-foreground hover:bg-white/10 hover:text-foreground",
     danger: "bg-red-500 text-white hover:bg-red-600",
   };
   const sizes = {
@@ -48,7 +48,7 @@ export const Card: React.FC<{
 }> = ({ children, className = '', interactive, onClick }) => (
   <div 
     onClick={onClick}
-    className={`bg-white rounded-3xl border border-slate-200 shadow-sm p-6 ${interactive ? 'hover:shadow-md hover:border-emerald-200 transition-all cursor-pointer' : ''} ${className}`}
+    className={`bg-card backdrop-blur-md rounded-3xl border border-border shadow-sm p-6 ${interactive ? 'hover:shadow-md hover:border-emerald-200 transition-all cursor-pointer' : ''} ${className}`}
   >
     {children}
   </div>
@@ -65,7 +65,7 @@ export const Badge: React.FC<{
     warning: "bg-amber-100 text-amber-700",
     error: "bg-red-100 text-red-700",
     info: "bg-blue-100 text-blue-700",
-    neutral: "bg-slate-100 text-slate-600",
+    neutral: "bg-white/10 text-muted-foreground",
   };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${variants[variant]} ${className}`}>
@@ -85,21 +85,21 @@ export const Modal: React.FC<{
   if (!isOpen) return null;
   const content = (
     <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full sm:max-w-lg max-h-[min(92dvh,100vh)] sm:max-h-[min(92dvh,44rem)] flex flex-col bg-white rounded-t-[1.75rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 sm:mb-0 mb-0">
-        <div className="flex items-center justify-between gap-3 p-4 sm:p-6 shrink-0 border-b border-slate-100">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight pr-2">{title}</h3>
+      <div className="absolute inset-0 bg-black/60/40 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="relative w-full sm:max-w-lg max-h-[min(92dvh,100vh)] sm:max-h-[min(92dvh,44rem)] flex flex-col bg-card backdrop-blur-md rounded-t-[1.75rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 sm:mb-0 mb-0">
+        <div className="flex items-center justify-between gap-3 p-4 sm:p-6 shrink-0 border-b border-border/40">
+          <h3 className="text-lg sm:text-xl font-bold text-foreground leading-tight pr-2">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-900 rounded-full transition-colors shrink-0"
+            className="p-2 text-muted-foreground hover:text-foreground rounded-full transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex-1 min-h-0">{children}</div>
         {footer && (
-          <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+          <div className="p-4 sm:p-6 bg-white/5 border-t border-border/40 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
             {footer}
           </div>
         )}
@@ -119,12 +119,12 @@ export const ProgressBar: React.FC<{
 }> = ({ value, max = 100, label, colorClass = "bg-emerald-500" }) => (
   <div className="space-y-2">
     {label && (
-      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         <span>{label}</span>
         <span>{Math.round((value / max) * 100)}%</span>
       </div>
     )}
-    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
       <div className={`h-full transition-all duration-1000 ${colorClass}`} style={{ width: `${(value / max) * 100}%` }}></div>
     </div>
   </div>
@@ -216,19 +216,19 @@ export const MetricCard: React.FC<{
   const accentText = accent === 'emerald' ? 'text-emerald-600' :
                      accent === 'blue'    ? 'text-blue-600'    :
                      accent === 'amber'   ? 'text-amber-600'   :
-                     accent === 'red'     ? 'text-red-600'     : 'text-slate-400';
+                     accent === 'red'     ? 'text-red-600'     : 'text-muted-foreground';
   return (
     <Card className={`p-4 sm:p-6 ${className}`}>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-slate-500 text-sm">{label}</p>
+        <p className="text-muted-foreground text-sm">{label}</p>
         {icon && (
-          <span className={`p-1.5 rounded-lg ${accentBg || 'bg-slate-50'}`}>
+          <span className={`p-1.5 rounded-lg ${accentBg || 'bg-white/5'}`}>
             <span className={accentText}>{icon}</span>
           </span>
         )}
       </div>
-      <h3 className="text-2xl font-bold text-slate-900 mt-1">{value}</h3>
-      {sublabel && <p className="text-xs text-slate-500 mt-1">{sublabel}</p>}
+      <h3 className="text-2xl font-bold text-foreground mt-1">{value}</h3>
+      {sublabel && <p className="text-xs text-muted-foreground mt-1">{sublabel}</p>}
     </Card>
   );
 };

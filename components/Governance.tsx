@@ -2,11 +2,11 @@ import React from "react";
 import { motion } from "framer-motion";
 
 const chipTextClass =
-  "text-base sm:text-lg font-semibold tracking-tight leading-none text-slate-900 [font-family:Georgia,'Times_New_Roman',serif]";
+  "text-base sm:text-lg font-semibold tracking-tight leading-none text-foreground [font-family:Georgia,'Times_New_Roman',serif]";
 const chipClass =
-  "inline-flex items-center px-4 py-2.5 rounded-xl bg-white/90 shadow-[0_8px_24px_rgba(15,23,42,0.06)]";
+  "inline-flex items-center px-4 py-2.5 rounded-xl bg-card backdrop-blur-md/90 shadow-[0_8px_24px_rgba(15,23,42,0.06)]";
 const branchChipClass =
-  "inline-flex items-center px-2.5 py-1.5 rounded-lg bg-white/95 border border-slate-200 shadow-[0_4px_12px_rgba(15,23,42,0.05)]";
+  "inline-flex items-center px-2.5 py-1.5 rounded-lg bg-card backdrop-blur-md/95 border border-border shadow-[0_4px_12px_rgba(15,23,42,0.05)]";
 
 const BranchTree = ({ labels }: { labels: readonly string[] }) => (
   <motion.div
@@ -51,7 +51,7 @@ const BranchTree = ({ labels }: { labels: readonly string[] }) => (
               transition={{ duration: 0.2, delay: 0.1 + index * 0.06 }}
               style={{ transformOrigin: "left" }}
             />
-            <span className={`${branchChipClass} relative -ml-[1px] text-xs sm:text-sm font-medium tracking-tight text-slate-700`}>
+            <span className={`${branchChipClass} relative -ml-[1px] text-xs sm:text-sm font-medium tracking-tight text-foreground/90`}>
               {label}
             </span>
           </motion.div>
@@ -118,10 +118,10 @@ const Governance: React.FC = () => {
         </div>
 
         <div className="text-center mb-20">
-          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl mb-4">
+          <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-4">
             Community Governance
           </h2>
-          <p className="text-slate-500 text-base sm:text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             A visual flow from support to outcomes.
           </p>
         </div>

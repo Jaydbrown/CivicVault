@@ -16,7 +16,7 @@ export const UserAvatar: React.FC<Props> = ({ imageUrl, initials, size = 32, cla
   if (imageUrl?.trim()) {
     return (
       <div
-        className={`shrink-0 rounded-full overflow-hidden bg-slate-100 ring-2 ring-white ${className}`}
+        className={`shrink-0 rounded-full overflow-hidden bg-white/10 ring-2 ring-white ${className}`}
         style={{ width: dim, height: dim }}
       >
         <img src={imageUrl.trim()} alt="" className="w-full h-full object-cover" loading="lazy" />

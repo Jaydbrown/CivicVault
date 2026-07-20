@@ -115,13 +115,13 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
     <div className="relative">
       <button
         onClick={() => setShowSettings(!showSettings)}
-        className="p-2 rounded-lg hover:bg-slate-100 transition"
+        className="p-2 rounded-lg hover:bg-white/10 transition"
         title={isSubscribed ? "Email notifications enabled" : "Email notifications disabled"}
       >
         {isSubscribed ? (
           <Bell className="w-4 h-4 text-emerald-600" />
         ) : (
-          <BellOff className="w-4 h-4 text-slate-400" />
+          <BellOff className="w-4 h-4 text-muted-foreground" />
         )}
       </button>
 
@@ -131,15 +131,15 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
             className="fixed inset-0 z-40" 
             onClick={() => setShowSettings(false)}
           />
-          <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50">
+          <div className="absolute right-0 mt-2 w-80 bg-card backdrop-blur-md rounded-xl shadow-xl border border-border p-4 z-50">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
                 <Mail className="w-4 h-4 text-emerald-600" />
                 Email Notifications
               </h4>
               <button
                 onClick={() => setShowSettings(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-muted-foreground hover:text-muted-foreground"
               >
                 ✕
               </button>
@@ -154,7 +154,7 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
 
             {!isConnected ? (
               <div className="space-y-3">
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   Get email notifications when someone messages in <strong>{daoName}</strong>
                 </p>
                 <button
@@ -164,21 +164,21 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
                 >
                   {loading ? 'Connecting...' : 'Connect Gmail Account'}
                 </button>
-                <p className="text-xs text-slate-500 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   We'll only send chat notifications for DAOs you join
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-700">Receive notifications for {daoName}</span>
+                  <span className="text-sm text-foreground/90">Receive notifications for {daoName}</span>
                   <button
                     onClick={toggleSubscription}
                     disabled={loading}
                     className={`px-3 py-1 rounded-full text-sm transition ${
                       isSubscribed
                         ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-slate-100 text-slate-600'
+                        : 'bg-white/10 text-muted-foreground'
                     }`}
                   >
                     {isSubscribed ? (
@@ -192,13 +192,13 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   {isSubscribed 
                     ? "📧 You'll receive email notifications for new messages in this DAO"
                     : "🔕 Click enable to get email notifications when someone messages"}
                 </p>
-                <div className="pt-2 border-t border-slate-100">
-                  <p className="text-xs text-slate-400">
+                <div className="pt-2 border-t border-border/40">
+                  <p className="text-xs text-muted-foreground">
                     ✓ Gmail connected
                   </p>
                 </div>

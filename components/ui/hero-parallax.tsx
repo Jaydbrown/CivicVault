@@ -39,7 +39,7 @@ export const HeroParallax = ({
   return (
     <div
       ref={ref}
-      className="h-[300vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d] bg-[#0e1117]"
+      className="h-[300vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d] bg-background"
     >
       <Header title={title} subtitle={subtitle} />
       <motion.div style={{ rotateX, rotateZ, translateY, opacity }}>
@@ -96,7 +96,7 @@ export const ProductCard = ({
         alt={product.title}
       />
     </a>
-    <div className="absolute inset-0 h-full w-full opacity-0 group-hover/product:opacity-70 bg-[#0e1117] pointer-events-none rounded-xl transition-opacity duration-300" />
+    <div className="absolute inset-0 h-full w-full opacity-0 group-hover/product:opacity-70 bg-background pointer-events-none rounded-xl transition-opacity duration-300" />
     <h2 className="absolute bottom-4 left-4 opacity-0 group-hover/product:opacity-100 text-white font-semibold transition-opacity duration-300">
       {product.title}
     </h2>

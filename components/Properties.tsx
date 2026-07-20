@@ -20,17 +20,17 @@ const CategoryCard = ({
   description: string;
   examples: string[];
 }) => (
-  <article className="bg-white/85 p-7 rounded-3xl border border-slate-200/80 shadow-[0_6px_18px_rgba(15,23,42,0.05)]">
+  <article className="bg-card backdrop-blur-md/85 p-7 rounded-3xl border border-border/80 shadow-[0_6px_18px_rgba(15,23,42,0.05)]">
     <div className="w-11 h-11 sage-bg rounded-xl flex items-center justify-center mb-4">
       <Icon className="text-white w-6 h-6" />
     </div>
-    <h3 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">
+    <h3 className="text-xl font-semibold tracking-tight text-foreground mb-2">
       {title}
     </h3>
-    <p className="text-slate-600 leading-relaxed mb-4">{description}</p>
+    <p className="text-muted-foreground leading-relaxed mb-4">{description}</p>
     <ul className="space-y-1.5">
       {examples.map((example, idx) => (
-        <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
+        <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
           <span className="text-emerald-600 mt-1">•</span>
           <span>{example}</span>
         </li>
@@ -116,13 +116,13 @@ const categories = [
 
 const Properties: React.FC = () => {
   return (
-    <section id="properties" className="py-24 lg:py-28 bg-white">
+    <section id="properties" className="py-24 lg:py-28 bg-card backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14 lg:mb-16">
-          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl mb-4">
+          <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-4">
             Investment Categories
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Community DAOs fund proposals across six categories — every investment is graded,
             deadline-bound, and governed on-chain.
           </p>
@@ -134,15 +134,15 @@ const Properties: React.FC = () => {
           ))}
         </div>
 
-        <div className="bg-white/90 rounded-3xl p-8 md:p-10 border border-slate-200/90 shadow-[0_8px_20px_rgba(15,23,42,0.06)] flex items-start gap-5">
+        <div className="bg-card backdrop-blur-md/90 rounded-3xl p-8 md:p-10 border border-border/90 shadow-[0_8px_20px_rgba(15,23,42,0.06)] flex items-start gap-5">
           <div className="w-12 h-12 shrink-0 sage-bg rounded-xl flex items-center justify-center">
             <LayoutGrid className="text-white w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">
+            <h3 className="text-xl font-semibold tracking-tight text-foreground mb-2">
               Proposal Grades &amp; Transparency
             </h3>
-            <p className="text-slate-600 leading-relaxed max-w-3xl">
+            <p className="text-muted-foreground leading-relaxed max-w-3xl">
               Every proposal carries a grade (A–D) set by admins, a funding target, a deadline, and
               supporting documents pinned to IPFS. Members see exactly what they're funding —
               before and after they stake.

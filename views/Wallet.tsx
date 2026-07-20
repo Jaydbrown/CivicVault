@@ -73,8 +73,8 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">My Wallet</h1>
-        <p className="text-slate-500 mt-2 flex items-center gap-2">
+        <h1 className="text-3xl font-bold text-foreground">My Wallet</h1>
+        <p className="text-muted-foreground mt-2 flex items-center gap-2">
           <Globe className="w-4 h-4 text-emerald-500" />
           {effectiveChainName}
         </p>
@@ -83,7 +83,7 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <p className="text-slate-500">Loading wallet data...</p>
+        <p className="text-muted-foreground">Loading wallet data...</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -104,18 +104,18 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
 
             <Card className="p-6 space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold text-slate-900">DAO Treasury Snapshot</h3>
-                <p className="text-xs text-slate-500">{daos.length} total</p>
+                <h3 className="font-bold text-foreground">DAO Treasury Snapshot</h3>
+                <p className="text-xs text-muted-foreground">{daos.length} total</p>
               </div>
               {daos.length === 0 ? (
-                <p className="text-slate-500 text-sm">No active DAO found yet.</p>
+                <p className="text-muted-foreground text-sm">No active DAO found yet.</p>
               ) : (
                 <>
                   <div className="max-h-96 overflow-y-auto pr-1 space-y-3">
                     {pagedDaos.map((dao) => (
-                      <div key={dao.address} className="p-4 border border-slate-200 rounded-xl">
-                        <p className="font-bold text-slate-900">{dao.name}</p>
-                        <p className="text-xs text-slate-500">{dao.location}</p>
+                      <div key={dao.address} className="p-4 border border-border rounded-xl">
+                        <p className="font-bold text-foreground">{dao.name}</p>
+                        <p className="text-xs text-muted-foreground">{dao.location}</p>
                         <p className="text-sm font-bold mt-2">{dao.tvlFormatted}</p>
                       </div>
                     ))}
@@ -124,15 +124,15 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
                     <button
                       onClick={() => setDaoPage((p) => Math.max(1, p - 1))}
                       disabled={daoPage <= 1}
-                      className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-lg disabled:opacity-50"
+                      className="px-3 py-1.5 text-xs font-bold border border-border rounded-lg disabled:opacity-50"
                     >
                       Prev
                     </button>
-                    <p className="text-xs text-slate-500">Page {daoPage} / {daoPages}</p>
+                    <p className="text-xs text-muted-foreground">Page {daoPage} / {daoPages}</p>
                     <button
                       onClick={() => setDaoPage((p) => Math.min(daoPages, p + 1))}
                       disabled={daoPage >= daoPages}
-                      className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-lg disabled:opacity-50"
+                      className="px-3 py-1.5 text-xs font-bold border border-border rounded-lg disabled:opacity-50"
                     >
                       Next
                     </button>
@@ -143,17 +143,17 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
 
             <Card className="p-6 space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold text-slate-900">Governance Role Snapshot</h3>
-                <p className="text-xs text-slate-500">{roleRows.length} DAOs</p>
+                <h3 className="font-bold text-foreground">Governance Role Snapshot</h3>
+                <p className="text-xs text-muted-foreground">{roleRows.length} DAOs</p>
               </div>
               {roleRows.length === 0 ? (
-                <p className="text-sm text-slate-500">No DAO roles found for this wallet.</p>
+                <p className="text-sm text-muted-foreground">No DAO roles found for this wallet.</p>
               ) : (
                 <div className="space-y-3">
                   {roleRows.map((row) => (
-                    <div key={row.daoAddress} className="p-4 border border-slate-200 rounded-xl">
-                      <p className="font-bold text-slate-900">{row.daoName}</p>
-                      <p className="text-xs text-slate-500 mb-2">{row.location}</p>
+                    <div key={row.daoAddress} className="p-4 border border-border rounded-xl">
+                      <p className="font-bold text-foreground">{row.daoName}</p>
+                      <p className="text-xs text-muted-foreground mb-2">{row.location}</p>
                       <RoleTags
                         isCreator={row.isCreator}
                         isAdmin={row.isAdmin}
@@ -171,20 +171,20 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
           <div className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Wallet className="w-4 h-4 text-slate-400" />
-                <h3 className="font-bold text-slate-900">Wallet Actions</h3>
+                <Wallet className="w-4 h-4 text-muted-foreground" />
+                <h3 className="font-bold text-foreground">Wallet Actions</h3>
               </div>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 Deposits and withdrawals happen through DAO actions (`vote`, `withdrawStake`, `claimYield`) and are visible in Snowtrace.
               </p>
             </Card>
 
-            <Card className="bg-slate-900 text-white p-6 border-none">
+            <Card className="bg-black/60 text-white p-6 border-none">
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="w-4 h-4 text-emerald-400" />
                 <p className="text-xs font-bold">On-chain Security</p>
               </div>
-              <p className="text-slate-400 text-xs leading-relaxed">
+              <p className="text-muted-foreground text-xs leading-relaxed">
                 Funds are controlled by role-based on-chain permissions on Arc Testnet.
               </p>
             </Card>

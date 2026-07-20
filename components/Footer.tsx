@@ -5,7 +5,7 @@ const LINKS = {
     { label: "How it works",  href: "#how-it-works" },
     { label: "Governance",    href: "#governance"   },
     { label: "Properties",    href: "#properties"   },
-    { label: "Launch App",    href: "#"             },
+    { label: "Launch App",    href: "/app"          },
   ],
   Resources: [
     { label: "Whitepaper",       href: "/whitepaper.html"             },
@@ -14,16 +14,16 @@ const LINKS = {
     { label: "FAQs",             href: "#faqs"                        },
   ],
   Legal: [
-    { label: "Privacy Policy",   href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy",    href: "#" },
+    { label: "Privacy Policy",   href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Cookie Policy",    href: "/cookies" },
   ],
 };
 
 const SOCIALS = [
-  { icon: Twitter, label: "Twitter", href: "https://twitter.com" },
+  { icon: Twitter, label: "Twitter", href: "https://twitter.com/civicvault" },
   { icon: Github,  label: "GitHub",  href: "https://github.com/Kenny-svg/CivicVault" },
-  { icon: Globe,   label: "Website", href: "#" },
+  { icon: Globe,   label: "Website", href: "https://civicvault.org" },
 ];
 
 const Footer: React.FC = () => (
