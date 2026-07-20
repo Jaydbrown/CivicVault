@@ -38,14 +38,24 @@ const LandingPage: React.FC<LandingPageProps> = ({
       <Navbar onLaunch={onLaunch} isAuthenticated={isAuthenticated} />
       <main className="flex-grow relative z-10 cursor-auto md:cursor-none">
         <Hero onLaunch={onLaunch} isAuthenticated={isAuthenticated} />
-        <EditorialSection />
-        <CommunityGallery />
-        <AnimatedFeatures />
-        <JourneyTimeline />
+        <div id="about">
+          <EditorialSection />
+        </div>
+        <div id="gallery">
+          <CommunityGallery />
+        </div>
+        <div id="features">
+          <AnimatedFeatures />
+        </div>
+        <div id="timeline">
+          <JourneyTimeline />
+        </div>
         <MarqueeSection />
-        <FaqSection />
+        <div id="faqs">
+          <FaqSection />
+        </div>
       </main>
-      <Footer />
+      <Footer onViewChange={onViewChange} />
     </div>
   );
 };

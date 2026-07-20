@@ -1,32 +1,36 @@
 import { Leaf, Github, Twitter, Globe } from "lucide-react";
+import { ViewState } from "../App";
 
 const LINKS = {
   Platform: [
-    { label: "How it works",  href: "#how-it-works" },
-    { label: "Governance",    href: "#governance"   },
-    { label: "Properties",    href: "#properties"   },
-    { label: "Launch App",    href: "/app"          },
+    { label: "About",     id: "about" },
+    { label: "Features",  id: "features" },
+    { label: "Timeline",  id: "timeline" },
   ],
   Resources: [
-    { label: "Whitepaper",       href: "/whitepaper.html"             },
-    { label: "GitHub",           href: "https://github.com/Kenny-svg/CivicVault" },
+    { label: "Whitepaper",         view: "whitepaper" as ViewState },
+    { label: "GitHub",             href: "https://github.com/Jaydbrown/CivicVault" },
     { label: "Arc Block Explorer", href: "https://testnet.arcscan.app" },
-    { label: "FAQs",             href: "#faqs"                        },
+    { label: "FAQs",               id: "faqs" },
   ],
   Legal: [
-    { label: "Privacy Policy",   href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
-    { label: "Cookie Policy",    href: "/cookies" },
+    { label: "Privacy Policy",     view: "privacy" as ViewState },
+    { label: "Terms of Service",   view: "terms" as ViewState },
+    { label: "Cookie Policy",      view: "cookies" as ViewState },
   ],
 };
 
 const SOCIALS = [
   { icon: Twitter, label: "Twitter", href: "https://twitter.com/civicvault" },
-  { icon: Github,  label: "GitHub",  href: "https://github.com/Kenny-svg/CivicVault" },
+  { icon: Github,  label: "GitHub",  href: "https://github.com/Jaydbrown/CivicVault" },
   { icon: Globe,   label: "Website", href: "https://civicvault.org" },
 ];
 
-const Footer: React.FC = () => (
+interface FooterProps {
+  onViewChange?: (view: ViewState) => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onViewChange }) => (
   <footer className="w-full bg-[#0a0d12] border-t border-white/[0.06]">
     <div className="max-w-6xl mx-auto px-6 sm:px-10 py-16 sm:py-20">
 
@@ -69,16 +73,32 @@ const Footer: React.FC = () => (
               {heading}
             </p>
             <ul className="space-y-3">
-              {items.map(({ label, href }) => (
-                <li key={label}>
-                  <a
-                    href={href}
-                    target={href.startsWith("http") ? "_blank" : undefined}
-                    rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-                    className="text-sm text-white/45 hover:text-white transition-colors"
-                  >
-                    {label}
-                  </a>
+              {items.map((item) => (
+                <li key={item.label}>
+                  {item.view && onViewChange ? (
+                    <button
+                      onClick={() => onViewChange(item.view!)}
+                      className="text-sm text-white/45 hover:text-white transition-colors text-left"
+                    >
+                      {item.label}
+                    </button>
+                  ) : item.id ? (
+                    <button
+                      onClick={() => document.getElementById(item.id!)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      className="text-sm text-white/45 hover:text-white transition-colors text-left"
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <a
+                      href={item.href}
+                      target={item.href?.startsWith("http") ? "_blank" : undefined}
+                      rel={item.href?.startsWith("http") ? "noopener noreferrer" : undefined}
+                      className="text-sm text-white/45 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

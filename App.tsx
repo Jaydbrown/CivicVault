@@ -12,6 +12,11 @@ import WalletView from './views/Wallet';
 import YieldsView from './views/Yields';
 import MessagesView from './views/Messages';
 import ProfileView from './views/Profile';
+import MyDaos from './views/MyDaos';
+import PrivacyPolicy from './views/PrivacyPolicy';
+import TermsOfService from './views/TermsOfService';
+import CookiePolicy from './views/CookiePolicy';
+import Whitepaper from './views/Whitepaper';
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { KineticTextLoader } from "@/components/ui/kinetic-text-loader";
 import { ToastContainer } from 'react-toastify';
@@ -19,7 +24,7 @@ import { notifyWarning } from './utils/toast';
 import { BACKEND_URL } from './utils/backendUrl';
 import { getCanonicalWalletAddress } from './utils/walletResolution';
 
-export type ViewState = 'landing' | 'dashboard' | 'my-daos' | 'discover' | 'investments' | 'messages' | 'profile' | 'create-dao' | 'kyc' | 'vote-proposal' | 'wallet' | 'yields';
+export type ViewState = 'landing' | 'dashboard' | 'my-daos' | 'discover' | 'investments' | 'messages' | 'profile' | 'create-dao' | 'kyc' | 'vote-proposal' | 'wallet' | 'yields' | 'privacy' | 'terms' | 'cookies' | 'whitepaper';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('landing');
@@ -144,12 +149,24 @@ const App: React.FC = () => {
     );
   }
 
+  if (['privacy', 'terms', 'cookies', 'whitepaper'].includes(view)) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white">
+        {view === 'privacy' && <PrivacyPolicy onViewChange={setView} />}
+        {view === 'terms' && <TermsOfService onViewChange={setView} />}
+        {view === 'cookies' && <CookiePolicy onViewChange={setView} />}
+        {view === 'whitepaper' && <Whitepaper onViewChange={setView} />}
+        <ToastContainer position="top-right" newestOnTop theme="colored" />
+      </div>
+    );
+  }
+
   return (
     <>
       <AppShell currentView={view} onViewChange={setView} user={user} onLogout={logout}>
         {view === 'dashboard'     && <Dashboard onViewChange={setView} onVote={handleVote} user={user} />}
         {view === 'discover'      && <Discover />}
-        {view === 'my-daos'       && <Discover />}
+        {view === 'my-daos'       && <MyDaos onViewChange={setView} />}
         {view === 'create-dao'    && <CreateDAO onComplete={() => setView('dashboard')} />}
         {view === 'kyc'           && <KYCVerification onComplete={() => setView('dashboard')} />}
         {view === 'investments'   && <InvestmentListing onVote={handleVote} />}

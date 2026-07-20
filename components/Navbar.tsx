@@ -3,21 +3,28 @@ import { Leaf, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_LINKS = [
-  { label: "About Us", id: "about-us" },
-  { label: "Cases", id: "cases" },
-  { label: "Reviews", id: "reviews" },
-  { label: "Contact Us", id: "contact-us" },
+  { label: "About", id: "about" },
+  { label: "Gallery", id: "gallery" },
+  { label: "Features", id: "features" },
+  { label: "Timeline", id: "timeline" },
+  { label: "FAQs", id: "faqs" },
 ];
 
 const menuVariants = {
   hidden: { y: "-100%" },
   visible: { 
     y: "0%",
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+    transition: { 
+      duration: 0.6, ease: [0.22, 1, 0.36, 1],
+      staggerChildren: 0.1, delayChildren: 0.2
+    }
   },
   exit: { 
     y: "-100%",
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }
+    transition: { 
+      duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2,
+      staggerChildren: 0.05, staggerDirection: -1
+    }
   }
 };
 
@@ -172,19 +179,14 @@ const Navbar: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            key="mobile-menu"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
             className="fixed inset-0 z-40 bg-[#f4f4f0] md:hidden flex flex-col justify-between pt-32 pb-12 px-8"
           >
-            <motion.div 
-              variants={linkContainerVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="flex flex-col gap-6"
-            >
+            <motion.div className="flex flex-col gap-6">
               {NAV_LINKS.map((link, i) => (
                 <motion.div key={link.id} variants={linkVariants} className="overflow-hidden">
                   <button
@@ -199,9 +201,6 @@ const Navbar: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
 
             <motion.div
               variants={linkVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
               className="flex flex-col gap-8 border-t border-black/10 pt-8"
             >
               <div className="flex justify-between items-end">
