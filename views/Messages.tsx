@@ -361,8 +361,9 @@ const MessagesView: React.FC = () => {
       return;
     }
     try {
-      const result = await Promise.all(
-        daoRows.map(async (dao) => {
+      const result: Array<readonly [string, { lastMessage: any; unreadCount: number }]> = [];
+      for (const dao of daoRows) {
+        try {
           const roomMessages = await loadDaoChatMessages(dao.address, 200);
           const lastMessage = roomMessages[roomMessages.length - 1] ?? null;
           const lastSeenMap = readLastSeen();
@@ -373,9 +374,12 @@ const MessagesView: React.FC = () => {
                 (msg) => msg.createdAt > seenAt && msg.senderWallet.toLowerCase() !== wal,
               ).length
             : 0;
-          return [dao.address.toLowerCase(), { lastMessage, unreadCount }] as const;
-        }),
-      );
+          result.push([dao.address.toLowerCase(), { lastMessage, unreadCount }]);
+        } catch (err) {
+          console.warn(`Skipping chat load for DAO ${dao.address}`, err);
+          result.push([dao.address.toLowerCase(), { lastMessage: null, unreadCount: 0 }]);
+        }
+      }
       setRoomSummaries(Object.fromEntries(result));
     } catch {
       setRoomSummaries({});
