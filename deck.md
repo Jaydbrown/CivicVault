@@ -114,7 +114,7 @@ Add Privy's embedded wallets — login with email, Google, or passkey, automatic
 
 | Screen | Purpose |
 |---|---|
-| Landing | Hero, features, governance explainer, FAQ, AI assistant |
+| Landing | Hero, features, governance explainer, FAQ |
 | Dashboard | TVL, active DAOs, open proposals, yield alerts |
 | Create DAO | On-chain deployment with logo upload (IPFS) |
 | Discover | Browse and search all active DAOs |
@@ -145,7 +145,7 @@ Everything above on your phone — wallet connection, governance, DAO chat, yiel
 │   USDC native gas       │  │  Prisma · SQLite             │
 │                         │  │  Gmail OAuth · Nodemailer    │
 │   CivicVaultFactory     │  │  RabbitMQ workers            │
-│   CivicVault (DAO)      │  │  Gemini AI assistant         │
+│   CivicVault (DAO)      │  │                              │
 │   CivicVaultView        │  └──────────────────────────────┘
 │   YieldCalculator       │                 │
 │   InvestmentManager     │                 ▼
@@ -197,7 +197,7 @@ Every vote, phase release, yield deposit, and claim is stored in an on-chain `Ac
 | Smart contracts (~3,000 lines of Solidity) | ✅ Done |
 | Foundry test suite | ✅ Done |
 | Frontend — all 11 views | ✅ Done |
-| Backend — auth, chat, notifications, AI | ✅ Done |
+| Backend — auth, chat, notifications | ✅ Done |
 | IPFS integration | ✅ Done |
 | Real-time chat | ✅ Done |
 | Email notifications (Gmail OAuth) | ✅ Done |
@@ -280,7 +280,7 @@ I built CivicVault from scratch — every contract, every screen, every API rout
 What that looks like in practice:
 - ~3,000 lines of Solidity across contracts, libraries, interfaces, and deploy scripts
 - 11 fully connected frontend views in React 19
-- A full Node.js backend with Gmail OAuth, RabbitMQ, Gemini AI, and Supabase Realtime
+- A full Node.js backend with Gmail OAuth, RabbitMQ, and Supabase Realtime
 - A React Native mobile app
 - IPFS media storage, push notifications, email alerts
 - Live deployment on Arc Testnet

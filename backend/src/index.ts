@@ -7,7 +7,6 @@ import { prisma } from './db/prisma';
 
 import authRoutes         from './routes/auth.routes';
 import chatRoutes         from './routes/chat.routes';
-import aiRoutes           from './routes/ai.routes';
 import notificationRoutes from './routes/notifications.routes';
 import usersRoutes        from './routes/users.routes';
 import circleWalletRoutes from './routes/circleWallet.routes';
@@ -33,7 +32,6 @@ app.use(express.json());
 
 app.use('/api/auth',          authRoutes);
 app.use('/api/chat',          chatRoutes);
-app.use('/api/ai',            aiRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users',         usersRoutes);
 app.use('/api/circle-wallet', circleWalletRoutes);
@@ -60,13 +58,11 @@ app.get('/api/health', async (_req, res) => {
   const oauthMailer        = !!process.env.GMAIL_MAILER_REFRESH_TOKEN?.trim();
   const appPassword        = !!process.env.GMAIL_APP_PASSWORD?.trim();
   const rabbit             = await rabbitHealthCheck();
-  const geminiConfigured   = !!process.env.GEMINI_API_KEY?.trim();
   res.json({
     status: 'ok',
     gmailConfigured: gmailOAuth,
     outboundMailConfigured: fromEmail && (oauthMailer || appPassword),
     rabbitmq: rabbit,
-    geminiConfigured,
     timestamp: new Date().toISOString(),
   });
 });
@@ -105,7 +101,6 @@ app.get('/', (_req, res) => {
       platform: {
         'GET /api/stats':                             'Platform-wide counts (users, notifications, subscriptions)',
         'GET /api/health':                            'Service health check',
-        'POST /api/ai/chat':                          'Gemini AI assistant (body: { messages })',
       },
     },
   });
@@ -126,11 +121,6 @@ app.listen(PORT, () => {
     console.log('🐇 RabbitMQ: configured — run `npm run worker` for consumers');
   } else {
     console.warn('🐇 RabbitMQ: disabled — webhook runs synchronously');
-  }
-  if (process.env.GEMINI_API_KEY?.trim()) {
-    console.log(`🤖 Gemini: enabled (model ${process.env.GEMINI_MODEL || 'gemini-2.0-flash'})`);
-  } else {
-    console.warn('🤖 Gemini: GEMINI_API_KEY not set — /api/ai/chat returns 503');
   }
 });
 

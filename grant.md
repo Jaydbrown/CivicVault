@@ -79,7 +79,7 @@ Critically, CivicVault is built for people who have never heard of blockchain. U
 
 | View | Purpose |
 |------|---------|
-| Landing Page | Hero, features, governance visualization, FAQ, AI assistant |
+| Landing Page | Hero, features, governance visualization, FAQ |
 | Dashboard | TVL, active DAOs, proposals needing attention, yield notifications |
 | Create DAO | Metadata, logo upload (IPFS/Pinata), governance params |
 | Discover | Browse and filter all active DAOs |
@@ -105,9 +105,8 @@ A fully decentralized frontend with no central point of failure. Connects direct
 
 | Module | Role |
 |--------|------|
-| `/api/auth` | Gmail OAuth connect/callback, per-DAO email notification preferences |
+| `/api/auth` | Magic link / OAuth session management via Privy |
 | `/api/chat` | Chat subscriptions; webhook fan-out for new message alerts |
-| `/api/ai` | Gemini-powered homepage assistant (CivicVault-specific system prompt) |
 | `/api/notifications` | In-app notification store (Prisma + SQLite) |
 | `/api/wallets` | Circle Programmable Wallets provisioning via W3S API |
 | RabbitMQ workers | Async queue: `chatDispatch.consumer`, `emailDeliver.consumer` with retries and DLQ |
@@ -209,12 +208,11 @@ This model works because the alternative costs far more. A lawyer to structure a
 | Foundry test suite | ✅ Complete |
 | Web app frontend (11 views) | ✅ Live — `civic-vault-aupu.vercel.app` |
 | Mobile app (React Native + Expo) | ✅ Complete — pending app store submission |
-| Backend API (auth, chat, notifications, AI, wallets) | ✅ Complete |
+| Backend API (auth, chat, notifications, wallets) | ✅ Complete |
 | IPFS integration (Pinata) | ✅ Complete |
 | Supabase Realtime chat | ✅ Complete |
 | Email notifications (Gmail OAuth) | ✅ Complete |
-| RabbitMQ async queue | ✅ Complete |
-| AI homepage assistant (Gemini) | ✅ Complete |
+| Real-time DAO chat (Supabase) | ✅ Complete |
 | Privy embedded wallet onboarding | ✅ Live |
 | Circle Programmable Wallets (W3S API) | ✅ Integrated |
 | Arc Testnet deployment | ✅ Live |

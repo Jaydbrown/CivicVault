@@ -129,7 +129,6 @@ CivicVault lets communities pool USDC into a DAO treasury, propose and vote on l
 | Backend | Node.js 18, Express 5, Prisma ORM, SQLite |
 | Email | Gmail OAuth 2.0, Nodemailer |
 | Async Workers | RabbitMQ via `amqplib` (optional) |
-| AI Assistant | Google Gemini 2.0 Flash |
 | Circle Wallets | Circle W3S Programmable Wallets API |
 
 ---
@@ -173,7 +172,6 @@ CivicVault/
 │   ├── Properties.tsx
 │   ├── TrustBadges.tsx
 │   ├── Governance.tsx
-│   ├── LandingAiChat.tsx          # Gemini-powered homepage assistant
 │   ├── GmailNotificationSettings.tsx
 │   ├── UserAvatar.tsx
 │   └── UI.tsx                     # Shared primitives (Button, Card, Badge…)
@@ -229,12 +227,11 @@ CivicVault/
 │       │   ├── users.routes.ts    # Profile + preferences CRUD
 │       │   ├── notifications.routes.ts
 │       │   ├── circleWallet.routes.ts
-│       │   └── ai.routes.ts       # Gemini proxy
-│       ├── services/
-│       │   ├── gmail.service.ts
-│       │   ├── notification.service.ts
-│       │   ├── circleWallet.service.ts
-│       │   └── event-listener.service.ts
+│       └── services/
+│           ├── gmail.service.ts
+│           ├── notification.service.ts
+│           ├── circleWallet.service.ts
+│           └── event-listener.service.ts
 │       └── messaging/             # RabbitMQ topology + consumers + publishers
 │
 ├── subgraph/                      # The Graph subgraph
@@ -331,7 +328,6 @@ Copy from `backend/.env.example`:
 | `GMAIL_FROM_EMAIL` | No | Sender address for notification emails |
 | `GMAIL_MAILER_REFRESH_TOKEN` | No | OAuth refresh token for outbound mail |
 | `RABBITMQ_URL` | No | If set, webhooks queue jobs; run `npm run worker` |
-| `GEMINI_API_KEY` | No | Google Gemini key for AI assistant |
 | `CIRCLE_API_KEY` | No | Circle W3S API key |
 | `CIRCLE_ENTITY_SECRET` | No | Circle entity secret (32-byte hex) |
 | `CIRCLE_WALLET_SET_ID` | No | Circle wallet set ID |
@@ -400,7 +396,7 @@ npm run dev
 GET http://localhost:3001/api/health
 ```
 
-Returns Gmail config status, RabbitMQ reachability, and Gemini key presence.
+Returns Gmail config status, and RabbitMQ reachability.
 
 ---
 
@@ -425,7 +421,6 @@ Returns Gmail config status, RabbitMQ reachability, and Gemini key presence.
 | `PATCH` | `/api/notifications/all/:wallet/read` | Mark all read |
 | `DELETE` | `/api/notifications/read/:wallet` | Purge read notifications |
 | `GET` | `/api/circle-wallet/:wallet` | Get or provision Circle wallet |
-| `POST` | `/api/ai/chat` | Gemini AI assistant (body: `{ messages }`) |
 | `GET` | `/api/stats` | Platform-wide counts |
 | `GET` | `/api/health` | Service health check |
 
