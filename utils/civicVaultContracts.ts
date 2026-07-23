@@ -613,7 +613,8 @@ const ERC20_ABI = [
 
 const publicClient = createPublicClient({
   chain: APP_CHAIN,
-  transport: fallback(RPC_ENDPOINTS.map((url) => http(url))),
+  transport: fallback(RPC_ENDPOINTS.map((url) => http(url, { retryCount: 5, retryDelay: 1000 }))),
+  batch: { multicall: true },
 });
 
 /** viem narrows reads/simulations against EIP-7702-style extras; dynamic ABIs do not satisfy that union. */
@@ -630,7 +631,8 @@ async function getLogsWithRpcFallback(params: Parameters<typeof publicClient.get
   for (const url of RPC_ENDPOINTS) {
     const rpcClient = createPublicClient({
       chain: APP_CHAIN,
-      transport: http(url),
+      transport: http(url, { retryCount: 5, retryDelay: 1000 }),
+      batch: { multicall: true },
     });
     try {
       return await rpcClient.getLogs(params);
