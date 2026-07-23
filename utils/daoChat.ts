@@ -14,7 +14,7 @@ export const MESSAGES_NAV_DAO_STORAGE_KEY = "civicvault_navigate_messages_dao";
 
 const STORAGE_PREFIX = "civicvault_chat_";
 const CHANNEL_NAME = "civicvault_chat_updates";
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/+$/, "");
 const SUPABASE_ANON_KEY = (
   (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim() ||
   (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined)?.trim()
@@ -187,28 +187,50 @@ const loadDaoChatMessagesRemote = async (
 ): Promise<DaoChatMessage[]> => {
   const roomKey = getRoomKey(daoAddress);
 
-  const fetchWithSelect = async (select: string) => {
+  const fetchWithSelect = async (select: string, retries = 3, delay = 500) => {
     const query = new URLSearchParams({
       select,
       room_key: `eq.${roomKey}`,
       order: "created_at.asc",
       limit: String(limit),
     });
-    const response = await fetch(`${getSupabaseRestUrl()}?${query.toString()}`, {
-      method: "GET",
-      headers: supabaseHeaders(),
-    });
-    const body = await response.text();
-    let rows: unknown[] = [];
-    if (response.ok && body) {
+    let lastResponse = null;
+    let lastBody = "";
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      if (attempt > 0) {
+        await new Promise((res) => setTimeout(res, delay * Math.pow(2, attempt - 1)));
+      }
       try {
-        const parsed = JSON.parse(body) as unknown;
-        if (Array.isArray(parsed)) rows = parsed;
-      } catch {
-        rows = [];
+        const response = await fetch(`${getSupabaseRestUrl()}?${query.toString()}`, {
+          method: "GET",
+          headers: supabaseHeaders(),
+        });
+        const body = await response.text();
+        lastResponse = response;
+        lastBody = body;
+
+        // If it's a 429, retry
+        if (response.status === 429) {
+          console.warn(`Supabase rate limit hit (429). Retrying... (Attempt ${attempt + 1}/${retries})`);
+          continue;
+        }
+
+        let rows: unknown[] = [];
+        if (response.ok && body) {
+          try {
+            const parsed = JSON.parse(body) as unknown;
+            if (Array.isArray(parsed)) rows = parsed;
+          } catch {
+            rows = [];
+          }
+        }
+        return { ok: response.ok, status: response.status, body, rows };
+      } catch (err) {
+        if (attempt === retries) throw err;
       }
     }
-    return { ok: response.ok, status: response.status, body, rows };
+    return { ok: false, status: lastResponse?.status || 500, body: lastBody, rows: [] };
   };
 
   let first = await fetchWithSelect(SUPABASE_SELECT_WITH_ATTACH);
