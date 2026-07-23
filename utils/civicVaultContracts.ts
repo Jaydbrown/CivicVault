@@ -613,7 +613,7 @@ const ERC20_ABI = [
 
 const publicClient = createPublicClient({
   chain: APP_CHAIN,
-  transport: fallback(RPC_ENDPOINTS.map((url) => http(url, { retryCount: 3, retryDelay: 150 }))),
+  transport: fallback(RPC_ENDPOINTS.map((url) => http(url, { retryCount: 5, retryDelay: 300 }))),
   batch: { multicall: { wait: 50 } },
 });
 
@@ -631,7 +631,7 @@ async function getLogsWithRpcFallback(params: Parameters<typeof publicClient.get
   for (const url of RPC_ENDPOINTS) {
     const rpcClient = createPublicClient({
       chain: APP_CHAIN,
-      transport: http(url, { retryCount: 3, retryDelay: 150 }),
+      transport: http(url, { retryCount: 5, retryDelay: 300 }),
       batch: { multicall: { wait: 50 } },
     });
     try {
