@@ -59,8 +59,9 @@ Critically, CivicVault is built for people who have never heard of blockchain. U
 | `ICivicVault` | Interface + shared structs (User, Investment, Vote, YieldDistribution, Activity) |
 
 **Deployed on Arc Testnet:**
-- Factory: `0x5000F14A757d4488297772b694f18EaF0eC45C81`
-- Implementation: `0x5a9D34264Da36cd05B66Fab80e6e5D6feDC9fDBC`
+- Factory: `0x5a9D34264Da36cd05B66Fab80e6e5D6feDC9fDBC`
+- Implementation: `0x088Caea4f6f3aA51392fd7DaFb9C5eb63E1E1431`
+- View: `0x5000F14A757d4488297772b694f18EaF0eC45C81`
 - First DAO: `0xA80b7ca6A50C2424BA4C3bf7c0B7700f0D6DC5a6`
 
 **Security patterns:**
@@ -305,8 +306,9 @@ Communities deserve tools that are as secure as they are accessible. This grant 
 - **Subgraph:** https://thegraph.com/studio/subgraph/civicvault
 - **X:** https://x.com/CivicVaultDAO
 - **Target Chain:** Arc Testnet — https://testnet.arcscan.app
-- **Factory Contract:** `0x5000F14A757d4488297772b694f18EaF0eC45C81`
-- **Implementation Contract:** `0x5a9D34264Da36cd05B66Fab80e6e5D6feDC9fDBC`
+- **Factory Contract:** `0x5a9D34264Da36cd05B66Fab80e6e5D6feDC9fDBC`
+- **Implementation Contract:** `0x088Caea4f6f3aA51392fd7DaFb9C5eb63E1E1431`
+- **View Contract:** `0x5000F14A757d4488297772b694f18EaF0eC45C81`
 - **First DAO:** `0xA80b7ca6A50C2424BA4C3bf7c0B7700f0D6DC5a6`
 
 ---
