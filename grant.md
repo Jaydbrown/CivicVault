@@ -154,7 +154,7 @@ Upvotes transfer real USDC into escrow. Members who believe in a proposal put ca
 The 30/40/30 phase structure means project executors must demonstrate progress to unlock subsequent tranches, reducing misuse risk without requiring external oracles.
 
 ### 4. Multi-Sig Yield Governance
-Yield deposits require 3-of-N admin approval. The proposer must have USDC balance and allowance at execution time — not at proposal time — preventing ghost proposals.
+Yield deposits require 3-of-N admin approval. The proposer must have USDC balance and allowance at execution time — not at proposal time — preventing ghost proposals. Approvals are snapshotted at cast-time, the same pattern used by Gnosis Safe: a signature already cast isn't retroactively invalidated if that admin is later removed. Removing an admin is a forward-looking control — it stops them casting future approvals — not a rollback of votes already counted toward a proposal's threshold.
 
 ### 5. Proportional Yield Claims
 `claimYield` computes `totalEntitled - alreadyClaimed` so partial deposits and rolling claims work correctly without double-counting.
@@ -206,7 +206,7 @@ This model works because the alternative costs far more. A lawyer to structure a
 | Milestone | Status |
 |-----------|--------|
 | Smart contract design + implementation | ✅ Complete |
-| Foundry test suite | ✅ Core-path tests complete — expanding coverage pre-audit |
+| Foundry test suite | ✅ 61 tests — full DAO lifecycle and access control, plus fuzzed yield/escrow invariants, a malicious-token reentrancy test, proxy re-initialization, and multi-sig edge cases |
 | Web app frontend (11 views) | ✅ Live — `civic-vault-aupu.vercel.app` |
 | Mobile app (React Native + Expo) | ✅ Complete — pending app store submission |
 | Backend API (auth, chat, notifications, wallets) | ✅ Complete |
@@ -233,7 +233,7 @@ This model works because the alternative costs far more. A lawyer to structure a
 ### Security — $15,000
 
 **Smart contract audit — $15,000**
-Reputable audit firms — Cyfrin, Halborn, Code4rena — charge between $5,000 and $8,000 per week of review. CivicVault's codebase spans six contracts and approximately 3,000 lines of Solidity covering DAO lifecycle management, staked voting, phased escrow, multi-sig yield governance, EIP-1167 proxy factory logic, and yield distribution math. A thorough engagement covering all attack surfaces — reentrancy, flash loan vectors, proxy storage collisions, yield accounting edge cases, and access control — requires a minimum of two weeks with a firm credible enough to provide assurance to communities putting real USDC into the protocol. The audit is the single remaining blocker between the completed codebase and a mainnet deployment communities can trust.
+Reputable audit firms — Cyfrin, Halborn, Code4rena — charge between $5,000 and $8,000 per week of review. CivicVault's codebase spans six contracts and approximately 3,000 lines of Solidity covering DAO lifecycle management, staked voting, phased escrow, multi-sig yield governance, EIP-1167 proxy factory logic, and yield distribution math. Pre-audit hardening is already in place: 61 Foundry tests, including fuzzed invariants (claimed yield never exceeds deposited yield, phased escrow release never exceeds the funded amount), a malicious-ERC20 reentrancy test against `claimYield`, proxy re-initialization checks, and multi-sig edge cases (duplicate approvals, approved-but-unfunded "ghost" proposals). Line coverage can't be reported as a percentage — `forge coverage` fails with a stack-too-deep compiler error on this codebase even under `--ir-minimum`, a known Foundry limitation on larger contracts, not a gap we're hiding behind test count alone. A thorough engagement covering all attack surfaces — reentrancy, flash loan vectors, proxy storage collisions, yield accounting edge cases, and access control — requires a minimum of two weeks with a firm credible enough to provide assurance to communities putting real USDC into the protocol. The audit is the single remaining blocker between the hardened codebase and a mainnet deployment communities can trust.
 
 ### Launch — $9,600
 
