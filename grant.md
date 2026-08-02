@@ -137,7 +137,7 @@ A fully decentralized frontend with no central point of failure. Connects direct
 |---|---|---|
 | **Arc Mainnet** | Q3 2026 | Primary production deployment |
 | **Circle Paymaster** | Q3 2026 | Sponsor gas for first-time users — their first vote or DAO creation costs nothing |
-| **CCTP** | Q1 2027 | Multi-chain USDC deposits from Base, Ethereum, and Solana directly into DAO treasuries |
+| **CCTP** | Q4 2026 | Multi-chain USDC deposits from Base, Ethereum, and Solana directly into DAO treasuries |
 
 ---
 
@@ -205,7 +205,7 @@ This model works because the alternative costs far more. A lawyer to structure a
 | Milestone | Status |
 |-----------|--------|
 | Smart contract design + implementation | ✅ Complete |
-| Foundry test suite | ✅ Complete |
+| Foundry test suite | ✅ Core-path tests complete — expanding coverage pre-audit |
 | Web app frontend (11 views) | ✅ Live — `civic-vault-aupu.vercel.app` |
 | Mobile app (React Native + Expo) | ✅ Complete — pending app store submission |
 | Backend API (auth, chat, notifications, wallets) | ✅ Complete |
@@ -257,7 +257,7 @@ The mobile app is already built as a React Native application using Expo. Grant 
 Professional translation and UI adaptation for Portuguese, Hausa, and Swahili across all 11 views and all system messages. These three languages cover Nigeria, Kenya, and Brazil — the three highest-priority markets for the rotating savings group and cooperative finance use case. Each language receives approximately $700 for translation and $100 for in-app layout testing and correction.
 
 **Developer stipend — $12,000**
-Six months at $2,000 per month covering continued smart contract maintenance, security patch response, subgraph updates, feature development across both client surfaces, and integration groundwork for Circle Paymaster and CCTP in Q1 2027. As a solo build, this stipend is what keeps the protocol actively maintained and responsive rather than stagnant between funding rounds.
+Released in $2,000 increments tied to milestone deliverables rather than paid as a flat six-month salary: mainnet audit remediation, pilot DAO onboarding support, mobile app store submission, localization rollout, and integration groundwork for Circle Paymaster and CCTP. Each increment covers the smart contract maintenance, security patch response, subgraph updates, and feature development across both client surfaces required to hit that deliverable. As a solo build, this keeps the protocol actively maintained and accountable to shipped work rather than elapsed time.
 
 ### Total: $42,000
 
@@ -277,10 +277,10 @@ Six months at $2,000 per month covering continued smart contract maintenance, se
 - Add multi-language support (Portuguese, Hausa, Swahili, French)
 - Open public DAO creation with guided onboarding flow
 - On-chain analytics dashboard powered by live subgraph
+- CCTP integration for multi-chain USDC deposits — diaspora club deposits from the UK/US are one of the strongest usage stories, pulled forward from Q1 2027
 
 **Q1 2027 — Scale and Decentralization**
 - Deploy IPFS-hosted DApp with ENS domain
-- CCTP integration for multi-chain USDC deposits
 - Cross-DAO governance layer (federations of local DAOs)
 - Integration with traditional remittance entry points
 - Publish open-source SDK for third-party DAO tooling built on CivicVault
