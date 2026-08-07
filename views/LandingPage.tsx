@@ -42,7 +42,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
           <EditorialSection />
         </div>
         <div id="gallery">
-          <CommunityGallery />
+          <CommunityGallery onViewChange={onViewChange} />
         </div>
         <div id="features">
           <AnimatedFeatures />
