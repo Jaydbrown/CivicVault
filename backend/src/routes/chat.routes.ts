@@ -11,10 +11,55 @@ import {
 } from '../services/chat-notification.processor';
 
 import { normalizeWalletAddress } from '../utils/wallet';
+import { requireAuth } from '../middleware/auth';
+import { anyIsDaoMember } from '../chain/reads';
+import { daoChatConfigured, insertDaoChatMessage } from '../services/daoChat.service';
 
 const router = Router();
 
-router.post('/subscribe', async (req, res) => {
+/**
+ * POST /api/chat/message — the only authorised write path for DAO chat.
+ * The caller must be a verified member of `daoAddress` on-chain (checked
+ * against their linked wallet and their Circle wallet). Reads + realtime
+ * stay client-direct.
+ */
+router.post('/message', requireAuth, async (req, res) => {
+  try {
+    if (!daoChatConfigured()) {
+      return res.status(503).json({ error: 'Chat backend not configured' });
+    }
+    const daoRaw = typeof req.body?.daoAddress === 'string' ? req.body.daoAddress.trim().toLowerCase() : '';
+    const content = typeof req.body?.content === 'string' ? req.body.content.trim() : '';
+    const attachmentUrl =
+      typeof req.body?.attachmentUrl === 'string' && req.body.attachmentUrl.trim()
+        ? req.body.attachmentUrl.trim()
+        : null;
+    const senderLabel = typeof req.body?.senderLabel === 'string' ? req.body.senderLabel.trim() : '';
+
+    if (!/^0x[a-f0-9]{40}$/.test(daoRaw)) return res.status(400).json({ error: 'Invalid DAO address' });
+    if (!content && !attachmentUrl) return res.status(400).json({ error: 'Message cannot be empty' });
+
+    const user = await prisma.user.findUnique({ where: { id: req.auth!.userId } });
+    const candidates = [req.auth!.walletAddress, user?.circleWalletAddress ?? null];
+
+    if (!(await anyIsDaoMember(daoRaw, candidates))) {
+      return res.status(403).json({ error: 'Only verified members of this DAO can post here' });
+    }
+
+    const message = await insertDaoChatMessage({
+      daoAddress: daoRaw,
+      senderWallet: req.auth!.walletAddress,
+      senderLabel: senderLabel || req.auth!.walletAddress,
+      content,
+      attachmentUrl,
+    });
+    res.json({ message });
+  } catch (err: unknown) {
+    res.status(502).json({ error: err instanceof Error ? err.message : 'Failed to send message' });
+  }
+});
+
+router.post('/subscribe', requireAuth, async (req, res) => {
   try {
     const { walletAddress: rawWallet, daoAddress: rawDao, receiveNotifications, email } = req.body;
     const walletAddress = normalizeWalletAddress(rawWallet);

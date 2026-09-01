@@ -19,19 +19,23 @@ CREATE INDEX IF NOT EXISTS idx_dao_chat_room_time
 -- ─── 2. Row-Level Security ─────────────────────────────────────────────────────
 ALTER TABLE public.dao_chat_messages ENABLE ROW LEVEL SECURITY;
 
--- Allow anyone (anon key) to read messages
+-- Anyone (anon key) can READ messages.
 DROP POLICY IF EXISTS "Public read" ON public.dao_chat_messages;
 CREATE POLICY "Public read"
   ON public.dao_chat_messages
   FOR SELECT
   USING (true);
 
--- Allow anyone to insert (wallet-signed messages; spam handled at app layer)
+-- Clients CANNOT write. Messages are posted through POST /api/chat/message,
+-- which checks on-chain DAO membership and writes with the service role key.
 DROP POLICY IF EXISTS "Public insert" ON public.dao_chat_messages;
-CREATE POLICY "Public insert"
+DROP POLICY IF EXISTS "No client writes" ON public.dao_chat_messages;
+CREATE POLICY "No client writes"
   ON public.dao_chat_messages
-  FOR INSERT
-  WITH CHECK (true);
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
 
 -- ─── 3. Realtime ───────────────────────────────────────────────────────────────
 -- Enable Realtime on this table so the frontend receives live INSERT events.
