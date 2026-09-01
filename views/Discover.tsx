@@ -18,12 +18,13 @@ import {
   type OnchainInvestment,
   type PrivyEthereumWallet
 } from '../utils/civicVaultContracts';
+import { useMemberSigner } from '../utils/useMemberSigner';
 import { copyText } from '../utils/clipboard';
 import { maskAddress } from '../utils/address';
 import { buildDaoImageDataUri } from '../utils/daoImage';
 import { formatTxError, notifyError, notifySuccess, notifyWarning } from '../utils/toast';
 import { getAddressExplorerUrl, getTxExplorerUrl, hasBackupExplorer } from '../utils/explorer';
-import { DeadlineChip, FundingProgress, StatusChip } from '../components/UI';
+import { DeadlineChip, FundingProgress, StatusChip, SkeletonCard } from '../components/UI';
 
 type DiscoverDao = {
   address: string;
@@ -119,7 +120,8 @@ const Discover: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(6);
   const { wallets } = useWallets();
   const wallet = wallets.find((item) => item.type === "ethereum");
-  const walletAddress = wallet?.address as `0x${string}` | undefined;
+  const { ensure: ensureSigner, address: signerAddress } = useMemberSigner();
+  const walletAddress = (signerAddress ?? wallet?.address) as `0x${string}` | undefined;
 
   useEffect(() => {
     const loadDaos = async () => {
@@ -261,12 +263,17 @@ const Discover: React.FC = () => {
     setBusyAction(`vote-${voteValue}`);
     setLastTxHash('');
     try {
-      const hash = await voteOnInvestment(wallet as unknown as PrivyEthereumWallet, {
-        daoAddress: selectedDao.address as `0x${string}`,
-        investmentId: selectedInvestment.id,
-        voteValue,
-        upvoteAmountUsdc: voteValue === 1 ? upvoteAmount : undefined,
-      });
+      const signer = await ensureSigner();
+      const hash = await voteOnInvestment(
+        wallet as unknown as PrivyEthereumWallet,
+        {
+          daoAddress: selectedDao.address as `0x${string}`,
+          investmentId: selectedInvestment.id,
+          voteValue,
+          upvoteAmountUsdc: voteValue === 1 ? upvoteAmount : undefined,
+        },
+        signer,
+      );
       setLastTxHash(hash);
       notifySuccess(voteValue === 1 ? 'Upvote submitted.' : 'Downvote submitted.');
       await loadSelectedDaoData(selectedDao.address as `0x${string}`);
@@ -365,7 +372,9 @@ const Discover: React.FC = () => {
 
       {/* Results Grid */}
       {loading ? (
-        <div className="py-20 text-center text-muted-foreground">Loading active DAOs from Arc Testnet...</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+          {[0, 1, 2, 3, 4, 5].map((i) => <SkeletonCard key={i} lines={4} />)}
+        </div>
       ) : error ? (
         <div className="py-20 text-center">
           <h3 className="text-xl font-bold text-foreground">Could not load DAOs</h3>

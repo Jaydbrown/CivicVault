@@ -4,8 +4,9 @@ const DEFAULT_CHAIN_ID = 5042002;
 const DEFAULT_CHAIN_NAME = "Arc Testnet";
 const DEFAULT_RPC_URL = "https://rpc.testnet.arc.network";
 const DEFAULT_EXPLORER_URL = "https://testnet.arcscan.app";
-const DEFAULT_FACTORY_ADDRESS = "0x5a9D34264Da36cd05B66Fab80e6e5D6feDC9fDBC";
-const DEFAULT_VIEW_ADDRESS   = "0x5000F14A757d4488297772b694f18EaF0eC45C81";
+const DEFAULT_FACTORY_ADDRESS  = "0x58Ff8ca3b9863e535845f58D5d7AA90B33fE635F";
+const DEFAULT_VIEW_ADDRESS     = "0x4fdd011eCe547ddc148DA1316A7b979aA2cD6212";
+const DEFAULT_GOVERNOR_ADDRESS = "0x1cE8328E08a4c93A37e5e03115BAdE0373b97310";
 // Arc Testnet: ERC-20 interface for the native USDC gas token (6 decimals)
 const DEFAULT_USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 
@@ -25,6 +26,9 @@ export const FACTORY_ADDRESS = ((import.meta.env.VITE_FACTORY_ADDRESS as string 
   DEFAULT_FACTORY_ADDRESS) as Address;
 export const VIEW_ADDRESS = ((import.meta.env.VITE_VIEW_ADDRESS as string | undefined)?.trim() ||
   DEFAULT_VIEW_ADDRESS) as Address;
+/** CivicVaultGovernor singleton (member-initiated governance). */
+export const GOVERNOR_ADDRESS = ((import.meta.env.VITE_GOVERNOR_ADDRESS as string | undefined)?.trim() ||
+  DEFAULT_GOVERNOR_ADDRESS) as Address | "";
 export const USDC_ADDRESS = ((import.meta.env.VITE_USDC_ADDRESS as string | undefined)?.trim() ||
   DEFAULT_USDC_ADDRESS) as Address;
 

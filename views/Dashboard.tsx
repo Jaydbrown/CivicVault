@@ -16,6 +16,7 @@ import {
 import { formatTxError, notifyError, notifySuccess } from '../utils/toast';
 import { BACKEND_URL } from '../utils/backendUrl';
 import { getCanonicalWalletAddress } from '../utils/walletResolution';
+import { useMemberSigner } from '../utils/useMemberSigner';
 import { usePrivy } from '@privy-io/react-auth';
 
 const subscriberEmailFromUser = (user: User | null | undefined): string | undefined =>
@@ -230,7 +231,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
 
   const { wallets }   = useWallets();
   const { user: privyUser } = usePrivy();
+  // Off-chain identity (backend User row, Gmail prefs, chat) — stable Privy address.
   const walletAddress = getCanonicalWalletAddress(privyUser, wallets) as `0x${string}` | undefined || undefined;
+  // On-chain identity (role checks, votes) — external wallet, else the Circle SCA.
+  const { address: rawOnchain } = useMemberSigner();
+  const onchainAddress = (rawOnchain ?? walletAddress) as `0x${string}` | undefined;
   const subscriberEmail = subscriberEmailFromUser(user);
 
   const greeting = useMemo(() => {
@@ -274,7 +279,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
 
   useEffect(() => {
     const load = async () => {
-      if (!walletAddress) { setRolesByDao({}); return; }
+      if (!onchainAddress) { setRolesByDao({}); return; }
       const pendingDaos = Array.from(
         new Set(investments.filter((i) => i.status === 0).map((i) => i.daoAddress.toLowerCase())),
       );
@@ -282,14 +287,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, onVote, user }) => 
       try {
         const pairs = await Promise.all(
           pendingDaos.map(async (dao) =>
-            [dao, await fetchDaoUserRole(dao as `0x${string}`, walletAddress)] as const,
+            [dao, await fetchDaoUserRole(dao as `0x${string}`, onchainAddress)] as const,
           ),
         );
         setRolesByDao(Object.fromEntries(pairs));
       } catch { setRolesByDao({}); }
     };
     void load();
-  }, [walletAddress, investments]);
+  }, [onchainAddress, investments]);
 
   const totals = useMemo(() => {
     const totalTvl        = daos.reduce((s, d) => s + d.tvlRaw, 0n);

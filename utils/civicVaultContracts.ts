@@ -18,8 +18,12 @@ import {
   APP_RPC_URL,
   FACTORY_ABI,
   FACTORY_ADDRESS,
+  GOVERNOR_ADDRESS,
   USDC_ADDRESS,
 } from "./contract";
+import { circleSubmit, type MemberSigner } from "./txSigner";
+
+export type { MemberSigner };
 
 const RPC_ENDPOINTS = [
   import.meta.env.VITE_RPC_URL,
@@ -1161,11 +1165,11 @@ export async function voteOnInvestment(
     investmentId: number;
     voteValue: 0 | 1;
     upvoteAmountUsdc?: string;
-  }
+  },
+  signer?: MemberSigner
 ): Promise<Hex> {
-  await wallet.switchChain(APP_CHAIN_ID);
-  const walletClient = await getWalletClient(wallet);
-  const account = wallet.address as Address;
+  const useCircle = signer?.kind === "circle";
+  const account = (useCircle ? signer.address : wallet.address) as Address;
 
   let amountRaw = 0n;
   if (params.voteValue === 1) {
@@ -1190,18 +1194,39 @@ export async function voteOnInvestment(
     });
 
     if (allowance < amountRaw) {
-      const { request: approveRequest } = await simulateContractRpc({
-        address: USDC_ADDRESS,
-        abi: ERC20_ABI,
-        functionName: "approve",
-        args: [params.daoAddress, amountRaw],
-        account,
-      });
-      const approveHash = await walletClient.writeContract(approveRequest as never);
-      await publicClient.waitForTransactionReceipt({ hash: approveHash });
+      if (useCircle) {
+        await circleSubmit({
+          daoAddress: USDC_ADDRESS,
+          functionName: "approve",
+          args: [params.daoAddress, amountRaw],
+        });
+      } else {
+        await wallet.switchChain(APP_CHAIN_ID);
+        const wc = await getWalletClient(wallet);
+        const { request: approveRequest } = await simulateContractRpc({
+          address: USDC_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: "approve",
+          args: [params.daoAddress, amountRaw],
+          account,
+        });
+        const approveHash = await wc.writeContract(approveRequest as never);
+        await publicClient.waitForTransactionReceipt({ hash: approveHash });
+      }
     }
   }
 
+  if (useCircle) {
+    const { txHash } = await circleSubmit({
+      daoAddress: params.daoAddress,
+      functionName: "vote",
+      args: [BigInt(params.investmentId), amountRaw, params.voteValue],
+    });
+    return txHash as Hex;
+  }
+
+  await wallet.switchChain(APP_CHAIN_ID);
+  const walletClient = await getWalletClient(wallet);
   const { request } = await simulateContractRpc({
     address: params.daoAddress,
     abi: CIVIC_VAULT_ABI,
@@ -1260,8 +1285,18 @@ export async function fetchYieldRows(userAddress?: Address): Promise<YieldRow[]>
 export async function claimInvestmentYield(
   wallet: PrivyEthereumWallet,
   daoAddress: Address,
-  investmentId: number
+  investmentId: number,
+  signer?: MemberSigner
 ): Promise<Hex> {
+  if (signer?.kind === "circle") {
+    const { txHash } = await circleSubmit({
+      daoAddress,
+      functionName: "claimYield",
+      args: [BigInt(investmentId)],
+    });
+    return txHash as Hex;
+  }
+
   await wallet.switchChain(APP_CHAIN_ID);
   const walletClient = await getWalletClient(wallet);
   const account = wallet.address as Address;
@@ -1357,8 +1392,18 @@ export async function extendInvestmentDeadline(
 export async function withdrawInvestmentStake(
   wallet: PrivyEthereumWallet,
   daoAddress: Address,
-  investmentId: number
+  investmentId: number,
+  signer?: MemberSigner
 ): Promise<Hex> {
+  if (signer?.kind === "circle") {
+    const { txHash } = await circleSubmit({
+      daoAddress,
+      functionName: "withdrawStake",
+      args: [BigInt(investmentId)],
+    });
+    return txHash as Hex;
+  }
+
   await wallet.switchChain(APP_CHAIN_ID);
   const walletClient = await getWalletClient(wallet);
   const account = wallet.address as Address;
@@ -2064,4 +2109,263 @@ export async function reactivateDaoOnFactory(
   const txHash = await walletClient.writeContract(request as never);
   await publicClient.waitForTransactionReceipt({ hash: txHash });
   return txHash;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Member-initiated governance — CivicVaultGovernor (singleton, keyed by DAO)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const GOVERNOR_ABI = [
+  {
+    type: "function",
+    name: "openProposal",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "dao", type: "address" },
+      { name: "pType", type: "uint8" },
+      { name: "targetAdmin", type: "address" },
+      { name: "investmentId", type: "uint256" },
+    ],
+    outputs: [{ name: "proposalId", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "voteOnProposal",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "dao", type: "address" },
+      { name: "proposalId", type: "uint256" },
+      { name: "support", type: "bool" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "executeProposal",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "dao", type: "address" },
+      { name: "proposalId", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "proposalCount",
+    stateMutability: "view",
+    inputs: [{ name: "dao", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getProposal",
+    stateMutability: "view",
+    inputs: [
+      { name: "dao", type: "address" },
+      { name: "proposalId", type: "uint256" },
+    ],
+    outputs: [
+      { name: "pType", type: "uint8" },
+      { name: "proposer", type: "address" },
+      { name: "targetAdmin", type: "address" },
+      { name: "investmentId", type: "uint256" },
+      { name: "votingDeadline", type: "uint256" },
+      { name: "yesWeight", type: "uint256" },
+      { name: "noWeight", type: "uint256" },
+      { name: "executed", type: "bool" },
+      { name: "snapshotDenominator", type: "uint256" },
+      { name: "thresholdBps", type: "uint16" },
+      { name: "quorumFloorBps", type: "uint16" },
+    ],
+  },
+  {
+    type: "function",
+    name: "hasVoted",
+    stateMutability: "view",
+    inputs: [
+      { name: "dao", type: "address" },
+      { name: "proposalId", type: "uint256" },
+      { name: "voter", type: "address" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "proposalStatus",
+    stateMutability: "view",
+    inputs: [
+      { name: "dao", type: "address" },
+      { name: "proposalId", type: "uint256" },
+    ],
+    outputs: [
+      { name: "open", type: "bool" },
+      { name: "executed", type: "bool" },
+      { name: "passing", type: "bool" },
+    ],
+  },
+] as const;
+
+export type GovProposalType = 0 | 1 | 2 | 3 | 4; // Remove, Freeze, Unfreeze, Clawback, Reinstate
+export const GOV_PROPOSAL_LABELS: Record<GovProposalType, string> = {
+  0: "Remove admin",
+  1: "Freeze release",
+  2: "Unfreeze release",
+  3: "Clawback",
+  4: "Reinstate admin",
+};
+
+export type GovProposal = {
+  id: number;
+  pType: GovProposalType;
+  proposer: Address;
+  targetAdmin: Address;
+  investmentId: number;
+  votingDeadline: number; // unix seconds
+  yesWeight: bigint;
+  noWeight: bigint;
+  executed: boolean;
+  snapshotDenominator: bigint;
+  thresholdBps: number;
+  quorumFloorBps: number;
+  open: boolean;
+  passing: boolean;
+  hasVoted: boolean;
+};
+
+export function governorConfigured(): boolean {
+  return typeof GOVERNOR_ADDRESS === "string" && /^0x[a-fA-F0-9]{40}$/.test(GOVERNOR_ADDRESS);
+}
+
+function requireGovernor(): Address {
+  if (!governorConfigured()) {
+    throw new Error("Governance is not available yet on this deployment.");
+  }
+  return GOVERNOR_ADDRESS as Address;
+}
+
+export async function fetchGovProposals(
+  daoAddress: Address,
+  viewer?: Address
+): Promise<GovProposal[]> {
+  if (!governorConfigured()) return [];
+  const governor = GOVERNOR_ADDRESS as Address;
+
+  const count = await readContractRpc<bigint>({
+    address: governor,
+    abi: GOVERNOR_ABI,
+    functionName: "proposalCount",
+    args: [daoAddress],
+  });
+
+  const ids = Array.from({ length: Number(count) }, (_, i) => BigInt(i + 1));
+  const rows = await Promise.all(
+    ids.map(async (id) => {
+      const [p, status, voted] = await Promise.all([
+        readContractRpc<readonly [number, Address, Address, bigint, bigint, bigint, bigint, boolean, bigint, number, number]>({
+          address: governor,
+          abi: GOVERNOR_ABI,
+          functionName: "getProposal",
+          args: [daoAddress, id],
+        }),
+        readContractRpc<readonly [boolean, boolean, boolean]>({
+          address: governor,
+          abi: GOVERNOR_ABI,
+          functionName: "proposalStatus",
+          args: [daoAddress, id],
+        }),
+        viewer
+          ? readContractRpc<boolean>({
+              address: governor,
+              abi: GOVERNOR_ABI,
+              functionName: "hasVoted",
+              args: [daoAddress, id, viewer],
+            })
+          : Promise.resolve(false),
+      ]);
+      const proposal: GovProposal = {
+        id: Number(id),
+        pType: Number(p[0]) as GovProposalType,
+        proposer: p[1],
+        targetAdmin: p[2],
+        investmentId: Number(p[3]),
+        votingDeadline: Number(p[4]),
+        yesWeight: p[5],
+        noWeight: p[6],
+        snapshotDenominator: p[8],
+        thresholdBps: Number(p[9]),
+        quorumFloorBps: Number(p[10]),
+        open: status[0],
+        executed: status[1] || p[7],
+        passing: status[2],
+        hasVoted: voted,
+      };
+      return proposal;
+    })
+  );
+  return rows.reverse(); // newest first
+}
+
+async function submitGovWrite(
+  wallet: PrivyEthereumWallet,
+  functionName: "openProposal" | "voteOnProposal" | "executeProposal",
+  args: readonly unknown[],
+  signer?: MemberSigner
+): Promise<Hex> {
+  const governor = requireGovernor();
+
+  if (signer?.kind === "circle") {
+    const { txHash } = await circleSubmit({ daoAddress: governor, functionName, args: [...args] });
+    return txHash as Hex;
+  }
+
+  await wallet.switchChain(APP_CHAIN_ID);
+  const walletClient = await getWalletClient(wallet);
+  const account = wallet.address as Address;
+  const { request } = await simulateContractRpc({
+    address: governor,
+    abi: GOVERNOR_ABI,
+    functionName,
+    args,
+    account,
+  });
+  const txHash = await walletClient.writeContract(request as never);
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+  return txHash;
+}
+
+export async function openGovProposal(
+  wallet: PrivyEthereumWallet,
+  params: { daoAddress: Address; pType: GovProposalType; targetAdmin?: Address; investmentId?: number },
+  signer?: MemberSigner
+): Promise<Hex> {
+  return submitGovWrite(
+    wallet,
+    "openProposal",
+    [
+      params.daoAddress,
+      params.pType,
+      (params.targetAdmin ?? "0x0000000000000000000000000000000000000000") as Address,
+      BigInt(params.investmentId ?? 0),
+    ],
+    signer
+  );
+}
+
+export async function voteOnGovProposal(
+  wallet: PrivyEthereumWallet,
+  daoAddress: Address,
+  proposalId: number,
+  support: boolean,
+  signer?: MemberSigner
+): Promise<Hex> {
+  return submitGovWrite(wallet, "voteOnProposal", [daoAddress, BigInt(proposalId), support], signer);
+}
+
+export async function executeGovProposal(
+  wallet: PrivyEthereumWallet,
+  daoAddress: Address,
+  proposalId: number,
+  signer?: MemberSigner
+): Promise<Hex> {
+  return submitGovWrite(wallet, "executeProposal", [daoAddress, BigInt(proposalId)], signer);
 }

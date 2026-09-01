@@ -11,6 +11,7 @@ import {
   type OnchainInvestment,
   type PrivyEthereumWallet,
 } from '../utils/civicVaultContracts';
+import { useMemberSigner } from '../utils/useMemberSigner';
 import { maskAddress } from '../utils/address';
 import { formatTxError, notifyError, notifySuccess, notifyWarning } from '../utils/toast';
 import { getTxExplorerUrl, hasBackupExplorer } from '../utils/explorer';
@@ -22,6 +23,7 @@ interface VotingInterfaceProps {
 
 const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack }) => {
   const { wallets } = useWallets();
+  const { ensure: ensureSigner } = useMemberSigner();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submittingVoteType, setSubmittingVoteType] = useState<'yes' | 'no' | null>(null);
@@ -111,12 +113,17 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ proposalId, onBack })
     setSubmittingVoteType(type);
     setTxHash('');
     try {
-      const hash = await voteOnInvestment(wallet as unknown as PrivyEthereumWallet, {
-        daoAddress: investment.daoAddress,
-        investmentId: investment.id,
-        voteValue: type === 'yes' ? 1 : 0,
-        upvoteAmountUsdc: type === 'yes' ? upvoteAmount : undefined,
-      });
+      const signer = await ensureSigner();
+      const hash = await voteOnInvestment(
+        wallet as unknown as PrivyEthereumWallet,
+        {
+          daoAddress: investment.daoAddress,
+          investmentId: investment.id,
+          voteValue: type === 'yes' ? 1 : 0,
+          upvoteAmountUsdc: type === 'yes' ? upvoteAmount : undefined,
+        },
+        signer,
+      );
       setTxHash(hash);
       setVoteType(type);
       setAllInvestments(await fetchAllInvestments());

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import LandingPage from './views/LandingPage';
 import AppShell from './layouts/AppShell';
 import Dashboard from './views/Dashboard';
@@ -10,6 +11,7 @@ import InvestmentListing from './views/InvestmentListing';
 import VotingInterface from './views/VotingInterface';
 import WalletView from './views/Wallet';
 import YieldsView from './views/Yields';
+import GovernanceView from './views/Governance';
 import MessagesView from './views/Messages';
 import ProfileView from './views/Profile';
 import MyDaos from './views/MyDaos';
@@ -21,18 +23,27 @@ import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { KineticTextLoader } from "@/components/ui/kinetic-text-loader";
 import { ToastContainer } from 'react-toastify';
 import { notifyWarning } from './utils/toast';
-import { BACKEND_URL } from './utils/backendUrl';
+import { apiFetch, registerAccessTokenGetter } from './utils/apiFetch';
+import { refreshNairaRate } from './utils/fiat';
 import { getCanonicalWalletAddress } from './utils/walletResolution';
 
-export type ViewState = 'landing' | 'dashboard' | 'my-daos' | 'discover' | 'investments' | 'messages' | 'profile' | 'create-dao' | 'kyc' | 'vote-proposal' | 'wallet' | 'yields' | 'privacy' | 'terms' | 'cookies' | 'whitepaper';
+export type ViewState = 'landing' | 'dashboard' | 'my-daos' | 'discover' | 'investments' | 'messages' | 'profile' | 'create-dao' | 'kyc' | 'vote-proposal' | 'wallet' | 'yields' | 'governance' | 'privacy' | 'terms' | 'cookies' | 'whitepaper';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('landing');
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
   const [hasShownSplashLongEnough, setHasShownSplashLongEnough] = useState(false);
 
-  const { ready, authenticated, login, logout, user } = usePrivy();
+  const { ready, authenticated, login, logout, user, getAccessToken } = usePrivy();
   const { wallets } = useWallets();
+
+  // Make the Privy access token available to the API client + warm the ₦ rate.
+  useEffect(() => {
+    registerAccessTokenGetter(() => getAccessToken());
+  }, [getAccessToken]);
+  useEffect(() => {
+    void refreshNairaRate();
+  }, []);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -58,9 +69,8 @@ const App: React.FC = () => {
     const walletAddress = getCanonicalWalletAddress(user, wallets);
     if (!walletAddress) return;
     const email = user.email?.address?.toLowerCase() ?? undefined;
-    fetch(`${BACKEND_URL}/api/auth/sync-identity`, {
+    apiFetch('/api/auth/sync-identity', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ walletAddress, email, privyUserId: user.id }),
     }).catch(() => { /* non-critical — app works without backend */ });
   }, [authenticated, user, wallets]);
@@ -164,17 +174,28 @@ const App: React.FC = () => {
   return (
     <>
       <AppShell currentView={view} onViewChange={setView} user={user} onLogout={logout}>
-        {view === 'dashboard'     && <Dashboard onViewChange={setView} onVote={handleVote} user={user} />}
-        {view === 'discover'      && <Discover />}
-        {view === 'my-daos'       && <MyDaos onViewChange={setView} />}
-        {view === 'create-dao'    && <CreateDAO onComplete={() => setView('dashboard')} />}
-        {view === 'kyc'           && <KYCVerification onComplete={() => setView('dashboard')} />}
-        {view === 'investments'   && <InvestmentListing onVote={handleVote} />}
-        {view === 'vote-proposal' && <VotingInterface proposalId={selectedProposalId} onBack={() => setView('dashboard')} />}
-        {view === 'wallet'        && <WalletView user={user} />}
-        {view === 'yields'        && <YieldsView />}
-        {view === 'messages'      && <MessagesView />}
-        {view === 'profile'       && <ProfileView />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.16, ease: 'easeOut' }}
+          >
+            {view === 'dashboard'     && <Dashboard onViewChange={setView} onVote={handleVote} user={user} />}
+            {view === 'discover'      && <Discover />}
+            {view === 'my-daos'       && <MyDaos onViewChange={setView} />}
+            {view === 'create-dao'    && <CreateDAO onComplete={() => setView('dashboard')} />}
+            {view === 'kyc'           && <KYCVerification onComplete={() => setView('dashboard')} />}
+            {view === 'investments'   && <InvestmentListing onVote={handleVote} />}
+            {view === 'vote-proposal' && <VotingInterface proposalId={selectedProposalId} onBack={() => setView('dashboard')} />}
+            {view === 'wallet'        && <WalletView user={user} />}
+            {view === 'yields'        && <YieldsView />}
+            {view === 'governance'    && <GovernanceView />}
+            {view === 'messages'      && <MessagesView />}
+            {view === 'profile'       && <ProfileView />}
+          </motion.div>
+        </AnimatePresence>
       </AppShell>
       <ToastContainer position="top-right" newestOnTop theme="colored" />
     </>

@@ -1,3 +1,5 @@
+import { apiFetch, ApiError } from "./apiFetch";
+
 export type DaoChatMessage = {
   id: string;
   daoAddress: string;
@@ -255,92 +257,6 @@ const loadDaoChatMessagesRemote = async (
   );
 };
 
-const sendDaoChatMessageRemote = async (params: {
-  daoAddress: string;
-  senderWallet: string;
-  senderLabel: string;
-  content: string;
-  attachmentUrl?: string | null;
-}): Promise<DaoChatMessage> => {
-  const nowIso = new Date().toISOString();
-  const attach = params.attachmentUrl?.trim() || "";
-  const id =
-    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  const rowBase = {
-    id,
-    room_key: getRoomKey(params.daoAddress),
-    sender_wallet: params.senderWallet,
-    sender_label: params.senderLabel,
-    content: params.content,
-    created_at: nowIso,
-  };
-
-  const rowWithAttach = attach ? { ...rowBase, attachment_url: attach } : rowBase;
-
-  const postRow = async (payload: Record<string, unknown>) => {
-    const response = await fetch(getSupabaseRestUrl(), {
-      method: "POST",
-      headers: {
-        ...supabaseHeaders(),
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify([payload]),
-    });
-    const bodyText = await response.text();
-    let rows: unknown[] = [];
-    if (response.ok && bodyText) {
-      try {
-        const parsed = JSON.parse(bodyText) as unknown;
-        if (Array.isArray(parsed)) rows = parsed;
-      } catch {
-        rows = [];
-      }
-    }
-    return { ok: response.ok, status: response.status, bodyText, rows };
-  };
-
-  let attempt = await postRow(rowWithAttach);
-
-  if (!attempt.ok && attach && supabaseAttachmentColumnUnsupported(attempt.status, attempt.bodyText)) {
-    const merged = [params.content.trim(), attach].filter(Boolean).join("\n\n").slice(0, 1000);
-    attempt = await postRow({ ...rowBase, content: merged });
-  }
-
-  if (!attempt.ok) {
-    throw new Error(`Failed to send DAO chat message: ${attempt.bodyText || String(attempt.status)}`);
-  }
-
-  type Row = {
-    id: string;
-    room_key: string;
-    sender_wallet: string;
-    sender_label: string;
-    content: string;
-    created_at: string;
-    attachment_url?: string | null;
-  };
-  const rows = attempt.rows as Row[];
-  const [parsed] = fromSupabaseRows(rows);
-  if (parsed) {
-    if (attach && !parsed.attachmentUrl) return { ...parsed, attachmentUrl: attach };
-    return parsed;
-  }
-
-  const createdTs = rows[0]?.created_at ? new Date(rows[0].created_at).getTime() : Date.now();
-  return {
-    id: rows[0]?.id ?? rowBase.id,
-    daoAddress: rowBase.room_key,
-    senderWallet: rowBase.sender_wallet,
-    senderLabel: rowBase.sender_label,
-    content: rows[0]?.content ?? rowBase.content,
-    attachmentUrl: attach || undefined,
-    createdAt: createdTs,
-  };
-};
-
 export const loadDaoChatMessages = (
   daoAddress: string,
   limit = 200,
@@ -372,13 +288,24 @@ export const sendDaoChatMessage = (params: {
   if (!content && !attachmentUrl) throw new Error("Message cannot be empty.");
 
   if (hasSupabaseConfig()) {
-    return sendDaoChatMessageRemote({
-      daoAddress,
-      senderWallet,
-      senderLabel,
-      content: content.slice(0, 1000),
-      attachmentUrl: attachmentUrl || undefined,
-    });
+    // Posting is gated on on-chain DAO membership — it goes through the
+    // backend, which verifies the caller and is the only authorised writer.
+    return apiFetch<{ message: DaoChatMessage }>("/api/chat/message", {
+      method: "POST",
+      body: JSON.stringify({
+        daoAddress,
+        content: content.slice(0, 1000),
+        attachmentUrl: attachmentUrl || undefined,
+        senderLabel,
+      }),
+    })
+      .then((r) => hydrateChatImageAttachment(r.message))
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 403) {
+          throw new Error("Only verified members of this DAO can post here.");
+        }
+        throw err instanceof Error ? err : new Error("Failed to send message.");
+      });
   }
 
   const message: DaoChatMessage = {

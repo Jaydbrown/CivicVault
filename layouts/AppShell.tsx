@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Compass, MessageSquare, User, Bell, LayoutDashboard,
   Globe, Wallet, House, LogOut, Coins, ArrowLeft,
-  Leaf, UserPlus, Plus, LayoutGrid,
+  Leaf, UserPlus, Plus, LayoutGrid, Scale,
 } from 'lucide-react';
 import type { ViewState } from '../App';
 import { useWallets, type User as PrivyUser } from '@privy-io/react-auth';
@@ -44,11 +44,16 @@ const PAGE_TITLES: Record<ViewState, string> = {
   profile: 'Profile',
   wallet: 'My Wallet',
   yields: 'Yields',
+  governance: 'Governance',
   kyc: 'KYC & Admin',
   'create-dao': 'Create DAO',
   'vote-proposal': 'Vote on Proposal',
   landing: 'CivicVault',
   'my-daos': 'My DAOs',
+  whitepaper: 'Whitepaper',
+  privacy: 'Privacy Policy',
+  terms: 'Terms of Service',
+  cookies: 'Cookie Policy',
 };
 
 const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange, user, onLogout }) => {
@@ -234,6 +239,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, currentView, onViewChange
   const moreNavItems = [
     { id: 'wallet' as ViewState, label: 'My Wallet', icon: Wallet },
     { id: 'yields' as ViewState, label: 'Yields', icon: Coins },
+    { id: 'governance' as ViewState, label: 'Governance', icon: Scale },
     { id: 'kyc' as ViewState, label: 'KYC / Admin', icon: UserPlus },
   ];
 

@@ -15,6 +15,7 @@ import {
   type WithdrawableStakeRow,
   type YieldRow,
 } from '../utils/civicVaultContracts';
+import { useMemberSigner } from '../utils/useMemberSigner';
 import { formatTxError, notifyError, notifySuccess, notifyWarning } from '../utils/toast';
 import { getAddressExplorerUrl } from '../utils/explorer';
 
@@ -33,7 +34,8 @@ const YieldsView: React.FC = () => {
   const [rolesByDao, setRolesByDao] = useState<Record<string, DaoUserRole>>({});
 
   const wallet = wallets.find((item) => item.type === 'ethereum');
-  const walletAddress = wallet?.address as `0x${string}` | undefined;
+  const { ensure: ensureSigner, address: signerAddress } = useMemberSigner();
+  const walletAddress = (signerAddress ?? wallet?.address) as `0x${string}` | undefined;
 
   const canManageDao = (daoAddress: string) => {
     const role = rolesByDao[daoAddress.toLowerCase()];
@@ -99,7 +101,8 @@ const YieldsView: React.FC = () => {
       await claimInvestmentYield(
         wallet as unknown as PrivyEthereumWallet,
         row.daoAddress,
-        row.investmentId
+        row.investmentId,
+        await ensureSigner()
       );
       notifySuccess('Yield claimed successfully.');
       await loadRows();
@@ -151,7 +154,8 @@ const YieldsView: React.FC = () => {
       await withdrawInvestmentStake(
         wallet as unknown as PrivyEthereumWallet,
         row.daoAddress,
-        row.investmentId
+        row.investmentId,
+        await ensureSigner()
       );
       notifySuccess('Stake withdrawn successfully.');
       await loadRows();

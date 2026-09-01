@@ -3,7 +3,8 @@ import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { Card } from "../components/UI";
 import { UserAvatar } from "../components/UserAvatar";
 import { ArrowLeft, MessageSquare, Search, Send, Bell, BellOff, Mail, Check, ImagePlus, X } from "lucide-react";
-import { type OnchainDao, fetchActiveDaos } from "../utils/civicVaultContracts";
+import { type OnchainDao, fetchActiveDaos, fetchDaoUserRole } from "../utils/civicVaultContracts";
+import { useMemberSigner } from "../utils/useMemberSigner";
 import { maskAddress } from "../utils/address";
 import {
   getDaoChatTransportLabel,
@@ -286,6 +287,22 @@ const MessagesView: React.FC = () => {
     [user, wallets],
   );
 
+  const { address: onchainAddress } = useMemberSigner();
+  // null = unknown / checking, false = not a member, true = verified member
+  const [canPost, setCanPost] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const dao = selectedDao?.address;
+    const who = (onchainAddress ?? walletAddress) as `0x${string}` | undefined;
+    if (!dao || !who) { setCanPost(null); return; }
+    let live = true;
+    setCanPost(null);
+    fetchDaoUserRole(dao as `0x${string}`, who)
+      .then((role) => { if (live) setCanPost(Boolean(role?.isVerifiedMember || role?.isAdmin || role?.isCreator)); })
+      .catch(() => { if (live) setCanPost(false); });
+    return () => { live = false; };
+  }, [selectedDao?.address, onchainAddress, walletAddress]);
+
   const senderLabel = useMemo(() => getAccountDisplayName(user, walletAddress), [user, walletAddress]);
 
   useEffect(() => {
@@ -517,6 +534,10 @@ const MessagesView: React.FC = () => {
     try {
       if (!walletAddress) {
         notifyWarning("Connect your wallet first to send messages.");
+        return;
+      }
+      if (canPost === false) {
+        notifyWarning(`Only verified members of ${selectedDao.name} can post here.`);
         return;
       }
       const text = draft.trim();
@@ -808,6 +829,11 @@ const MessagesView: React.FC = () => {
               </div>
 
               <div className="p-3 sm:p-4 border-t border-border/40 bg-card backdrop-blur-md">
+                {selectedDao && canPost === false && (
+                  <p className="mb-2 text-xs text-amber-700 bg-amber-50/80 border border-amber-200 rounded-lg px-3 py-2">
+                    Only verified members of {selectedDao.name} can post here. Join and complete KYC to join the conversation.
+                  </p>
+                )}
                 <input
                   ref={imageInputRef}
                   type="file"
@@ -863,7 +889,7 @@ const MessagesView: React.FC = () => {
                 <div className="flex items-end gap-2 sm:gap-3">
                   <button
                     type="button"
-                    disabled={!selectedDao || sending || !canUsePinataImages()}
+                    disabled={!selectedDao || sending || canPost === false || !canUsePinataImages()}
                     onClick={() => imageInputRef.current?.click()}
                     title={
                       canUsePinataImages()
@@ -877,19 +903,26 @@ const MessagesView: React.FC = () => {
                   <textarea
                     value={draft}
                     onChange={(e) => setDraft(e.target.value.slice(0, 1000))}
+                    disabled={canPost === false}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        if (!sending && selectedDao && (draft.trim() || pendingImage)) void handleSend();
+                        if (!sending && selectedDao && canPost !== false && (draft.trim() || pendingImage)) void handleSend();
                       }
                     }}
                     rows={2}
-                    placeholder={selectedDao ? "Type a message (optional with image)…" : "Select a room first"}
-                    className="flex-1 p-3 border border-border rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-500/20"
+                    placeholder={
+                      !selectedDao
+                        ? "Select a room first"
+                        : canPost === false
+                          ? "Members only"
+                          : "Type a message (optional with image)…"
+                    }
+                    className="flex-1 p-3 border border-border rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
                     onClick={() => void handleSend()}
-                    disabled={!selectedDao || (!draft.trim() && !pendingImage) || sending}
+                    disabled={!selectedDao || canPost === false || (!draft.trim() && !pendingImage) || sending}
                     className="h-11 px-4 bg-primary text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                   >
                     <Send className="w-4 h-4" />

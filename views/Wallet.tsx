@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Card, RoleTags } from '../components/UI';
+import { Card, RoleTags, Skeleton, SkeletonCard } from '../components/UI';
 import { Globe, Shield, Wallet } from 'lucide-react';
 import { useWallets, type User } from '@privy-io/react-auth';
 import { fetchActiveDaos, fetchWalletDaoRoles, fetchYieldRows, formatUsdcAmount, type OnchainDao, type WalletDaoRoleRow, type YieldRow } from '../utils/civicVaultContracts';
 import { getChainName } from '../utils/chainUtils';
 import { formatTxError, notifyError } from '../utils/toast';
 import { APP_CHAIN_NAME } from '../utils/contract';
+import { getOnchainAddress } from '../utils/walletResolution';
+import { tryGetCircleWallet, ensureCircleWallet, circleAppIdConfigured, type CircleWalletInfo } from '../utils/circleWallet';
+import { formatNaira, formatUsd } from '../utils/fiat';
+import { copyText } from '../utils/clipboard';
 
 interface WalletViewProps {
   user: User | null;
@@ -17,7 +21,31 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
   const ethWallet = user?.linkedAccounts?.find(
     (account) => account.type === 'wallet' && 'chainType' in account && account.chainType === 'ethereum'
   ) as { chainId?: string; address?: string } | undefined;
-  const effectiveAddress = (connectedEthWallet?.address || ethWallet?.address) as `0x${string}` | undefined;
+
+  const [circle, setCircle] = useState<CircleWalletInfo | null>(null);
+  const [circleBusy, setCircleBusy] = useState(false);
+  const hasExternal = wallets.some((w) => w.type === 'ethereum' && w.walletClientType !== 'privy');
+
+  useEffect(() => {
+    if (hasExternal) { setCircle(null); return; }
+    let live = true;
+    tryGetCircleWallet().then((w) => { if (live) setCircle(w); });
+    return () => { live = false; };
+  }, [hasExternal]);
+
+  const effectiveAddress = (getOnchainAddress(user, wallets, circle?.address) ||
+    connectedEthWallet?.address || ethWallet?.address) as `0x${string}` | undefined;
+
+  const provisionCircle = async () => {
+    setCircleBusy(true);
+    try {
+      setCircle(await ensureCircleWallet());
+    } catch (err) {
+      notifyError(formatTxError(err, 'Could not set up your wallet.'));
+    } finally {
+      setCircleBusy(false);
+    }
+  };
   const connectedChainName = connectedEthWallet?.chainId ? getChainName(connectedEthWallet.chainId) : 'Not Connected';
   const effectiveChainName =
     connectedEthWallet?.address && connectedChainName === 'Not Connected'
@@ -83,7 +111,17 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground">Loading wallet data...</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-44 rounded-3xl" />
+            <SkeletonCard lines={4} />
+            <SkeletonCard lines={3} />
+          </div>
+          <div className="space-y-6">
+            <SkeletonCard lines={4} />
+            <SkeletonCard lines={2} />
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -169,13 +207,68 @@ const WalletView: React.FC<WalletViewProps> = ({ user }) => {
           </div>
 
           <div className="space-y-6">
+            {!hasExternal && circleAppIdConfigured() && (
+              <Card className="p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-emerald-600" />
+                  <h3 className="font-bold text-foreground">Your Wallet</h3>
+                  {circle && (
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                      {circle.tier === 'CUSTODIAL' ? 'USSD' : 'Self-custody'}
+                    </span>
+                  )}
+                </div>
+
+                {circle ? (
+                  <>
+                    <div>
+                      <p className="text-3xl font-extrabold text-foreground">{formatNaira(circle.usdcBalance)}</p>
+                      <p className="text-xs text-muted-foreground">{formatUsd(circle.usdcBalance)} · rate ₦{circle.nairaRate.toLocaleString()}/$</p>
+                    </div>
+                    <button
+                      onClick={() => copyText(circle.address)}
+                      className="w-full text-left text-xs font-mono p-2 rounded-lg border border-border hover:bg-muted"
+                      title="Copy address"
+                    >
+                      {circle.address.slice(0, 10)}…{circle.address.slice(-8)}
+                    </button>
+                    <a
+                      href={`https://www.circle.com/en/usdc?ref=${circle.address}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block w-full text-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold"
+                    >
+                      Add funds
+                    </a>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      You hold the key to this wallet (secured by your passkey / PIN). CivicVault
+                      cannot move your funds — it can only ask you to approve a DAO action.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Set up a gasless wallet secured by your device passkey. Takes one tap.
+                    </p>
+                    <button
+                      onClick={provisionCircle}
+                      disabled={circleBusy}
+                      className="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold disabled:opacity-60"
+                    >
+                      {circleBusy ? 'Setting up…' : 'Set up wallet'}
+                    </button>
+                  </>
+                )}
+              </Card>
+            )}
+
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-3">
                 <Wallet className="w-4 h-4 text-muted-foreground" />
                 <h3 className="font-bold text-foreground">Wallet Actions</h3>
               </div>
               <p className="text-sm text-muted-foreground">
-                Deposits and withdrawals happen through DAO actions (`vote`, `withdrawStake`, `claimYield`) and are visible in Snowtrace.
+                Deposits and withdrawals happen through DAO actions (`vote`, `withdrawStake`, `claimYield`) and are visible on Arcscan.
               </p>
             </Card>
 

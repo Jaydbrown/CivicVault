@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, X } from 'lucide-react';
+import { Check, Copy, Loader2, X } from 'lucide-react';
+import { copyText } from '../utils/clipboard';
 
 // 1. Button
 export const Button: React.FC<{
@@ -200,6 +201,69 @@ export const RoleTags: React.FC<{
     )}
   </div>
 );
+
+// ─── Skeleton loader ──────────────────────────────────────────────────────────
+export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`animate-pulse rounded-lg bg-foreground/[0.07] ${className}`} />
+);
+
+/** A card-shaped placeholder — use while a list of Cards is loading. */
+export const SkeletonCard: React.FC<{ lines?: number; className?: string }> = ({ lines = 3, className = '' }) => (
+  <Card className={`space-y-3 ${className}`}>
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-4 w-1/3" />
+      <Skeleton className="h-5 w-16 rounded-full" />
+    </div>
+    {Array.from({ length: lines }).map((_, i) => (
+      <Skeleton key={i} className={`h-3 ${i === lines - 1 ? 'w-2/3' : 'w-full'}`} />
+    ))}
+  </Card>
+);
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+export const EmptyState: React.FC<{
+  icon?: React.ReactNode;
+  title: string;
+  hint?: string;
+  action?: React.ReactNode;
+  className?: string;
+}> = ({ icon, title, hint, action, className = '' }) => (
+  <div className={`flex flex-col items-center justify-center text-center py-12 px-6 ${className}`}>
+    {icon && (
+      <div className="mb-3 p-3 rounded-2xl bg-foreground/[0.04] text-muted-foreground">{icon}</div>
+    )}
+    <p className="font-bold text-foreground">{title}</p>
+    {hint && <p className="text-sm text-muted-foreground mt-1 max-w-sm">{hint}</p>}
+    {action && <div className="mt-4">{action}</div>}
+  </div>
+);
+
+// ─── Copy-to-clipboard button ─────────────────────────────────────────────────
+export const CopyButton: React.FC<{
+  value: string;
+  label?: string;
+  className?: string;
+}> = ({ value, label, className = '' }) => {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        if (await copyText(value)) {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1400);
+        }
+      }}
+      className={`inline-flex items-center gap-1.5 text-xs font-medium transition-colors ${
+        copied ? 'text-emerald-600' : 'text-muted-foreground hover:text-foreground'
+      } ${className}`}
+      aria-label="Copy"
+    >
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+      {label ?? (copied ? 'Copied' : 'Copy')}
+    </button>
+  );
+};
 
 export const MetricCard: React.FC<{
   label: string;

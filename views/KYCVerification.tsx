@@ -80,8 +80,14 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
     return message || 'Could not add member right now.';
   };
 
+  // KYC / member management are admin-only on-chain actions — a Circle
+  // user-controlled wallet can't hold an admin role or call them, so prefer a
+  // linked external wallet and only fall back to the embedded one.
   const connectedWallet = useMemo(
-    () => wallets.find((wallet) => wallet.type === 'ethereum') ?? null,
+    () =>
+      wallets.find((w) => w.type === 'ethereum' && w.walletClientType !== 'privy') ??
+      wallets.find((w) => w.type === 'ethereum') ??
+      null,
     [wallets],
   );
 

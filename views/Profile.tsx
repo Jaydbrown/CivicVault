@@ -42,6 +42,7 @@ import { formatTxError } from "../utils/toast";
 import { APP_CHAIN_NAME } from "../utils/contract";
 import { getChainName } from "../utils/chainUtils";
 import { getCanonicalWalletAddress, getLinkedEmail, isEmbeddedWalletOnly } from "../utils/walletResolution";
+import { useMemberSigner } from "../utils/useMemberSigner";
 import { BACKEND_URL } from "../utils/backendUrl";
 
 const MAX_PROFILE_AVATAR_BYTES = 4 * 1024 * 1024;
@@ -76,6 +77,11 @@ const ProfileView: React.FC = () => {
 
   const embeddedOnly = useMemo(() => isEmbeddedWalletOnly(wallets), [wallets]);
   const linkedEmail = useMemo(() => getLinkedEmail(user), [user]);
+
+  // On-chain identity: external wallet, else the Circle SCA. Used for portfolio
+  // + role reads; `walletAddress` above stays the off-chain (backend) identity.
+  const { address: rawOnchain } = useMemberSigner();
+  const onchainAddress = (rawOnchain ?? walletAddress) as `0x${string}` | undefined;
 
   const connectedEth = wallets.find((w) => w.type === "ethereum") as { chainId?: string } | undefined;
   const linkedEth = user?.linkedAccounts?.find(
@@ -145,9 +151,9 @@ const ProfileView: React.FC = () => {
       try {
         const [daoRows, yieldRows] = await Promise.all([
           fetchActiveDaos(),
-          fetchYieldRows(walletAddress as `0x${string}` | undefined),
+          fetchYieldRows(onchainAddress),
         ]);
-        const walletRoles = await fetchWalletDaoRoles(walletAddress as `0x${string}` | undefined);
+        const walletRoles = await fetchWalletDaoRoles(onchainAddress);
         setDaos(daoRows);
         setRoleRows(walletRoles);
         setYields(yieldRows);
@@ -156,7 +162,7 @@ const ProfileView: React.FC = () => {
       }
     };
     void load();
-  }, [walletAddress]);
+  }, [onchainAddress]);
 
   const totalYield = yields.reduce((sum, row) => sum + row.claimable, 0n);
 

@@ -40,6 +40,32 @@ export function getCanonicalWalletAddress(
 }
 
 /**
+ * The address to use for ON-CHAIN reads, writes and role checks.
+ *
+ * A linked external wallet always wins. Otherwise, for an email/embedded-only
+ * user, the Circle user-controlled wallet (SCA) address is the on-chain
+ * identity — that is where their stake and votes live.
+ *
+ * Keep using `getCanonicalWalletAddress` for OFF-chain identity (the backend
+ * `User` row, chat, notifications) — that stays keyed on the stable Privy
+ * address so those features are unaffected by wallet provisioning.
+ */
+export function getOnchainAddress(
+  user: unknown,
+  wallets: ConnectedWallet[],
+  circleWalletAddress?: string | null,
+): string {
+  const external = wallets.find(
+    (w) => w.type === "ethereum" && w.walletClientType !== "privy",
+  );
+  if (external?.address) return external.address;
+  if (circleWalletAddress && /^0x[a-fA-F0-9]{40}$/.test(circleWalletAddress)) {
+    return circleWalletAddress;
+  }
+  return getCanonicalWalletAddress(user, wallets);
+}
+
+/**
  * Returns true when the user's active session only has a Privy embedded
  * wallet and has NOT yet linked an external wallet (MetaMask / injected).
  */
