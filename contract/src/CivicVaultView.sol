@@ -11,11 +11,7 @@ import {InvestmentManager} from "./libraries/InvestmentManager.sol";
  * @dev Deploy once; pass any CivicVault clone address to each function.
  */
 contract CivicVaultView {
-    function getAllInvestments(address dao)
-        external
-        view
-        returns (ICivicVault.Investment[] memory)
-    {
+    function getAllInvestments(address dao) external view returns (ICivicVault.Investment[] memory) {
         uint256 count = ICivicVault(dao).investmentCount();
         ICivicVault.Investment[] memory all = new ICivicVault.Investment[](count);
         for (uint256 i = 1; i <= count; i++) {
@@ -80,12 +76,7 @@ contract CivicVaultView {
     function getUserAnalytics(address dao, address user)
         external
         view
-        returns (
-            uint256 totalStaked,
-            uint256 totalClaimedYield,
-            uint256 totalClaimableYield,
-            uint256 realizedRoiBps
-        )
+        returns (uint256 totalStaked, uint256 totalClaimedYield, uint256 totalClaimableYield, uint256 realizedRoiBps)
     {
         uint256 count = ICivicVault(dao).investmentCount();
         for (uint256 i = 1; i <= count; i++) {
@@ -99,24 +90,16 @@ contract CivicVaultView {
                 ICivicVault.Investment memory inv = ICivicVault(dao).getInvestment(i);
                 if (inv.status == ICivicVault.Status.ACTIVE) {
                     totalClaimableYield += YieldCalculator.calculateUserYield(
-                        userVote.numberOfVotes,
-                        inv.upvotes,
-                        inv.totalYieldGenerated
+                        userVote.numberOfVotes, inv.upvotes, inv.totalYieldGenerated
                     );
                 }
             }
         }
 
-        realizedRoiBps = totalStaked == 0
-            ? 0
-            : YieldCalculator.calculateYieldPercentage(totalClaimedYield, totalStaked);
+        realizedRoiBps = totalStaked == 0 ? 0 : YieldCalculator.calculateYieldPercentage(totalClaimedYield, totalStaked);
     }
 
-    function calculateClaimableYield(address dao, uint256 investmentId, address voter)
-        external
-        view
-        returns (uint256)
-    {
+    function calculateClaimableYield(address dao, uint256 investmentId, address voter) external view returns (uint256) {
         ICivicVault.Investment memory inv = ICivicVault(dao).getInvestment(investmentId);
         if (inv.status != ICivicVault.Status.ACTIVE && inv.status != ICivicVault.Status.ENDED) return 0;
 
@@ -124,16 +107,29 @@ contract CivicVaultView {
         if (userVote.numberOfVotes == 0 || userVote.voteValue != 1) return 0;
         if (inv.upvotes == 0 || inv.totalYieldGenerated == 0) return 0;
 
-        uint256 totalEntitled = YieldCalculator.calculateUserYield(
-            userVote.numberOfVotes,
-            inv.upvotes,
-            inv.totalYieldGenerated
-        );
+        uint256 totalEntitled =
+            YieldCalculator.calculateUserYield(userVote.numberOfVotes, inv.upvotes, inv.totalYieldGenerated);
         return totalEntitled > userVote.yieldClaimed ? totalEntitled - userVote.yieldClaimed : 0;
     }
 
     function canActivateInvestment(address dao, uint256 investmentId) external view returns (bool) {
         ICivicVault.Investment memory inv = ICivicVault(dao).getInvestment(investmentId);
         return InvestmentManager.canActivate(inv.upvotes, inv.fundNeeded, inv.deadline, block.timestamp);
+    }
+
+    /// @notice How much of a clawed-back investment's pool `voter` can still reclaim.
+    function getClawbackReclaimable(address dao, uint256 investmentId, address voter) external view returns (uint256) {
+        ICivicVault d = ICivicVault(dao);
+        ICivicVault.Investment memory inv = d.getInvestment(investmentId);
+        if (inv.status != ICivicVault.Status.CLAWED_BACK || d.clawbackClaimed(investmentId, voter)) return 0;
+        ICivicVault.Vote memory v = d.getVote(investmentId, voter);
+        if (v.numberOfVotes == 0 || v.voteValue != 1 || inv.upvotes == 0) return 0;
+        return (v.numberOfVotes * d.clawbackPool(investmentId)) / inv.upvotes;
+    }
+
+    /// @notice Governance power snapshot for `dao`: (member's committed stake, total committed).
+    function governancePower(address dao, address member) external view returns (uint256 stake, uint256 total) {
+        ICivicVault d = ICivicVault(dao);
+        return (d.committedStake(member), d.totalCommittedStake());
     }
 }

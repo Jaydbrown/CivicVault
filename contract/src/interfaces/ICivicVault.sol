@@ -3,9 +3,29 @@ pragma solidity ^0.8.20;
 
 interface ICivicVault {
     // ===== ENUMS =====
-    enum Status { PENDING, ACTIVE, ENDED, INCOMPLETE }
-    enum Category { HEALTH, EDUCATION, ENTERTAINMENT, AGRICULTURE, TECHNOLOGY, RETAIL, OTHER }
-    enum Grade { A, B, C, D }
+    // CLAWED_BACK is appended last so PENDING/ACTIVE/ENDED/INCOMPLETE keep indices 0..3.
+    enum Status {
+        PENDING,
+        ACTIVE,
+        ENDED,
+        INCOMPLETE,
+        CLAWED_BACK
+    }
+    enum Category {
+        HEALTH,
+        EDUCATION,
+        ENTERTAINMENT,
+        AGRICULTURE,
+        TECHNOLOGY,
+        RETAIL,
+        OTHER
+    }
+    enum Grade {
+        A,
+        B,
+        C,
+        D
+    }
 
     // ===== STRUCTS =====
     struct User {
@@ -79,7 +99,9 @@ interface ICivicVault {
     event MemberRemoved(address indexed member, uint256 timestamp);
     event MemberExited(address indexed member, uint256 timestamp);
 
-    event InvestmentCreated(uint256 indexed investmentId, string name, uint256 fundNeeded, Grade grade, uint256 deadline);
+    event InvestmentCreated(
+        uint256 indexed investmentId, string name, uint256 fundNeeded, Grade grade, uint256 deadline
+    );
     event InvestmentActivated(uint256 indexed investmentId, uint256 timestamp);
     event InvestmentClosed(uint256 indexed investmentId, uint256 timestamp);
     event InvestmentIncomplete(uint256 indexed investmentId, uint256 timestamp);
@@ -88,14 +110,24 @@ interface ICivicVault {
     event FundsLocked(uint256 indexed investmentId, uint256 amount);
     event FundsReleased(uint256 indexed investmentId, uint8 phase, uint256 amount, address indexed recipient);
 
-    event VoteCast(uint256 indexed investmentId, address indexed voter, uint256 numberOfVotes, uint8 voteValue, uint256 timestamp);
+    event VoteCast(
+        uint256 indexed investmentId, address indexed voter, uint256 numberOfVotes, uint8 voteValue, uint256 timestamp
+    );
     event StakeWithdrawn(uint256 indexed investmentId, address indexed voter, uint256 amount);
 
     event YieldDeposited(uint256 indexed investmentId, uint256 amount, string expenseReportCID, uint256 timestamp);
     event YieldClaimed(uint256 indexed investmentId, address indexed voter, uint256 amount, uint256 timestamp);
-    event YieldDepositProposed(uint256 indexed proposalId, uint256 indexed investmentId, uint256 amount, address proposer, uint256 timestamp);
+    event YieldDepositProposed(
+        uint256 indexed proposalId, uint256 indexed investmentId, uint256 amount, address proposer, uint256 timestamp
+    );
     event YieldDepositApproved(uint256 indexed proposalId, address indexed admin, uint256 approvals);
-    event YieldDepositExecuted(uint256 indexed proposalId, uint256 indexed investmentId, uint256 amount, string expenseReportCID, uint256 timestamp);
+    event YieldDepositExecuted(
+        uint256 indexed proposalId,
+        uint256 indexed investmentId,
+        uint256 amount,
+        string expenseReportCID,
+        uint256 timestamp
+    );
 
     event ActivityLogged(uint256 indexed investmentId, string eventType, string details, uint256 timestamp);
     event AdminAdded(address indexed admin);
@@ -104,11 +136,23 @@ interface ICivicVault {
     event FinanceManagerRemoved(address indexed manager);
     event DAOPaused(uint256 timestamp);
     event DAOUnpaused(uint256 timestamp);
-    event UnclaimedYieldRecovered(uint256 indexed investmentId, address indexed recipient, uint256 amount, uint256 timestamp);
+    event UnclaimedYieldRecovered(
+        uint256 indexed investmentId, address indexed recipient, uint256 amount, uint256 timestamp
+    );
     event DAOInfoUpdated(string newDescription, string newLogoURI, uint256 timestamp);
     event MemberKYCHashUpdated(address indexed member, bytes32 newHash, uint256 timestamp);
     event InvestmentDocumentsUpdated(uint256 indexed investmentId, uint256 timestamp);
     event YieldGracePeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
+
+    // ===== MEMBER GOVERNANCE EVENTS =====
+    // Proposal lifecycle events (ProposalCreated / ProposalVoteCast /
+    // ProposalExecuted) are emitted by CivicVaultGovernor, not the vault.
+    // The vault only emits the *effects* below, from govApply / reclaimClawback.
+    event ReleaseFrozen(uint256 indexed investmentId, uint256 freezeExpiry);
+    event ReleaseUnfrozen(uint256 indexed investmentId);
+    event InvestmentClawedBack(uint256 indexed investmentId, uint256 pool, uint256 timestamp);
+    event ClawbackReclaimed(uint256 indexed investmentId, address indexed voter, uint256 amount);
+    event YieldFeeSkimmed(uint256 indexed investmentId, uint256 indexed proposalId, uint256 fee, address treasury);
 
     // ===== VIEW FUNCTIONS =====
     function name() external view returns (string memory);
@@ -126,15 +170,30 @@ interface ICivicVault {
     function getYieldDistribution(uint256 investmentId) external view returns (YieldDistribution memory);
     function getAllMembers() external view returns (address[] memory);
     function getAdmins() external view returns (address[] memory);
-    function getInvestmentsByStatus(Status status) external view returns (uint256[] memory);
     function getClaimableYield(uint256 investmentId, address voter) external view returns (uint256);
     function getYieldProposal(uint256 proposalId) external view returns (YieldProposal memory);
     function hasApprovedProposal(uint256 proposalId, address admin) external view returns (bool);
 
+    // Member-governance accounting + protocol-fee getters (state lives in the
+    // vault; the proposal/voting machinery is in CivicVaultGovernor).
+    function governor() external view returns (address);
+    function committedStake(address member) external view returns (uint256);
+    function totalCommittedStake() external view returns (uint256);
+    function releaseFrozen(uint256 investmentId) external view returns (bool);
+    function clawbackPool(uint256 investmentId) external view returns (uint256);
+    function yieldFeeBps() external view returns (uint16);
+    function clawbackClaimed(uint256 investmentId, address voter) external view returns (bool);
+    function bannedAdmin(address admin) external view returns (bool);
+
     // ===== STATE-CHANGING FUNCTIONS =====
     function pause() external;
     function unpause() external;
-    function proposeYieldDeposit(uint256 investmentId, uint256 yieldAmount, string memory expenseReportCID) external returns (uint256);
+    function reclaimClawback(uint256 investmentId) external;
+    /// @dev governor-gated: 0 lockStake, 1 banAdmin, 2 reinstateAdmin, 3 freeze, 4 unfreeze, 5 clawback.
+    function govApply(uint8 kind, address addr, uint256 id, uint256 expiry) external returns (uint256 pool);
+    function proposeYieldDeposit(uint256 investmentId, uint256 yieldAmount, string memory expenseReportCID)
+        external
+        returns (uint256);
     function approveYieldDeposit(uint256 proposalId) external;
     function executeYieldDeposit(uint256 proposalId) external;
     function updateMemberKYCHash(address wallet, bytes32 newHash) external;

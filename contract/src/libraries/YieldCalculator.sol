@@ -14,18 +14,18 @@ library YieldCalculator {
      * @param totalYield Total yield to distribute
      * @return userYield User's proportional yield amount
      */
-    function calculateUserYield(
-        uint256 userStake,
-        uint256 totalStaked,
-        uint256 totalYield
-    ) internal pure returns (uint256 userYield) {
+    function calculateUserYield(uint256 userStake, uint256 totalStaked, uint256 totalYield)
+        internal
+        pure
+        returns (uint256 userYield)
+    {
         require(totalStaked > 0, "No stakes");
         require(userStake <= totalStaked, "Invalid stake");
-        
+
         // Formula: (userStake / totalStaked) * totalYield
         // Using safe math to prevent overflow
         userYield = (userStake * totalYield) / totalStaked;
-        
+
         return userYield;
     }
 
@@ -35,16 +35,17 @@ library YieldCalculator {
      * @param principalAmount Original investment
      * @return yieldPercentage Yield as percentage (with 2 decimals)
      */
-    function calculateYieldPercentage(
-        uint256 yieldAmount,
-        uint256 principalAmount
-    ) internal pure returns (uint256 yieldPercentage) {
+    function calculateYieldPercentage(uint256 yieldAmount, uint256 principalAmount)
+        internal
+        pure
+        returns (uint256 yieldPercentage)
+    {
         require(principalAmount > 0, "Invalid principal");
-        
+
         // Returns percentage with 2 decimal places
         // e.g., 525 = 5.25%
         yieldPercentage = (yieldAmount * 10000) / principalAmount;
-        
+
         return yieldPercentage;
     }
 
@@ -54,10 +55,11 @@ library YieldCalculator {
      * @param yieldPercentage Expected yield percentage (e.g., 5 = 5%)
      * @return expectedYield Expected yield amount
      */
-    function calculateExpectedYield(
-        uint256 principal,
-        uint256 yieldPercentage
-    ) internal pure returns (uint256 expectedYield) {
+    function calculateExpectedYield(uint256 principal, uint256 yieldPercentage)
+        internal
+        pure
+        returns (uint256 expectedYield)
+    {
         expectedYield = (principal * yieldPercentage) / 100;
         return expectedYield;
     }
@@ -69,11 +71,11 @@ library YieldCalculator {
      * @param totalAvailable Total available yield
      * @return isValid True if distribution is valid
      */
-    function validateDistribution(
-        uint256 distributedAmount,
-        uint256 newAmount,
-        uint256 totalAvailable
-    ) internal pure returns (bool isValid) {
+    function validateDistribution(uint256 distributedAmount, uint256 newAmount, uint256 totalAvailable)
+        internal
+        pure
+        returns (bool isValid)
+    {
         return (distributedAmount + newAmount) <= totalAvailable;
     }
 }

@@ -14,7 +14,7 @@ contract CivicVaultTest is Test {
     CivicVaultView public daoView;
     CivicVaultFactory public factory;
     MockUSDC public usdc;
-    
+
     address public creator;
     address public admin;
     address public admin2;
@@ -51,15 +51,8 @@ contract CivicVaultTest is Test {
 
         // Create DAO
         vm.prank(creator);
-        address daoAddress = factory.createDAO(
-            "Test DAO",
-            "Test Description",
-            "Test Location",
-            "0,0",
-            "12345",
-            100,
-            address(usdc)
-        );
+        address daoAddress =
+            factory.createDAO("Test DAO", "Test Description", "Test Location", "0,0", "12345", 100, address(usdc));
 
         dao = CivicVault(daoAddress);
 
@@ -114,14 +107,14 @@ contract CivicVaultTest is Test {
         vm.prank(admin);
         dao.addMember(newMember, kycHash);
 
-        (, bool kycVerified, , , bool isActive) = dao.members(newMember);
+        (, bool kycVerified,,, bool isActive) = dao.members(newMember);
         assertTrue(isActive);
         assertFalse(kycVerified);
         assertEq(dao.memberCount(), 4);
 
         vm.prank(admin);
         dao.verifyMemberKYC(newMember);
-        (, kycVerified, , , isActive) = dao.members(newMember);
+        (, kycVerified,,, isActive) = dao.members(newMember);
         assertTrue(kycVerified);
         assertTrue(isActive);
     }
@@ -162,7 +155,7 @@ contract CivicVaultTest is Test {
         vm.prank(admin);
         dao.removeMember(member1);
 
-        (, , , , bool isActive) = dao.members(member1);
+        (,,,, bool isActive) = dao.members(member1);
         assertFalse(isActive);
         assertEq(dao.memberCount(), 2);
     }
@@ -171,7 +164,7 @@ contract CivicVaultTest is Test {
         vm.prank(member1);
         dao.exitDAO();
 
-        (, , , , bool isActive) = dao.members(member1);
+        (,,,, bool isActive) = dao.members(member1);
         assertFalse(isActive);
         assertEq(dao.memberCount(), 2);
     }
@@ -203,13 +196,7 @@ contract CivicVaultTest is Test {
         vm.prank(member1);
         vm.expectRevert(CivicVault.Unauthorized.selector);
         dao.createInvestment(
-            "Test",
-            ICivicVault.Category.HEALTH,
-            1000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test", ICivicVault.Category.HEALTH, 1000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
     }
 
@@ -232,13 +219,7 @@ contract CivicVaultTest is Test {
         // Create investment
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         // Approve and vote
@@ -257,13 +238,7 @@ contract CivicVaultTest is Test {
         // User can add multiple votes (e.g. 10 USDC = 10 votes for grade A projects)
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Hospital Project",
-            ICivicVault.Category.HEALTH,
-            100000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Hospital Project", ICivicVault.Category.HEALTH, 100000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.startPrank(member1);
@@ -281,13 +256,7 @@ contract CivicVaultTest is Test {
     function test_Vote_Downvote() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.prank(member1);
@@ -296,7 +265,7 @@ contract CivicVaultTest is Test {
         CivicVault.Vote memory vote = dao.getVote(investmentId, member1);
         assertEq(vote.numberOfVotes, 0);
         assertEq(vote.voteValue, 0);
-        
+
         CivicVault.Investment memory invD = dao.getInvestment(investmentId);
         assertEq(invD.upvotes, 0);
         assertEq(invD.downvotes, 1);
@@ -305,13 +274,7 @@ contract CivicVaultTest is Test {
     function test_Vote_OnlyVerifiedMember() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.prank(nonMember);
@@ -345,13 +308,7 @@ contract CivicVaultTest is Test {
     function test_ActivateInvestment() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         // Members vote to reach funding goal
@@ -377,13 +334,7 @@ contract CivicVaultTest is Test {
     function test_ActivateInvestment_InsufficientFunds() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         // Only vote with 5k (less than needed 10k)
@@ -429,13 +380,7 @@ contract CivicVaultTest is Test {
     function test_WithdrawStake() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            1,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 1, new string[](0)
         );
 
         uint256 stakeAmount = 5000 * 1e6;
@@ -463,13 +408,7 @@ contract CivicVaultTest is Test {
         // Create and activate investment
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         // Fund it
@@ -508,13 +447,7 @@ contract CivicVaultTest is Test {
     function test_ExecuteYieldDeposit_RevertIfUnauthorized() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.startPrank(member1);
@@ -547,13 +480,7 @@ contract CivicVaultTest is Test {
         // Setup investment
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         // Member1 stakes 10k
@@ -596,13 +523,7 @@ contract CivicVaultTest is Test {
     function test_CalculateClaimableYield() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.startPrank(member1);
@@ -704,24 +625,12 @@ contract CivicVaultTest is Test {
     function test_GetUserAnalytics() public {
         vm.prank(admin);
         uint256 investmentId1 = dao.createInvestment(
-            "User Analytics 1",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "User Analytics 1", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.prank(admin);
         uint256 investmentId2 = dao.createInvestment(
-            "User Analytics 2",
-            ICivicVault.Category.HEALTH,
-            5000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "User Analytics 2", ICivicVault.Category.HEALTH, 5000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.startPrank(member1);
@@ -760,12 +669,8 @@ contract CivicVaultTest is Test {
         vm.prank(financeManager);
         dao.executeYieldDeposit(pid2);
 
-        (
-            uint256 totalStaked,
-            uint256 totalClaimedYield,
-            uint256 totalClaimableYield,
-            uint256 realizedRoiBps
-        ) = daoView.getUserAnalytics(address(dao), member1);
+        (uint256 totalStaked, uint256 totalClaimedYield, uint256 totalClaimableYield, uint256 realizedRoiBps) =
+            daoView.getUserAnalytics(address(dao), member1);
 
         assertEq(totalStaked, 15000 * 1e6);
         assertEq(totalClaimedYield, 0);
@@ -777,12 +682,8 @@ contract CivicVaultTest is Test {
         vm.prank(member1);
         dao.claimYield(investmentId2);
 
-        (
-            totalStaked,
-            totalClaimedYield,
-            totalClaimableYield,
-            realizedRoiBps
-        ) = daoView.getUserAnalytics(address(dao), member1);
+        (totalStaked, totalClaimedYield, totalClaimableYield, realizedRoiBps) =
+            daoView.getUserAnalytics(address(dao), member1);
 
         assertEq(totalStaked, 15000 * 1e6);
         assertEq(totalClaimedYield, 750 * 1e6);
@@ -854,13 +755,7 @@ contract CivicVaultTest is Test {
         // Check via trying to use finance manager function
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test",
-            ICivicVault.Category.HEALTH,
-            1000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test", ICivicVault.Category.HEALTH, 1000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.prank(newManager);
@@ -871,13 +766,7 @@ contract CivicVaultTest is Test {
         // Create investment before pausing
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test",
-            ICivicVault.Category.HEALTH,
-            1000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test", ICivicVault.Category.HEALTH, 1000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.prank(creator);
@@ -904,13 +793,7 @@ contract CivicVaultTest is Test {
         // Setup and activate investment
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Test Investment",
-            ICivicVault.Category.HEALTH,
-            10000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Test Investment", ICivicVault.Category.HEALTH, 10000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.startPrank(member1);
@@ -965,27 +848,16 @@ contract CivicVaultTest is Test {
     function test_GetInvestmentsByStatus() public {
         vm.prank(admin);
         dao.createInvestment(
-            "Investment 1",
-            ICivicVault.Category.HEALTH,
-            1000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Investment 1", ICivicVault.Category.HEALTH, 1000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.prank(admin);
         dao.createInvestment(
-            "Investment 2",
-            ICivicVault.Category.EDUCATION,
-            2000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Investment 2", ICivicVault.Category.EDUCATION, 2000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
-        ICivicVault.Investment[] memory pending = daoView.getInvestmentsByStatus(address(dao), ICivicVault.Status.PENDING);
+        ICivicVault.Investment[] memory pending =
+            daoView.getInvestmentsByStatus(address(dao), ICivicVault.Status.PENDING);
         assertEq(pending.length, 2);
     }
 
@@ -994,13 +866,7 @@ contract CivicVaultTest is Test {
         // Create investment with amount that causes integer rounding
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Rounding Test",
-            ICivicVault.Category.HEALTH,
-            101 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Rounding Test", ICivicVault.Category.HEALTH, 101 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         // Member stakes full amount
@@ -1039,13 +905,7 @@ contract CivicVaultTest is Test {
         // Create investment but do not activate => no escrow locked
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "No Escrow",
-            ICivicVault.Category.HEALTH,
-            1000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "No Escrow", ICivicVault.Category.HEALTH, 1000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         vm.prank(admin);
@@ -1056,13 +916,7 @@ contract CivicVaultTest is Test {
     function test_ReleaseUnauthorizedReverts() public {
         vm.prank(admin);
         uint256 investmentId = dao.createInvestment(
-            "Auth Test",
-            ICivicVault.Category.HEALTH,
-            1000 * 1e6,
-            5,
-            ICivicVault.Grade.A,
-            30,
-            new string[](0)
+            "Auth Test", ICivicVault.Category.HEALTH, 1000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
         );
 
         // Member stakes and activate to create escrow

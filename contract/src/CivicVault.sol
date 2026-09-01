@@ -71,6 +71,12 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     error ArrayLengthMismatch();
     error InvalidGracePeriod();
     error NotAMember();
+    error FeeTooHigh();
+    error ReleaseIsFrozen();
+    error NotClawedBack();
+    error AdminBanned();
+    error StakeLocked();
+    error NotGovernor();
 
     // ===== DAO IDENTITY =====
     string public name;
@@ -129,7 +135,47 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     uint256 public constant MAX_EXTENSIONS = 3;
     uint256 public yieldGracePeriod;
 
+    // ===== PROTOCOL FEE =====
+    // Skimmed from realised yield only, at executeYieldDeposit. Never touches
+    // staked principal or escrowed tranches. Set once in initialize.
+    uint16 public constant MAX_YIELD_FEE_BPS = 500; // 5%
+    // No public getter — the recipient is disclosed on every YieldFeeSkimmed
+    // event and configured on the factory. Saves vault bytecode.
+    address internal _protocolTreasury;
+    uint16 public yieldFeeBps;
+
+    // ===== MEMBER GOVERNANCE =====
+    // The proposal / voting / threshold machinery lives in a separate singleton
+    // CivicVaultGovernor (like CivicVaultView). This contract keeps only the
+    // stake-weight accounting and the effect state, and exposes gov* setters the
+    // governor may call once a member vote has passed.
+    address public governor;
+
+    // A member's USDC still committed to this DAO's investments. Incremented on
+    // upvote; decremented only when the member personally gets USDC back
+    // (withdrawStake, reclaimClawback). Not reduced by releaseNextPhase — the
+    // DAO spending money you backed does not erase your standing.
+    mapping(address => uint256) public committedStake;
+    uint256 public totalCommittedStake;
+
+    // Set on a passed RemoveAdmin vote; blocks addAdmin re-appointment until a
+    // passed ReinstateAdmin vote clears it. Without this the creator just re-adds.
+    mapping(address => bool) public bannedAdmin;
+    // A member who voted on a live proposal cannot pull stake before that
+    // proposal's deadline — otherwise "vote then withdraw" keeps the weight.
+    mapping(address => uint256) internal stakeLockedUntil;
+
+    mapping(uint256 => bool) public releaseFrozen;
+    mapping(uint256 => uint256) internal freezeExpiry;
+    mapping(uint256 => uint256) public clawbackPool; // escrowedAmount snapshot at clawback execute
+    mapping(uint256 => mapping(address => bool)) public clawbackClaimed;
+
     // ===== MODIFIERS =====
+    modifier onlyGovernor() {
+        if (msg.sender != governor || governor == address(0)) revert NotGovernor();
+        _;
+    }
+
     modifier onlyCreator() {
         if (msg.sender != creator) revert NotCreator();
         _;
@@ -177,12 +223,18 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         string memory _coordinates,
         string memory _postalCode,
         uint256 _maxMembership,
-        address _usdcAddress
+        address _usdcAddress,
+        address _protocolTreasury_,
+        uint16 _protocolYieldFeeBps,
+        address _governor
     ) external initializer {
         if (_creator == address(0)) revert ZeroAddress();
         if (_usdcAddress == address(0)) revert ZeroAddress();
+        if (_protocolYieldFeeBps > MAX_YIELD_FEE_BPS) revert FeeTooHigh();
+        if (_protocolTreasury_ == address(0) && _protocolYieldFeeBps != 0) revert ZeroAddress();
 
         creator = _creator;
+        governor = _governor;
         name = _name;
         description = _description;
         location = _location;
@@ -191,6 +243,8 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         maxMembership = _maxMembership;
         usdcAddress = _usdcAddress;
         yieldGracePeriod = 90 days;
+        _protocolTreasury = _protocolTreasury_;
+        yieldFeeBps = _protocolYieldFeeBps;
     }
 
     // ===== MEMBER MANAGEMENT =====
@@ -201,11 +255,7 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
 
         // Roster onboarding: admins finalize compliance with verifyMemberKYC before voting.
         members[wallet] = User({
-            wallet: wallet,
-            kycVerified: false,
-            kycProofHash: kycProofHash,
-            joinedAt: block.timestamp,
-            isActive: true
+            wallet: wallet, kycVerified: false, kycProofHash: kycProofHash, joinedAt: block.timestamp, isActive: true
         });
         memberAddresses.push(wallet);
         memberCount++;
@@ -297,11 +347,7 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     }
 
     // ===== VOTING =====
-    function vote(
-        uint256 investmentId,
-        uint256 numberOfVotes,
-        uint8 voteValue
-    )
+    function vote(uint256 investmentId, uint256 numberOfVotes, uint8 voteValue)
         external
         onlyVerifiedMember
         investmentExists(investmentId)
@@ -318,7 +364,9 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         if (voteValue == 1) {
             if (numberOfVotes == 0) revert UpvoteRequiresStake();
             if (IERC20(usdcAddress).balanceOf(msg.sender) < numberOfVotes) revert InsufficientBalance();
-            if (IERC20(usdcAddress).allowance(msg.sender, address(this)) < numberOfVotes) revert InsufficientAllowance();
+            if (IERC20(usdcAddress).allowance(msg.sender, address(this)) < numberOfVotes) {
+                revert InsufficientAllowance();
+            }
             if (userVote.numberOfVotes != 0 && userVote.voteValue != 1) revert CannotChangeDownToUp();
 
             // CEI: update state before external transfer (ERC-20 UX best practice).
@@ -330,6 +378,8 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
 
             inv.upvotes += numberOfVotes;
             totalValueLocked += numberOfVotes;
+            committedStake[msg.sender] += numberOfVotes;
+            totalCommittedStake += numberOfVotes;
 
             IERC20(usdcAddress).safeTransferFrom(msg.sender, address(this), numberOfVotes);
         } else {
@@ -355,15 +405,12 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     }
 
     // ===== INVESTMENT ACTIVATION =====
-    function activateInvestment(uint256 investmentId)
-        external
-        onlyAdmin
-        investmentExists(investmentId)
-        whenNotPaused
-    {
+    function activateInvestment(uint256 investmentId) external onlyAdmin investmentExists(investmentId) whenNotPaused {
         Investment storage inv = investments[investmentId];
 
-        if (!InvestmentManager.canActivate(inv.upvotes, inv.fundNeeded, inv.deadline, block.timestamp)) revert InvalidParams();
+        if (!InvestmentManager.canActivate(inv.upvotes, inv.fundNeeded, inv.deadline, block.timestamp)) {
+            revert InvalidParams();
+        }
         if (inv.status != ICivicVault.Status.PENDING) revert NotPending();
 
         inv.status = ICivicVault.Status.ACTIVE;
@@ -385,7 +432,9 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     {
         Investment storage inv = investments[investmentId];
 
-        if (!InvestmentManager.shouldMarkIncomplete(inv.upvotes, inv.fundNeeded, inv.deadline, block.timestamp)) revert InvalidParams();
+        if (!InvestmentManager.shouldMarkIncomplete(inv.upvotes, inv.fundNeeded, inv.deadline, block.timestamp)) {
+            revert InvalidParams();
+        }
         if (inv.status != ICivicVault.Status.PENDING) revert NotPending();
 
         inv.status = ICivicVault.Status.INCOMPLETE;
@@ -403,10 +452,8 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         if (inv.status != ICivicVault.Status.PENDING) revert NotPending();
 
         if (!InvestmentManager.canExtendDeadline(
-            InvestmentManager.Grade(uint8(inv.grade)),
-            inv.extensionCount,
-            MAX_EXTENSIONS
-        )) revert CannotExtend();
+                InvestmentManager.Grade(uint8(inv.grade)), inv.extensionCount, MAX_EXTENSIONS
+            )) revert CannotExtend();
         if (additionalDays == 0 || additionalDays > 90) revert InvalidExtensionDays();
 
         inv.deadline = InvestmentManager.calculateNewDeadline(inv.deadline, additionalDays);
@@ -424,6 +471,11 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     {
         Investment storage inv = investments[investmentId];
         if (inv.status != ICivicVault.Status.ACTIVE && inv.status != ICivicVault.Status.ENDED) revert InvalidParams();
+
+        // Member-voted freeze (auto-expires after FREEZE_DURATION — the < check
+        // is the expiry, no explicit unfreeze needed). Admins/creator have no
+        // path to lift this; only time or a member UnfreezeRelease vote does.
+        if (releaseFrozen[investmentId] && block.timestamp < freezeExpiry[investmentId]) revert ReleaseIsFrozen();
 
         uint8 completed = releasePhaseCompleted[investmentId];
         if (completed >= 3) revert AllPhasesReleased();
@@ -461,14 +513,10 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     }
 
     // ===== REFUNDS =====
-    function withdrawStake(uint256 investmentId)
-        external
-        investmentExists(investmentId)
-        nonReentrant
-        whenNotPaused
-    {
+    function withdrawStake(uint256 investmentId) external investmentExists(investmentId) nonReentrant whenNotPaused {
         Investment storage inv = investments[investmentId];
         if (inv.status != ICivicVault.Status.INCOMPLETE) revert NotIncomplete();
+        if (block.timestamp < stakeLockedUntil[msg.sender]) revert StakeLocked();
 
         Vote storage userVote = votes[investmentId][msg.sender];
         if (userVote.numberOfVotes == 0) revert NoStakeToWithdraw();
@@ -476,6 +524,7 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         uint256 amount = userVote.numberOfVotes;
         userVote.numberOfVotes = 0;
         totalValueLocked -= amount;
+        _reduceCommittedStake(msg.sender, amount);
 
         IERC20(usdcAddress).safeTransfer(msg.sender, amount);
 
@@ -493,11 +542,13 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     }
 
     // ===== MULTI-SIG YIELD FLOW =====
-    function proposeYieldDeposit(
-        uint256 investmentId,
-        uint256 yieldAmount,
-        string memory expenseReportCID
-    ) public onlyFinanceManager investmentExists(investmentId) whenNotPaused returns (uint256) {
+    function proposeYieldDeposit(uint256 investmentId, uint256 yieldAmount, string memory expenseReportCID)
+        public
+        onlyFinanceManager
+        investmentExists(investmentId)
+        whenNotPaused
+        returns (uint256)
+    {
         if (investments[investmentId].status != ICivicVault.Status.ACTIVE) revert InvestmentNotActive();
         if (yieldAmount == 0) revert ZeroAmount();
         if (admins.length < REQUIRED_ADMIN_COUNT) revert NotEnoughAdmins();
@@ -542,26 +593,39 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         }
 
         Investment storage inv = investments[p.investmentId];
-        if (!InvestmentManager.canDepositYield(InvestmentManager.Status(uint8(inv.status)))) revert InvestmentNotActive();
+        if (!InvestmentManager.canDepositYield(InvestmentManager.Status(uint8(inv.status)))) {
+            revert InvestmentNotActive();
+        }
 
         if (IERC20(usdcAddress).balanceOf(p.proposer) < p.amount) revert InsufficientProposerBalance();
-        if (IERC20(usdcAddress).allowance(p.proposer, address(this)) < p.amount) revert InsufficientProposerAllowance();
+        if (IERC20(usdcAddress).allowance(p.proposer, address(this)) < p.amount) {
+            revert InsufficientProposerAllowance();
+        }
 
         IERC20(usdcAddress).safeTransferFrom(p.proposer, address(this), p.amount);
 
-        inv.totalYieldGenerated += p.amount;
+        // Protocol fee — realised yield only. Never touches staked principal or
+        // escrowed tranches. `net` is what members are entitled to.
+        uint256 fee = (p.amount * yieldFeeBps) / 10_000;
+        uint256 net = p.amount - fee;
+        if (fee > 0) {
+            IERC20(usdcAddress).safeTransfer(_protocolTreasury, fee);
+            emit YieldFeeSkimmed(p.investmentId, proposalId, fee, _protocolTreasury);
+        }
+
+        inv.totalYieldGenerated += net;
 
         YieldDistribution storage dist = yieldDistributions[p.investmentId];
         dist.investmentId = p.investmentId;
-        dist.totalAmount += p.amount;
-        dist.remainingAmount += p.amount;
+        dist.totalAmount += net;
+        dist.remainingAmount += net;
         dist.expenseReportCID = p.expenseReportCID;
         dist.timestamp = block.timestamp;
 
         p.executed = true;
 
-        emit YieldDepositExecuted(proposalId, p.investmentId, p.amount, p.expenseReportCID, block.timestamp);
-        emit YieldDeposited(p.investmentId, p.amount, p.expenseReportCID, block.timestamp);
+        emit YieldDepositExecuted(proposalId, p.investmentId, net, p.expenseReportCID, block.timestamp);
+        emit YieldDeposited(p.investmentId, net, p.expenseReportCID, block.timestamp);
     }
 
     // ===== YIELD CLAIMING =====
@@ -573,8 +637,13 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         whenNotPaused
     {
         Investment storage inv = investments[investmentId];
-        // Allow claiming on ACTIVE and ENDED (members retain rights during the grace period).
-        if (inv.status != ICivicVault.Status.ACTIVE && inv.status != ICivicVault.Status.ENDED) {
+        // Allow claiming on ACTIVE and ENDED (members retain rights during the
+        // grace period), and on CLAWED_BACK — yield deposited before a clawback
+        // still belongs to the stakers.
+        if (
+            inv.status != ICivicVault.Status.ACTIVE && inv.status != ICivicVault.Status.ENDED
+                && inv.status != ICivicVault.Status.CLAWED_BACK
+        ) {
             revert InvestmentNotActive();
         }
 
@@ -582,15 +651,14 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
 
         // Incremental claim: totalEntitled grows as more yield is deposited.
         // yieldClaimed tracks how much of that entitlement the member has already received.
-        uint256 totalEntitled = YieldCalculator.calculateUserYield(
-            userVote.numberOfVotes,
-            inv.upvotes,
-            inv.totalYieldGenerated
-        );
+        uint256 totalEntitled =
+            YieldCalculator.calculateUserYield(userVote.numberOfVotes, inv.upvotes, inv.totalYieldGenerated);
         uint256 claimable = totalEntitled - userVote.yieldClaimed;
 
         if (claimable == 0) revert NoYieldAvailable();
-        if (!YieldCalculator.validateDistribution(inv.totalYieldDistributed, claimable, inv.totalYieldGenerated)) revert YieldExceedsTotal();
+        if (!YieldCalculator.validateDistribution(inv.totalYieldDistributed, claimable, inv.totalYieldGenerated)) {
+            revert YieldExceedsTotal();
+        }
 
         userVote.yieldClaimed += claimable;
         userVote.hasClaimedYield = true;
@@ -615,18 +683,22 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     }
 
     // ===== INVESTMENT CLOSURE =====
-    function closeInvestment(uint256 investmentId)
-        external
-        onlyAdmin
-        investmentExists(investmentId)
-        whenNotPaused
-    {
+    function closeInvestment(uint256 investmentId) external onlyAdmin investmentExists(investmentId) whenNotPaused {
         Investment storage inv = investments[investmentId];
+
+        // Wind-down path for a clawed-back investment: principal was already
+        // returned to stakers, activeInvestmentCount was decremented at
+        // clawback time. Moving it to ENDED lets any yield deposited before the
+        // clawback be claimed and, after the grace period, swept.
+        if (inv.status == ICivicVault.Status.CLAWED_BACK) {
+            inv.status = ICivicVault.Status.ENDED;
+            emit InvestmentClosed(investmentId, block.timestamp);
+            return;
+        }
+
         if (!InvestmentManager.canCloseInvestment(
-            InvestmentManager.Status(uint8(inv.status)),
-            inv.totalYieldGenerated,
-            inv.totalYieldDistributed
-        )) revert CannotClose();
+                InvestmentManager.Status(uint8(inv.status)), inv.totalYieldGenerated, inv.totalYieldDistributed
+            )) revert CannotClose();
         if (activeInvestmentCount == 0) revert NoActiveInvestments();
 
         inv.status = ICivicVault.Status.ENDED;
@@ -664,6 +736,9 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     function addAdmin(address admin) external onlyCreator {
         if (admin == address(0)) revert ZeroAddress();
         if (isAdmin[admin]) revert AlreadyAdmin();
+        // A member vote removed this address; the creator can't just re-appoint
+        // them. Only a ReinstateAdmin vote clears the ban.
+        if (bannedAdmin[admin]) revert AdminBanned();
 
         isAdmin[admin] = true;
         admins.push(admin);
@@ -673,12 +748,17 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
 
     function removeAdmin(address admin) external onlyCreator {
         if (!isAdmin[admin]) revert NotAnAdmin();
+        _removeAdminInternal(admin);
+    }
 
+    /// @dev Shared by the creator path and the member-vote path (executeProposal).
+    function _removeAdminInternal(address admin) internal {
         isAdmin[admin] = false;
 
-        for (uint256 i = 0; i < admins.length; i++) {
+        uint256 len = admins.length;
+        for (uint256 i = 0; i < len; i++) {
             if (admins[i] == admin) {
-                admins[i] = admins[admins.length - 1];
+                admins[i] = admins[len - 1];
                 admins.pop();
                 break;
             }
@@ -727,7 +807,11 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         emit MemberKYCHashUpdated(wallet, newHash, block.timestamp);
     }
 
-    function batchAddMembers(address[] memory wallets, bytes32[] memory kycProofHashes) external onlyAdmin whenNotPaused {
+    function batchAddMembers(address[] memory wallets, bytes32[] memory kycProofHashes)
+        external
+        onlyAdmin
+        whenNotPaused
+    {
         if (wallets.length != kycProofHashes.length) revert ArrayLengthMismatch();
         if (memberCount + wallets.length > maxMembership) revert MembershipFull();
 
@@ -797,18 +881,78 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         return admins;
     }
 
-    function getInvestmentsByStatus(ICivicVault.Status status) external view returns (uint256[] memory) {
-        uint256 count;
-        for (uint256 i = 1; i <= investmentCount; i++) {
-            if (investments[i].status == status) count++;
+    // ===== MEMBER-INITIATED GOVERNANCE (governor-gated effects) =====
+    // getInvestmentsByStatus removed from the vault to save bytecode; use
+    // CivicVaultView.getInvestmentsByStatus(dao, status).
+
+    /// @dev Underflow-safe decrement used by withdrawStake and reclaimClawback.
+    function _reduceCommittedStake(address member, uint256 amount) internal {
+        uint256 c = committedStake[member];
+        uint256 dec = amount > c ? c : amount;
+        committedStake[member] = c - dec;
+        totalCommittedStake -= dec;
+    }
+
+    /// @notice Single entry point for CivicVaultGovernor to apply a passed vote.
+    /// @param kind 0 lockStake, 1 banAdmin, 2 reinstateAdmin, 3 freeze, 4 unfreeze, 5 clawback.
+    /// @param addr member (kind 0) / admin (kind 1,2); zero otherwise.
+    /// @param id investment id (kind 3,4,5); `until` timestamp (kind 0).
+    /// @param expiry freeze expiry timestamp (kind 3).
+    /// @return pool the clawed-back escrow amount (kind 5) else 0.
+    function govApply(uint8 kind, address addr, uint256 id, uint256 expiry)
+        external
+        onlyGovernor
+        returns (uint256 pool)
+    {
+        if (kind == 0) {
+            if (id > stakeLockedUntil[addr]) stakeLockedUntil[addr] = id;
+        } else if (kind == 1) {
+            if (isAdmin[addr]) _removeAdminInternal(addr);
+            bannedAdmin[addr] = true;
+        } else if (kind == 2) {
+            // Member vote lifts the ban; the creator can then re-appoint normally.
+            bannedAdmin[addr] = false;
+        } else if (kind == 3) {
+            releaseFrozen[id] = true;
+            freezeExpiry[id] = expiry;
+            emit ReleaseFrozen(id, expiry);
+        } else if (kind == 4) {
+            releaseFrozen[id] = false;
+            freezeExpiry[id] = 0;
+            emit ReleaseUnfrozen(id);
+        } else {
+            Investment storage inv = investments[id];
+            if (inv.status == ICivicVault.Status.ACTIVE && activeInvestmentCount > 0) activeInvestmentCount--;
+            pool = escrowedAmount[id];
+            clawbackPool[id] = pool;
+            escrowedAmount[id] = 0;
+            // Earmark the whole pool as leaving TVL now; integer-division dust
+            // (< #upvoters wei) stays in the contract as a harmless surplus.
+            totalValueLocked -= pool;
+            inv.status = ICivicVault.Status.CLAWED_BACK;
+            emit InvestmentClawedBack(id, pool, block.timestamp);
         }
-        uint256[] memory result = new uint256[](count);
-        uint256 idx;
-        for (uint256 i = 1; i <= investmentCount; i++) {
-            if (investments[i].status == status) {
-                result[idx++] = i;
-            }
-        }
-        return result;
+    }
+
+    /// @notice After a clawback, each upvoter reclaims their pro-rata slice of the unreleased escrow.
+    function reclaimClawback(uint256 investmentId) external investmentExists(investmentId) nonReentrant whenNotPaused {
+        Investment storage inv = investments[investmentId];
+        if (inv.status != ICivicVault.Status.CLAWED_BACK) revert NotClawedBack();
+        if (block.timestamp < stakeLockedUntil[msg.sender]) revert StakeLocked();
+        if (clawbackClaimed[investmentId][msg.sender]) revert AlreadyExecuted();
+
+        Vote storage v = votes[investmentId][msg.sender];
+        if (v.numberOfVotes == 0 || v.voteValue != 1) revert NoStakeToWithdraw();
+
+        uint256 stake = v.numberOfVotes;
+        uint256 payout = (stake * clawbackPool[investmentId]) / inv.upvotes;
+
+        clawbackClaimed[investmentId][msg.sender] = true;
+        // Full stake leaves the committed set — an already-released tranche is a
+        // realised loss shared by all upvoters, not recoverable here.
+        _reduceCommittedStake(msg.sender, stake);
+        if (payout > 0) IERC20(usdcAddress).safeTransfer(msg.sender, payout);
+
+        emit ClawbackReclaimed(investmentId, msg.sender, payout);
     }
 }
