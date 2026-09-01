@@ -19,6 +19,19 @@
   },
   {
     "type": "function",
+    "name": "MAX_YIELD_FEE_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "PHASE1_PERCENT",
     "inputs": [],
     "outputs": [
@@ -186,6 +199,25 @@
   },
   {
     "type": "function",
+    "name": "bannedAdmin",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "batchAddMembers",
     "inputs": [
       {
@@ -217,6 +249,49 @@
   },
   {
     "type": "function",
+    "name": "clawbackClaimed",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "clawbackPool",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "closeInvestment",
     "inputs": [
       {
@@ -227,6 +302,25 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "committedStake",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -545,25 +639,6 @@
   },
   {
     "type": "function",
-    "name": "getInvestmentsByStatus",
-    "inputs": [
-      {
-        "name": "status",
-        "type": "uint8",
-        "internalType": "enum ICivicVault.Status"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getVote",
     "inputs": [
       {
@@ -761,6 +836,53 @@
   },
   {
     "type": "function",
+    "name": "govApply",
+    "inputs": [
+      {
+        "name": "kind",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "addr",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "pool",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "governor",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "hasApprovedProposal",
     "inputs": [
       {
@@ -824,6 +946,21 @@
       },
       {
         "name": "_usdcAddress",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_protocolTreasury_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_protocolYieldFeeBps",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "_governor",
         "type": "address",
         "internalType": "address"
       }
@@ -1190,6 +1327,38 @@
   },
   {
     "type": "function",
+    "name": "reclaimClawback",
+    "inputs": [
+      {
+        "name": "investmentId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "releaseFrozen",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "releaseNextPhase",
     "inputs": [
       {
@@ -1294,6 +1463,19 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "totalCommittedStake",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1531,6 +1713,19 @@
   },
   {
     "type": "function",
+    "name": "yieldFeeBps",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "yieldGracePeriod",
     "inputs": [],
     "outputs": [
@@ -1686,6 +1881,31 @@
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ClawbackReclaimed",
+    "inputs": [
+      {
+        "name": "investmentId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "voter",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -1863,6 +2083,31 @@
         "name": "investmentId",
         "type": "uint256",
         "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InvestmentClawedBack",
+    "inputs": [
+      {
+        "name": "investmentId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pool",
+        "type": "uint256",
+        "indexed": false,
         "internalType": "uint256"
       },
       {
@@ -2078,6 +2323,38 @@
         "type": "address",
         "indexed": false,
         "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ReleaseFrozen",
+    "inputs": [
+      {
+        "name": "investmentId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "freezeExpiry",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ReleaseUnfrozen",
+    "inputs": [
+      {
+        "name": "investmentId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -2351,6 +2628,37 @@
   },
   {
     "type": "event",
+    "name": "YieldFeeSkimmed",
+    "inputs": [
+      {
+        "name": "investmentId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "proposalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "fee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "treasury",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "YieldGracePeriodUpdated",
     "inputs": [
       {
@@ -2367,6 +2675,11 @@
       }
     ],
     "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AdminBanned",
+    "inputs": []
   },
   {
     "type": "error",
@@ -2456,6 +2769,11 @@
   {
     "type": "error",
     "name": "ExpectedPause",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FeeTooHigh",
     "inputs": []
   },
   {
@@ -2590,6 +2908,11 @@
   },
   {
     "type": "error",
+    "name": "NotClawedBack",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotCreator",
     "inputs": []
   },
@@ -2606,6 +2929,11 @@
   {
     "type": "error",
     "name": "NotEnoughApprovals",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotGovernor",
     "inputs": []
   },
   {
@@ -2640,6 +2968,11 @@
   },
   {
     "type": "error",
+    "name": "ReleaseIsFrozen",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "SafeERC20FailedOperation",
     "inputs": [
       {
@@ -2648,6 +2981,11 @@
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "StakeLocked",
+    "inputs": []
   },
   {
     "type": "error",

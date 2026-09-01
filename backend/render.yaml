@@ -1,0 +1,68 @@
+# Render blueprint for the CivicVault backend.
+# Deploy: connect the repo in the Render dashboard and pick this file, or
+#   `render blueprint launch` with the CLI (needs `render login` first).
+#
+# SQLite lives on a persistent disk so it survives redeploys. Set the secret
+# env vars (marked sync:false) in the Render dashboard after the first deploy.
+services:
+  - type: web
+    name: civicvault-backend
+    runtime: node
+    plan: starter          # persistent disks require a paid plan (starter+)
+    rootDir: backend
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npm run build
+    startCommand: node dist/index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: civicvault-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        value: file:/var/data/prod.db
+      - key: PORT
+        value: "10000"
+      - key: FRONTEND_URL
+        value: https://civic-vault-aupu.vercel.app
+      - key: ARC_RPC_URL
+        value: https://rpc.testnet.arc.network
+      - key: FACTORY_ADDRESS
+        value: "0x58Ff8ca3b9863e535845f58D5d7AA90B33fE635F"
+      - key: GOVERNOR_ADDRESS
+        value: "0x1cE8328E08a4c93A37e5e03115BAdE0373b97310"
+      # ── set these in the dashboard (Secret) ──────────────────────────────
+      - key: PRIVY_APP_ID
+        sync: false
+      - key: PRIVY_APP_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        value: https://gxkhxmiondomrkfihaut.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: CIRCLE_API_KEY
+        sync: false
+      - key: CIRCLE_APP_ID
+        sync: false
+      - key: CIRCLE_GAS_STATION_POLICY_ID
+        sync: false
+      - key: FIAT_USD_NGN_RATE
+        value: "1600"
+      # optional integrations
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REDIRECT_URI
+        value: https://civicvault-backend.onrender.com/api/auth/gmail/callback
+      - key: GMAIL_FROM_EMAIL
+        sync: false
+      - key: GMAIL_MAILER_REFRESH_TOKEN
+        sync: false
+      - key: ALERT_WEBHOOK_URL
+        sync: false
+      # RabbitMQ is optional — the webhook falls back to synchronous delivery.
+      - key: RABBITMQ_URL
+        sync: false

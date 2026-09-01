@@ -540,6 +540,45 @@ export class Investment extends Entity {
     this.set("createdBy", Value.fromBytes(value));
   }
 
+  get releaseFrozen(): boolean {
+    let value = this.get("releaseFrozen");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set releaseFrozen(value: boolean) {
+    this.set("releaseFrozen", Value.fromBoolean(value));
+  }
+
+  get freezeExpiry(): BigInt {
+    let value = this.get("freezeExpiry");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set freezeExpiry(value: BigInt) {
+    this.set("freezeExpiry", Value.fromBigInt(value));
+  }
+
+  get clawbackPool(): BigInt {
+    let value = this.get("clawbackPool");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set clawbackPool(value: BigInt) {
+    this.set("clawbackPool", Value.fromBigInt(value));
+  }
+
   get votes(): VoteLoader {
     return new VoteLoader("Investment", this.get("id")!.toString(), "votes");
   }
@@ -558,6 +597,561 @@ export class Investment extends Entity {
       this.get("id")!.toString(),
       "phaseReleases",
     );
+  }
+}
+
+export class GovernanceProposal extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save GovernanceProposal entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type GovernanceProposal must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("GovernanceProposal", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): GovernanceProposal | null {
+    return changetype<GovernanceProposal | null>(
+      store.get_in_block("GovernanceProposal", id),
+    );
+  }
+
+  static load(id: string): GovernanceProposal | null {
+    return changetype<GovernanceProposal | null>(
+      store.get("GovernanceProposal", id),
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get dao(): string {
+    let value = this.get("dao");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set dao(value: string) {
+    this.set("dao", Value.fromString(value));
+  }
+
+  get proposalId(): BigInt {
+    let value = this.get("proposalId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set proposalId(value: BigInt) {
+    this.set("proposalId", Value.fromBigInt(value));
+  }
+
+  get pType(): i32 {
+    let value = this.get("pType");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set pType(value: i32) {
+    this.set("pType", Value.fromI32(value));
+  }
+
+  get proposer(): Bytes {
+    let value = this.get("proposer");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set proposer(value: Bytes) {
+    this.set("proposer", Value.fromBytes(value));
+  }
+
+  get targetAdmin(): Bytes {
+    let value = this.get("targetAdmin");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set targetAdmin(value: Bytes) {
+    this.set("targetAdmin", Value.fromBytes(value));
+  }
+
+  get investmentId(): BigInt {
+    let value = this.get("investmentId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set investmentId(value: BigInt) {
+    this.set("investmentId", Value.fromBigInt(value));
+  }
+
+  get votingDeadline(): BigInt {
+    let value = this.get("votingDeadline");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set votingDeadline(value: BigInt) {
+    this.set("votingDeadline", Value.fromBigInt(value));
+  }
+
+  get createdAt(): BigInt {
+    let value = this.get("createdAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set createdAt(value: BigInt) {
+    this.set("createdAt", Value.fromBigInt(value));
+  }
+
+  get yesWeight(): BigInt {
+    let value = this.get("yesWeight");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set yesWeight(value: BigInt) {
+    this.set("yesWeight", Value.fromBigInt(value));
+  }
+
+  get noWeight(): BigInt {
+    let value = this.get("noWeight");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set noWeight(value: BigInt) {
+    this.set("noWeight", Value.fromBigInt(value));
+  }
+
+  get executed(): boolean {
+    let value = this.get("executed");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set executed(value: boolean) {
+    this.set("executed", Value.fromBoolean(value));
+  }
+
+  get passed(): boolean {
+    let value = this.get("passed");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set passed(value: boolean) {
+    this.set("passed", Value.fromBoolean(value));
+  }
+
+  get votes(): GovernanceVoteLoader {
+    return new GovernanceVoteLoader(
+      "GovernanceProposal",
+      this.get("id")!.toString(),
+      "votes",
+    );
+  }
+}
+
+export class GovernanceVote extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save GovernanceVote entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type GovernanceVote must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("GovernanceVote", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): GovernanceVote | null {
+    return changetype<GovernanceVote | null>(
+      store.get_in_block("GovernanceVote", id),
+    );
+  }
+
+  static load(id: string): GovernanceVote | null {
+    return changetype<GovernanceVote | null>(store.get("GovernanceVote", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get proposal(): string {
+    let value = this.get("proposal");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set proposal(value: string) {
+    this.set("proposal", Value.fromString(value));
+  }
+
+  get dao(): string {
+    let value = this.get("dao");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set dao(value: string) {
+    this.set("dao", Value.fromString(value));
+  }
+
+  get voter(): Bytes {
+    let value = this.get("voter");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set voter(value: Bytes) {
+    this.set("voter", Value.fromBytes(value));
+  }
+
+  get support(): boolean {
+    let value = this.get("support");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set support(value: boolean) {
+    this.set("support", Value.fromBoolean(value));
+  }
+
+  get weight(): BigInt {
+    let value = this.get("weight");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set weight(value: BigInt) {
+    this.set("weight", Value.fromBigInt(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+}
+
+export class ClawbackReclaim extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save ClawbackReclaim entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type ClawbackReclaim must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("ClawbackReclaim", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): ClawbackReclaim | null {
+    return changetype<ClawbackReclaim | null>(
+      store.get_in_block("ClawbackReclaim", id),
+    );
+  }
+
+  static load(id: string): ClawbackReclaim | null {
+    return changetype<ClawbackReclaim | null>(store.get("ClawbackReclaim", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get dao(): string {
+    let value = this.get("dao");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set dao(value: string) {
+    this.set("dao", Value.fromString(value));
+  }
+
+  get investment(): string {
+    let value = this.get("investment");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set investment(value: string) {
+    this.set("investment", Value.fromString(value));
+  }
+
+  get voter(): Bytes {
+    let value = this.get("voter");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set voter(value: Bytes) {
+    this.set("voter", Value.fromBytes(value));
+  }
+
+  get amount(): BigInt {
+    let value = this.get("amount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set amount(value: BigInt) {
+    this.set("amount", Value.fromBigInt(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+}
+
+export class YieldFeeSkim extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save YieldFeeSkim entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type YieldFeeSkim must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("YieldFeeSkim", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): YieldFeeSkim | null {
+    return changetype<YieldFeeSkim | null>(
+      store.get_in_block("YieldFeeSkim", id),
+    );
+  }
+
+  static load(id: string): YieldFeeSkim | null {
+    return changetype<YieldFeeSkim | null>(store.get("YieldFeeSkim", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get dao(): string {
+    let value = this.get("dao");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set dao(value: string) {
+    this.set("dao", Value.fromString(value));
+  }
+
+  get investment(): string {
+    let value = this.get("investment");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set investment(value: string) {
+    this.set("investment", Value.fromString(value));
+  }
+
+  get proposalId(): BigInt {
+    let value = this.get("proposalId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set proposalId(value: BigInt) {
+    this.set("proposalId", Value.fromBigInt(value));
+  }
+
+  get fee(): BigInt {
+    let value = this.get("fee");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set fee(value: BigInt) {
+    this.set("fee", Value.fromBigInt(value));
+  }
+
+  get treasury(): Bytes {
+    let value = this.get("treasury");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set treasury(value: Bytes) {
+    this.set("treasury", Value.fromBytes(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
   }
 }
 
@@ -1886,5 +2480,23 @@ export class PhaseReleaseLoader extends Entity {
   load(): PhaseRelease[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<PhaseRelease[]>(value);
+  }
+}
+
+export class GovernanceVoteLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): GovernanceVote[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<GovernanceVote[]>(value);
   }
 }

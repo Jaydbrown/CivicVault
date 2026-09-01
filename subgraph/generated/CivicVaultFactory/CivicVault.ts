@@ -76,6 +76,32 @@ export class AdminRemoved__Params {
   }
 }
 
+export class ClawbackReclaimed extends ethereum.Event {
+  get params(): ClawbackReclaimed__Params {
+    return new ClawbackReclaimed__Params(this);
+  }
+}
+
+export class ClawbackReclaimed__Params {
+  _event: ClawbackReclaimed;
+
+  constructor(event: ClawbackReclaimed) {
+    this._event = event;
+  }
+
+  get investmentId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get voter(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+}
+
 export class DAOInfoUpdated extends ethereum.Event {
   get params(): DAOInfoUpdated__Params {
     return new DAOInfoUpdated__Params(this);
@@ -289,6 +315,32 @@ export class InvestmentActivated__Params {
 
   get timestamp(): BigInt {
     return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class InvestmentClawedBack extends ethereum.Event {
+  get params(): InvestmentClawedBack__Params {
+    return new InvestmentClawedBack__Params(this);
+  }
+}
+
+export class InvestmentClawedBack__Params {
+  _event: InvestmentClawedBack;
+
+  constructor(event: InvestmentClawedBack) {
+    this._event = event;
+  }
+
+  get investmentId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get pool(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get timestamp(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
   }
 }
 
@@ -521,6 +573,46 @@ export class Paused__Params {
 
   get account(): Address {
     return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class ReleaseFrozen extends ethereum.Event {
+  get params(): ReleaseFrozen__Params {
+    return new ReleaseFrozen__Params(this);
+  }
+}
+
+export class ReleaseFrozen__Params {
+  _event: ReleaseFrozen;
+
+  constructor(event: ReleaseFrozen) {
+    this._event = event;
+  }
+
+  get investmentId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get freezeExpiry(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class ReleaseUnfrozen extends ethereum.Event {
+  get params(): ReleaseUnfrozen__Params {
+    return new ReleaseUnfrozen__Params(this);
+  }
+}
+
+export class ReleaseUnfrozen__Params {
+  _event: ReleaseUnfrozen;
+
+  constructor(event: ReleaseUnfrozen) {
+    this._event = event;
+  }
+
+  get investmentId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
   }
 }
 
@@ -783,6 +875,36 @@ export class YieldDeposited__Params {
 
   get timestamp(): BigInt {
     return this._event.parameters[3].value.toBigInt();
+  }
+}
+
+export class YieldFeeSkimmed extends ethereum.Event {
+  get params(): YieldFeeSkimmed__Params {
+    return new YieldFeeSkimmed__Params(this);
+  }
+}
+
+export class YieldFeeSkimmed__Params {
+  _event: YieldFeeSkimmed;
+
+  constructor(event: YieldFeeSkimmed) {
+    this._event = event;
+  }
+
+  get investmentId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get proposalId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get fee(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get treasury(): Address {
+    return this._event.parameters[3].value.toAddress();
   }
 }
 
@@ -1388,6 +1510,29 @@ export class CivicVault extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  MAX_YIELD_FEE_BPS(): i32 {
+    let result = super.call(
+      "MAX_YIELD_FEE_BPS",
+      "MAX_YIELD_FEE_BPS():(uint16)",
+      [],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_MAX_YIELD_FEE_BPS(): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "MAX_YIELD_FEE_BPS",
+      "MAX_YIELD_FEE_BPS():(uint16)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
   PHASE1_PERCENT(): BigInt {
     let result = super.call("PHASE1_PERCENT", "PHASE1_PERCENT():(uint256)", []);
 
@@ -1531,6 +1676,101 @@ export class CivicVault extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  bannedAdmin(param0: Address): boolean {
+    let result = super.call("bannedAdmin", "bannedAdmin(address):(bool)", [
+      ethereum.Value.fromAddress(param0),
+    ]);
+
+    return result[0].toBoolean();
+  }
+
+  try_bannedAdmin(param0: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall("bannedAdmin", "bannedAdmin(address):(bool)", [
+      ethereum.Value.fromAddress(param0),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  clawbackClaimed(param0: BigInt, param1: Address): boolean {
+    let result = super.call(
+      "clawbackClaimed",
+      "clawbackClaimed(uint256,address):(bool)",
+      [
+        ethereum.Value.fromUnsignedBigInt(param0),
+        ethereum.Value.fromAddress(param1),
+      ],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_clawbackClaimed(
+    param0: BigInt,
+    param1: Address,
+  ): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "clawbackClaimed",
+      "clawbackClaimed(uint256,address):(bool)",
+      [
+        ethereum.Value.fromUnsignedBigInt(param0),
+        ethereum.Value.fromAddress(param1),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  clawbackPool(param0: BigInt): BigInt {
+    let result = super.call("clawbackPool", "clawbackPool(uint256):(uint256)", [
+      ethereum.Value.fromUnsignedBigInt(param0),
+    ]);
+
+    return result[0].toBigInt();
+  }
+
+  try_clawbackPool(param0: BigInt): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "clawbackPool",
+      "clawbackPool(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  committedStake(param0: Address): BigInt {
+    let result = super.call(
+      "committedStake",
+      "committedStake(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_committedStake(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "committedStake",
+      "committedStake(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
   coordinates(): string {
@@ -1776,29 +2016,6 @@ export class CivicVault extends ethereum.SmartContract {
     );
   }
 
-  getInvestmentsByStatus(status: i32): Array<BigInt> {
-    let result = super.call(
-      "getInvestmentsByStatus",
-      "getInvestmentsByStatus(uint8):(uint256[])",
-      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(status))],
-    );
-
-    return result[0].toBigIntArray();
-  }
-
-  try_getInvestmentsByStatus(status: i32): ethereum.CallResult<Array<BigInt>> {
-    let result = super.tryCall(
-      "getInvestmentsByStatus",
-      "getInvestmentsByStatus(uint8):(uint256[])",
-      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(status))],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
-  }
-
   getVote(
     investmentId: BigInt,
     voter: Address,
@@ -1934,6 +2151,59 @@ export class CivicVault extends ethereum.SmartContract {
         value[0].toTuple(),
       ),
     );
+  }
+
+  govApply(kind: i32, addr: Address, id: BigInt, expiry: BigInt): BigInt {
+    let result = super.call(
+      "govApply",
+      "govApply(uint8,address,uint256,uint256):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(kind)),
+        ethereum.Value.fromAddress(addr),
+        ethereum.Value.fromUnsignedBigInt(id),
+        ethereum.Value.fromUnsignedBigInt(expiry),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_govApply(
+    kind: i32,
+    addr: Address,
+    id: BigInt,
+    expiry: BigInt,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "govApply",
+      "govApply(uint8,address,uint256,uint256):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(kind)),
+        ethereum.Value.fromAddress(addr),
+        ethereum.Value.fromUnsignedBigInt(id),
+        ethereum.Value.fromUnsignedBigInt(expiry),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  governor(): Address {
+    let result = super.call("governor", "governor():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_governor(): ethereum.CallResult<Address> {
+    let result = super.tryCall("governor", "governor():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   hasApprovedProposal(proposalId: BigInt, admin: Address): boolean {
@@ -2323,6 +2593,27 @@ export class CivicVault extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  releaseFrozen(param0: BigInt): boolean {
+    let result = super.call("releaseFrozen", "releaseFrozen(uint256):(bool)", [
+      ethereum.Value.fromUnsignedBigInt(param0),
+    ]);
+
+    return result[0].toBoolean();
+  }
+
+  try_releaseFrozen(param0: BigInt): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "releaseFrozen",
+      "releaseFrozen(uint256):(bool)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
   releasePhaseCompleted(param0: BigInt): i32 {
     let result = super.call(
       "releasePhaseCompleted",
@@ -2344,6 +2635,29 @@ export class CivicVault extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
+  totalCommittedStake(): BigInt {
+    let result = super.call(
+      "totalCommittedStake",
+      "totalCommittedStake():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalCommittedStake(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalCommittedStake",
+      "totalCommittedStake():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
   totalValueLocked(): BigInt {
@@ -2473,6 +2787,21 @@ export class CivicVault extends ethereum.SmartContract {
         value[5].toBigInt(),
       ),
     );
+  }
+
+  yieldFeeBps(): i32 {
+    let result = super.call("yieldFeeBps", "yieldFeeBps():(uint16)", []);
+
+    return result[0].toI32();
+  }
+
+  try_yieldFeeBps(): ethereum.CallResult<i32> {
+    let result = super.tryCall("yieldFeeBps", "yieldFeeBps():(uint16)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
   }
 
   yieldGracePeriod(): BigInt {
@@ -3021,6 +3350,52 @@ export class ExtendDeadlineCall__Outputs {
   }
 }
 
+export class GovApplyCall extends ethereum.Call {
+  get inputs(): GovApplyCall__Inputs {
+    return new GovApplyCall__Inputs(this);
+  }
+
+  get outputs(): GovApplyCall__Outputs {
+    return new GovApplyCall__Outputs(this);
+  }
+}
+
+export class GovApplyCall__Inputs {
+  _call: GovApplyCall;
+
+  constructor(call: GovApplyCall) {
+    this._call = call;
+  }
+
+  get kind(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get addr(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
+  get id(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
+  }
+
+  get expiry(): BigInt {
+    return this._call.inputValues[3].value.toBigInt();
+  }
+}
+
+export class GovApplyCall__Outputs {
+  _call: GovApplyCall;
+
+  constructor(call: GovApplyCall) {
+    this._call = call;
+  }
+
+  get pool(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
+  }
+}
+
 export class InitializeCall extends ethereum.Call {
   get inputs(): InitializeCall__Inputs {
     return new InitializeCall__Inputs(this);
@@ -3068,6 +3443,18 @@ export class InitializeCall__Inputs {
 
   get _usdcAddress(): Address {
     return this._call.inputValues[7].value.toAddress();
+  }
+
+  get _protocolTreasury_(): Address {
+    return this._call.inputValues[8].value.toAddress();
+  }
+
+  get _protocolYieldFeeBps(): i32 {
+    return this._call.inputValues[9].value.toI32();
+  }
+
+  get _governor(): Address {
+    return this._call.inputValues[10].value.toAddress();
   }
 }
 
@@ -3174,6 +3561,36 @@ export class ProposeYieldDepositCall__Outputs {
 
   get value0(): BigInt {
     return this._call.outputValues[0].value.toBigInt();
+  }
+}
+
+export class ReclaimClawbackCall extends ethereum.Call {
+  get inputs(): ReclaimClawbackCall__Inputs {
+    return new ReclaimClawbackCall__Inputs(this);
+  }
+
+  get outputs(): ReclaimClawbackCall__Outputs {
+    return new ReclaimClawbackCall__Outputs(this);
+  }
+}
+
+export class ReclaimClawbackCall__Inputs {
+  _call: ReclaimClawbackCall;
+
+  constructor(call: ReclaimClawbackCall) {
+    this._call = call;
+  }
+
+  get investmentId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class ReclaimClawbackCall__Outputs {
+  _call: ReclaimClawbackCall;
+
+  constructor(call: ReclaimClawbackCall) {
+    this._call = call;
   }
 }
 

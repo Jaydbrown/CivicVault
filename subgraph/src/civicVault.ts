@@ -15,6 +15,11 @@ import {
   YieldDepositProposed,
   YieldDepositApproved,
   YieldDepositExecuted,
+  ReleaseFrozen,
+  ReleaseUnfrozen,
+  InvestmentClawedBack,
+  ClawbackReclaimed,
+  YieldFeeSkimmed,
 } from "../generated/templates/CivicVault/CivicVault";
 import {
   DAO,
@@ -29,6 +34,8 @@ import {
   YieldDepositedEvent,
   StakeWithdrawnEvent,
   FundsLockedEvent,
+  ClawbackReclaim,
+  YieldFeeSkim,
 } from "../generated/schema";
 import { BigInt } from "@graphprotocol/graph-ts";
 
@@ -95,6 +102,9 @@ export function handleInvestmentCreated(event: InvestmentCreated): void {
   inv.totalYieldGenerated = BigInt.fromI32(0);
   inv.totalYieldDistributed = BigInt.fromI32(0);
   inv.escrowedAmount = BigInt.fromI32(0);
+  inv.releaseFrozen = false;
+  inv.freezeExpiry = BigInt.fromI32(0);
+  inv.clawbackPool = BigInt.fromI32(0);
   inv.createdAt = event.block.timestamp;
   inv.createdBy = event.transaction.from;
   inv.save();
@@ -350,4 +360,75 @@ export function handleYieldDepositExecuted(event: YieldDepositExecuted): void {
   proposal.executed = true;
   proposal.expenseReportCID = event.params.expenseReportCID;
   proposal.save();
+}
+
+// ─── MEMBER GOVERNANCE EFFECT HANDLERS ────────────────────────────────────────
+
+export function handleReleaseFrozen(event: ReleaseFrozen): void {
+  const id = event.address.toHexString() + "-" + event.params.investmentId.toString();
+  const inv = Investment.load(id);
+  if (!inv) return;
+  inv.releaseFrozen = true;
+  inv.freezeExpiry = event.params.freezeExpiry;
+  inv.save();
+}
+
+export function handleReleaseUnfrozen(event: ReleaseUnfrozen): void {
+  const id = event.address.toHexString() + "-" + event.params.investmentId.toString();
+  const inv = Investment.load(id);
+  if (!inv) return;
+  inv.releaseFrozen = false;
+  inv.freezeExpiry = BigInt.fromI32(0);
+  inv.save();
+}
+
+export function handleInvestmentClawedBack(event: InvestmentClawedBack): void {
+  const id = event.address.toHexString() + "-" + event.params.investmentId.toString();
+  const inv = Investment.load(id);
+  if (!inv) return;
+  inv.status = 4; // CLAWED_BACK
+  inv.clawbackPool = event.params.pool;
+  inv.escrowedAmount = BigInt.fromI32(0);
+  inv.save();
+
+  const dao = DAO.load(event.address.toHexString());
+  if (dao && dao.activeInvestmentCount.gt(BigInt.fromI32(0))) {
+    dao.activeInvestmentCount = dao.activeInvestmentCount.minus(BigInt.fromI32(1));
+    dao.totalValueLocked = dao.totalValueLocked.ge(event.params.pool)
+      ? dao.totalValueLocked.minus(event.params.pool)
+      : BigInt.fromI32(0);
+    dao.save();
+  }
+}
+
+export function handleClawbackReclaimed(event: ClawbackReclaimed): void {
+  const invId = event.address.toHexString() + "-" + event.params.investmentId.toString();
+  const evId = event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  const rec = new ClawbackReclaim(evId);
+  rec.dao = event.address.toHexString();
+  rec.investment = invId;
+  rec.voter = event.params.voter;
+  rec.amount = event.params.amount;
+  rec.timestamp = event.block.timestamp;
+  rec.save();
+
+  const voteId = invId + "-" + event.params.voter.toHexString();
+  const vote = Vote.load(voteId);
+  if (vote) {
+    vote.withdrawn = true;
+    vote.save();
+  }
+}
+
+export function handleYieldFeeSkimmed(event: YieldFeeSkimmed): void {
+  const invId = event.address.toHexString() + "-" + event.params.investmentId.toString();
+  const evId = event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  const skim = new YieldFeeSkim(evId);
+  skim.dao = event.address.toHexString();
+  skim.investment = invId;
+  skim.proposalId = event.params.proposalId;
+  skim.fee = event.params.fee;
+  skim.treasury = event.params.treasury;
+  skim.timestamp = event.block.timestamp;
+  skim.save();
 }

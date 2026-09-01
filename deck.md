@@ -22,7 +22,7 @@ Neighborhood DAOs that pool USDC, vote on local investments, and share yield —
 
 I grew up watching people around me pool money together — contribution groups, investment clubs, neighborhood cooperatives. The trust was there. The discipline was there. What wasn't there was any real structure to protect it.
 
-Someone runs off with the pot. A trusted admin skims yield before distributing. Members have no idea where the money actually went. There's no receipt, no audit, no recourse.
+Someone runs off with the pot. A trusted admin skims yield before distributing. Members have no idea where the money actually went. There's no receipt, no audit, and no way to remove the person holding the money.
 
 This isn't a niche problem. Rotating savings groups — called chamas in Kenya, susus in West Africa, tontines in Cameroon, arisan in Indonesia — move well over **$100 billion every year globally**. And almost all of it runs on WhatsApp chats and spreadsheets.
 
@@ -51,7 +51,7 @@ That's the gap CivicVault fills.
 - At a 0.75% protocol yield fee, that's meaningful revenue from a small slice of the market
 
 **Why this moment:**
-Circle's Arc Network — where USDC is the native gas token — makes USDC-native community finance genuinely viable for the first time. Privy embedded wallets mean members never need to touch a seed phrase. And EIP-1167 clone factories make deploying a DAO as cheap as a single transaction. All three of these things exist now. They didn't two years ago.
+Circle's Arc Network — where USDC is the native gas token — makes USDC-native community finance genuinely viable for the first time. Circle user-controlled wallets plus Gas Station mean members sign in with an email, never touch a seed phrase, never hold a gas balance, and keep sole control of their key — CivicVault can't move their money. And a beacon-proxy factory makes deploying a DAO as cheap as a single transaction — with one upgradeable implementation behind a timelock, so a fix reaches every DAO. All of this exists now. It didn't two years ago.
 
 ---
 
@@ -81,6 +81,9 @@ When investments return profit, a finance manager proposes a yield deposit. Thre
 
 **Step 7 — Members claim their share**
 Yield accrues proportionally based on each member's stake. Members claim whenever they want. The math handles partial deposits and rolling claims without double-counting.
+
+**Members hold the final say**
+The creator appoints admins — but members, voting with the USDC they've committed to the DAO, can remove a captured admin (and bar re-appointment), freeze a suspicious escrow release, or claw back an investment's unreleased funds. Adding fake members is free; giving them a vote costs real capital that sits in escrow at risk. You can't buy the outcome without owning the exposure.
 
 Every single one of these steps leaves a timestamped, on-chain record. Immutable. No indexer required.
 
@@ -159,15 +162,19 @@ Everything above on your phone — wallet connection, governance, DAO chat, yiel
 
 | Contract | Role |
 |---|---|
-| `CivicVaultFactory` | EIP-1167 minimal-proxy factory |
+| `CivicVaultFactory` | Beacon-proxy factory + beacon + protocol-fee config |
+| `CivicVaultBeaconController` | Owns the beacon; timelock + DAO veto on every upgrade |
 | `CivicVault` | Per-DAO: members, KYC, investments, voting, escrow, yield, claims |
 | `CivicVaultView` | Gas-free read helpers for the frontend |
+| `CivicVaultGovernor` | Member-initiated, stake-weighted governance (remove admin / freeze / clawback) |
 | `YieldCalculator` | Proportional yield math, overflow-safe |
 | `InvestmentManager` | Phased release, activation logic, deadline rules |
 | `StringUtils` | On-chain activity log formatting |
 
 **Security:**
-ReentrancyGuard · CEI ordering · Pausable emergency stop · SafeERC20 · Initializable · 35+ typed custom errors · 3-of-N multi-sig for yield
+ReentrancyGuard · CEI ordering · Pausable emergency stop · SafeERC20 · Initializable · 40+ typed custom errors · 3-of-N multi-sig for yield · stake-weighted governance with snapshotted pass rules · realized-yield-only protocol fee, hard-capped at 5%
+
+**Wallets:** Circle user-controlled (non-custodial) + Gas Station (gasless) for the smartphone tier; every backend-initiated transaction is checked against a fixed policy and audit-logged.
 
 ---
 
@@ -182,6 +189,12 @@ When you vote yes, you put USDC in escrow. You don't get to support a proposal w
 **Multi-sig yield — not admin discretion.**
 Three admins must approve before a single dollar of yield moves. The proposer needs the actual balance at execution time, not at proposal time.
 
+**Members can overrule the creator — not just the admins.**
+Stake-weighted member votes remove a captured admin, freeze a release, or claw back an investment. The pass rule is snapshotted when the proposal opens so it can't be gamed after the fact.
+
+**Non-custodial by design.**
+Members' wallets are Circle user-controlled smart accounts — the key is theirs (passkey/PIN + Circle MPC). The backend orchestrates transactions but holds no signing power, and every call it makes is checked against a fixed policy.
+
 **KYC without a data leak.**
 Identity verification is a `bytes32` hash on-chain. No name, no ID number, no biometric ever touches a contract.
 
@@ -194,9 +207,9 @@ Every vote, phase release, yield deposit, and claim is stored in an on-chain `Ac
 
 | Milestone | Status |
 |---|---|
-| Smart contracts (~3,000 lines of Solidity) | ✅ Done |
-| Foundry test suite | ✅ Done |
-| Frontend — all 11 views | ✅ Done |
+| Smart contracts (~3,400 lines of Solidity, incl. member governance) | ✅ Done |
+| Foundry test suite (78 tests) | ✅ Done |
+| Frontend — all views + governance + non-custodial Circle wallet | ✅ Done |
 | Backend — auth, chat, notifications | ✅ Done |
 | IPFS integration | ✅ Done |
 | Real-time chat | ✅ Done |
@@ -208,16 +221,16 @@ Every vote, phase release, yield deposit, and claim is stored in an on-chain `Ac
 | Security audit | 🔲 Grant-funded |
 | Arc Mainnet | 🔲 Post-audit |
 
-**Live contract on Arc Testnet:**
-Factory — `0x12B50bc584d839E7FFE6aEefF2DC02CDeE93617C`
+**Live on Arc Testnet** (block 60010770, with member governance + protocol fee):
+Factory — `0x58Ff8ca3b9863e535845f58D5d7AA90B33fE635F` · Governor — `0x1cE8328E08a4c93A37e5e03115BAdE0373b97310`
 
 ---
 
 ## Slide 10 · Business Model
 
-**Protocol fee: 0.5–1% of yield distributed.**
+**Protocol fee: a percentage of realized yield only (launches at 3%, hard-capped at 5% in the contract).**
 
-Communities pay nothing to create a DAO, onboard members, or vote. CivicVault earns only when members earn.
+Communities pay nothing to create a DAO, onboard members, or vote. The fee never touches principal or escrow — CivicVault earns only when members earn.
 
 | Metric | 6 Months | 12 Months |
 |---|---|---|
@@ -309,5 +322,6 @@ Communities deserve tools that are as secure as they are accessible. That's what
 | Demo Video | https://youtu.be/mkdc0uo4waQ |
 | GitHub | https://github.com/Jaydbrown/CivicVault |
 | Arc Testnet Explorer | https://testnet.arcscan.app |
-| Factory Contract | `0x12B50bc584d839E7FFE6aEefF2DC02CDeE93617C` |
+| Factory Contract | `0x58Ff8ca3b9863e535845f58D5d7AA90B33fE635F` |
+| Governor Contract | `0x1cE8328E08a4c93A37e5e03115BAdE0373b97310` |
 | Email | jaiyeolawety705@gmail.com |

@@ -11,3 +11,5 @@ dist
 .DS_Store
 *.tar.gz
 *.zip
+.vercel
+.env*

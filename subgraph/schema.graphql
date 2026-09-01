@@ -28,7 +28,7 @@ type Investment @entity {
   dao: DAO!
   investmentId: BigInt!
   name: String!
-  status: Int!                  # 0=PENDING 1=ACTIVE 2=ENDED 3=INCOMPLETE
+  status: Int!                  # 0=PENDING 1=ACTIVE 2=ENDED 3=INCOMPLETE 4=CLAWED_BACK
   category: Int!
   deadline: BigInt!
   fundNeeded: BigInt!
@@ -41,9 +41,61 @@ type Investment @entity {
   escrowedAmount: BigInt!
   createdAt: BigInt!
   createdBy: Bytes!
+  # member governance
+  releaseFrozen: Boolean!
+  freezeExpiry: BigInt!
+  clawbackPool: BigInt!
   votes: [Vote!]!               @derivedFrom(field: "investment")
   yieldClaims: [YieldClaim!]!  @derivedFrom(field: "investment")
   phaseReleases: [PhaseRelease!]! @derivedFrom(field: "investment")
+}
+
+# ─── Member-initiated governance (CivicVaultGovernor) ──────────────────────────
+
+type GovernanceProposal @entity {
+  id: ID!                       # daoAddress-proposalId
+  dao: DAO!
+  proposalId: BigInt!
+  pType: Int!                   # 0=RemoveAdmin 1=FreezeRelease 2=UnfreezeRelease 3=Clawback 4=ReinstateAdmin
+  proposer: Bytes!
+  targetAdmin: Bytes!
+  investmentId: BigInt!
+  votingDeadline: BigInt!
+  createdAt: BigInt!
+  yesWeight: BigInt!
+  noWeight: BigInt!
+  executed: Boolean!
+  passed: Boolean!
+  votes: [GovernanceVote!]!    @derivedFrom(field: "proposal")
+}
+
+type GovernanceVote @entity {
+  id: ID!                       # daoAddress-proposalId-voter
+  proposal: GovernanceProposal!
+  dao: DAO!
+  voter: Bytes!
+  support: Boolean!
+  weight: BigInt!
+  timestamp: BigInt!
+}
+
+type ClawbackReclaim @entity {
+  id: ID!                       # txHash-logIndex
+  dao: DAO!
+  investment: Investment!
+  voter: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+}
+
+type YieldFeeSkim @entity {
+  id: ID!                       # txHash-logIndex
+  dao: DAO!
+  investment: Investment!
+  proposalId: BigInt!
+  fee: BigInt!
+  treasury: Bytes!
+  timestamp: BigInt!
 }
 
 type Vote @entity {
