@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { google } from 'googleapis';
 import { prisma } from '../db/prisma';
 import { normalizeWalletAddress } from '../utils/wallet';
+import { authConfigured, verifyBearer } from '../middleware/auth';
 
 const router = Router();
 
@@ -98,8 +99,16 @@ router.post('/sync-identity', async (req, res) => {
 
     const email: string | undefined =
       typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() || undefined : undefined;
+
+    // When Privy auth is configured, the identity binding is only as trustworthy
+    // as its source: take privyUserId from the verified token, never the body.
+    const verifiedPrivyId = await verifyBearer(req);
+    if (authConfigured() && !verifiedPrivyId) {
+      return res.status(401).json({ error: 'A valid Privy access token is required' });
+    }
     const privyUserId: string | undefined =
-      typeof req.body?.privyUserId === 'string' ? req.body.privyUserId.trim() || undefined : undefined;
+      verifiedPrivyId ??
+      (typeof req.body?.privyUserId === 'string' ? req.body.privyUserId.trim() || undefined : undefined);
 
     // Find the current owner of this wallet address (may not exist yet)
     let user = await prisma.user.findUnique({ where: { walletAddress } });

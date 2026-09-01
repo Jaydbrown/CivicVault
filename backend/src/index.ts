@@ -10,6 +10,10 @@ import chatRoutes         from './routes/chat.routes';
 import notificationRoutes from './routes/notifications.routes';
 import usersRoutes        from './routes/users.routes';
 import circleWalletRoutes from './routes/circleWallet.routes';
+import walletRoutes       from './routes/wallet.routes';
+import fiatRoutes         from './routes/fiat.routes';
+import ussdRoutes         from './routes/ussd.routes';
+import { authConfigured } from './middleware/auth';
 
 const app = express();
 
@@ -29,12 +33,16 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false })); // Africa's Talking USSD/SMS callbacks
 
 app.use('/api/auth',          authRoutes);
 app.use('/api/chat',          chatRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users',         usersRoutes);
-app.use('/api/circle-wallet', circleWalletRoutes);
+app.use('/api/circle-wallet', circleWalletRoutes); // deprecated — superseded by /api/wallet
+app.use('/api/wallet',        walletRoutes);
+app.use('/api/fiat',          fiatRoutes);
+app.use('/api/ussd',          ussdRoutes);
 
 // Platform statistics
 app.get('/api/stats', async (_req, res) => {
@@ -109,6 +117,7 @@ app.get('/', (_req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`🔑 Privy auth: ${authConfigured() ? 'Configured' : 'NOT configured — /api/wallet is disabled'}`);
   console.log(`📧 Gmail OAuth: ${process.env.GMAIL_CLIENT_ID ? 'Configured' : 'Not configured'}`);
   const hasFrom     = !!(process.env.GMAIL_FROM_EMAIL?.trim() || process.env.GMAIL_USER?.trim());
   const hasOutbound = !!(process.env.GMAIL_MAILER_REFRESH_TOKEN?.trim() || process.env.GMAIL_APP_PASSWORD?.trim());

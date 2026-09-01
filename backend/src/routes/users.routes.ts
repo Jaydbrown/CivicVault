@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { prisma } from '../db/prisma';
 import { normalizeWalletAddress } from '../utils/wallet';
+import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
 // POST /api/users — create or upsert user by wallet address
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.body?.walletAddress);
     if (!walletAddress) return res.status(400).json({ error: 'Invalid wallet address' });
@@ -97,15 +98,18 @@ router.get('/:walletAddress/profile', async (req, res) => {
 });
 
 // PATCH /api/users/:walletAddress — update email
-router.patch('/:walletAddress', async (req, res) => {
+router.patch('/:walletAddress', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) return res.status(400).json({ error: 'Invalid wallet address' });
 
     const emailRaw = req.body?.email;
-    const email = typeof emailRaw === 'string' ? (emailRaw.trim() || null) : undefined;
+    const email = typeof emailRaw === 'string' ? (emailRaw.trim().toLowerCase() || null) : undefined;
 
     if (email === undefined) return res.status(400).json({ error: 'No updatable fields provided' });
+    if (email !== null && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
 
     // Release the email from any other wallet before claiming it
     if (email) {
@@ -147,7 +151,7 @@ router.get('/:walletAddress/preferences', async (req, res) => {
 });
 
 // PATCH /api/users/:walletAddress/preferences — update notification preferences
-router.patch('/:walletAddress/preferences', async (req, res) => {
+router.patch('/:walletAddress/preferences', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) return res.status(400).json({ error: 'Invalid wallet address' });

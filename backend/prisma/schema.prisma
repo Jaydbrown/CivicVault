@@ -16,11 +16,57 @@ model User {
   gmailRefreshToken    String?
   circleWalletId       String?  @unique
   circleWalletAddress  String?  @unique
+  // USER_CONTROLLED = smartphone/web, MPC key held by the user (passkey/PIN),
+  // backend has no signing share. CUSTODIAL = USSD/feature-phone tier, backend
+  // signs under a per-call allowlist + balance cap. Default is non-custodial.
+  walletTier           String   @default("USER_CONTROLLED")
+  circleUserId         String?  @unique
   createdAt            DateTime @default(now())
 
   notifications     Notification[]
   preferences       EmailPreference?
   chatSubscriptions ChatSubscription[]
+  circleTxLogs      CircleTxLog[]
+  ussd              UssdUser?
+}
+
+// Feature-phone (USSD) member. Maps a phone number to a User whose walletTier is
+// CUSTODIAL. The PIN authorises signing; the backend holds the key. Blast radius
+// is bounded by the tx policy + the per-wallet balance cap.
+model UssdUser {
+  id            String    @id @default(cuid())
+  phoneNumber   String    @unique // E.164
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  pinHash       String?   // set by the member on first dial-in
+  failedPinTries Int      @default(0)
+  lockedUntil   DateTime?
+  enrolledBy    String?   // facilitator wallet address
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// One row per backend-initiated signing request (both tiers). The audit trail
+// for "what did CivicVault ever ask a user's wallet to do".
+model CircleTxLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tier      String
+  to        String   // target contract
+  selector  String   // 4-byte selector, hex
+  functionName String
+  argsJson  String
+  refId     String   @unique // our idempotency key / correlation id
+  challengeId String?
+  circleTxId  String?
+  state     String   @default("CREATED") // CREATED | PENDING | CONFIRMED | FAILED | POLICY_REJECTED
+  txHash    String?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
 }
 
 model EmailPreference {
