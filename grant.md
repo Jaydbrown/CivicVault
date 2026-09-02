@@ -2,7 +2,7 @@
 
 **On-chain infrastructure for the way communities actually pool money.**
 
-Built on Circle's Arc Network · Live on Arc Testnet · Requesting $42,000 to audit and launch.
+Built on Circle's Arc Network · Live on Arc Testnet · Requesting $42,000 to secure and launch.
 
 ---
 
@@ -32,8 +32,8 @@ You're not donating anymore. You're staking — and when the community's investm
 
 | | |
 |---|---|
-| **Smart contracts** | 8 contracts, ~3,700 lines of Solidity. **86 Foundry tests passing** — full lifecycle, fuzzed treasury invariants, a malicious-token reentrancy test, multi-sig edge cases, a 17-test member-governance suite, an 8-test upgrade-safety suite. |
-| **Live on Arc Testnet** | Factory, upgradeable beacon + timelock controller, member-governance contract, view layer, and a seeded pilot DAO — all deployed and verified. Addresses in the reference section. |
+| **Smart contracts** | 8 contracts, ~3,700 lines of Solidity. **89 Foundry tests passing** — full lifecycle, fuzzed treasury invariants, a malicious-token reentrancy test, multi-sig edge cases, a 17-test member-governance suite, an 11-test upgrade-safety suite. |
+| **Live on Arc Testnet** | Factory, upgradeable beacon + timelock controller, member-governance contract, view layer, and a seed DAO — all deployed and verified at block 60010770. This stack replaced an earlier clone-based deployment when member governance and beacon upgradeability landed; the pilot cohort that had signed on is being re-onboarded onto it. Addresses in the reference section. |
 | **Web app** | React 19, 12 views covering every action from DAO creation to yield claim. Live at `civic-vault-aupu.vercel.app`. |
 | **Mobile app** | React Native / Expo, feature-complete, pending store submission. |
 | **Feature-phone access** | USSD (`*123#`) menu — balance, vote, governance — built end to end, including a PIN-authorised custodial signer with a hard balance cap and SMS confirmations. |
@@ -75,7 +75,7 @@ Take any one of these away and the experience collapses back into "you need to u
 2. **Admins onboard and KYC-verify members** with on-chain hash commitments — a cryptographic record that verification happened, zero personal data on-chain.
 3. **Admins post investment proposals** — a transformer, a classroom block, a cooperative loan, a market stall — each with a funding target, deadline, risk grade, and IPFS-linked documents.
 4. **Members vote by staking USDC.** An upvote moves real capital into escrow. Downvotes are free but carry no weight — no veto without accountability.
-5. **On hitting target, funds escrow and release in three phases** (30% / 40% / 30%), enforced in sequence by an on-chain counter. An admin *cannot* release phase 2 before phase 1. If a vendor absconds, the community loses one tranche, not everything.
+5. **On hitting target, funds escrow and release in three phases** (30% / 40% / 30%), enforced in sequence by an on-chain counter. An admin *cannot* release phase 2 before phase 1 — but sequencing is not verification, and a colluding admin could still walk all three tranches to a vendor who builds nothing. That is exactly what member governance is for: any member who sees no progress can open a proposal to **freeze the release**, and if the money is already gone dark, to **claw back every unreleased tranche** pro-rata to the people who funded it. The admin controls the schedule; the members control whether the money keeps moving.
 6. **Yield deposits need 3-of-N admin approval** — and the money must actually be in the proposer's wallet at execution, not promised. No ghost payouts.
 7. **Members claim their exact pro-rata share** whenever they want. The contract doesn't do favoritism and never forgets the smallest contributor.
 8. **Members — not the creator — hold ultimate control.** Stake-weighted member votes can evict an admin (and bar the creator from re-appointing them), freeze a suspicious release, or claw back an investment's unreleased funds pro-rata to its backers.
@@ -90,11 +90,15 @@ That last point is the one most protocols get wrong, so it's worth being explici
 
 **Member governance with hardened math.** The pass rule — denominator and thresholds — is snapshotted the moment a proposal opens, so no one can inflate it mid-vote. Admin and clawback votes use a participation quorum with a turnout floor (not an absolute quorum that becomes unreachable as completed-investment stake piles up). Repeat freezes of the same investment face an escalating bar and a cooldown. A voter's stake is locked until the proposal closes, so "vote then withdraw" can't keep the weight. Covered by a dedicated fuzz-tested suite.
 
+**Admins curate, members decide.** Investment proposals are posted by admins, not by any member — a deliberate curation step (diligence, supporting documents, a risk grade) that stops the proposal list from becoming a spam channel. But origination is the *only* thing an admin holds unilaterally. Funding a proposal takes member stake. Each escrow tranche can be frozen by a member vote. Unspent escrow can be clawed back by a member vote. The admin who posted it can be evicted by a member vote, and barred from reinstatement. Curating the menu is not controlling the money.
+
 **Upgradeable without a single point of control.** Every DAO is a beacon proxy — one `upgradeTo` fixes a bug across all of them, no stranded contracts. But the beacon isn't a bare owner key: it's held by a controller that puts every upgrade through a **2-day timelock**, and DAOs holding ≥ 30% of total value-locked can **veto** it. The upgrade path exists; it is not a lever one person can pull over everyone's funds.
 
 **Phased, multi-sig money movement.** No admin releases out of order. No finance manager moves yield alone. No disbursement happens without 3 separate approvals *and* the funds physically present.
 
 **No custodial backend.** The web/mobile tier is fully non-custodial. The feature-phone tier is necessarily custodial (a `*123#` session can't hold a key), but it's bounded: signing is limited by policy to vote / claim / capped-approve — never a transfer-out — with a per-wallet balance cap, full audit logging, and PIN lockout. Disclosed in-product and here.
+
+**Regulatory status.** CivicVault currently operates as a testnet pilot with no live custody of member funds. Before mainnet, the custodial USSD tier and the "communities stake and share in returns" model will be reviewed with Nigerian counsel; a legal entity will be incorporated, and the on/off-ramp for the feature-phone tier will run through a licensed partner rather than the protocol. The engineering controls above (policy-scoped signing, balance caps, audit logging) are risk mitigation, not a substitute for that review — and part of what this grant makes possible.
 
 ---
 
@@ -117,6 +121,8 @@ CivicVault earns nothing when a DAO is idle. It earns when a community's investm
 
 **Protocol yield fee** — skimmed from **realized yield only** (never principal, never escrow) when a deposit executes, paid to a protocol treasury. Set on the factory, **hard-capped at 5% in the contract**, launching at **3%**. Enforced on-chain, emitted as an event, visible to every member before they join. On $500,000 of realized yield flowing through the protocol, that's $15,000 to the treasury.
 
+The launch rate is 3% (revised up from an earlier 1.5% model once Gas Station sponsorship and ongoing security operations — monitoring, bug bounty — were priced in; the two together cost more than 1.5% of early yield can cover). It is still an order of magnitude below the 15–30% management cuts that cooperative administrators and investment-club organizers routinely take today, and unlike theirs it is fixed in code, capped, and auditable by every member.
+
 Secondary lines as the network scales: a small one-time DAO creation fee, and an institutional tier for registered cooperatives and unions that need branding, compliance exports, and higher limits.
 
 The model works because every alternative costs a community far more — a lawyer to structure an investment vehicle, a joint bank account with fees and no audit trail, or a cooperative administrator whose management cut dwarfs a 3% protocol fee with none of the transparency.
@@ -125,30 +131,40 @@ The model works because every alternative costs a community far more — a lawye
 
 ## The ask: $42,000
 
-One number, three jobs: **get it audited, get it on mainnet, get the first communities on it.**
+CivicVault is a community product, not a typical blockchain product. It is won or lost on exactly two things, and the budget is built around them in equal measure: **the pooled USDC treasury in every DAO must be provably safe**, and **real community groups must actually find it, trust it, and use it.** An audited protocol nobody adopts fails. An adopted protocol that loses a community's money fails worse.
 
-### Security — $15,000
-A professional smart-contract audit (Cyfrin / Halborn / Code4rena tier, ~2 weeks). Scope: the 8 contracts and ~3,700 lines covering DAO lifecycle, staked voting, phased escrow, multi-sig yield, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer that gates every Circle signing request. Pre-audit hardening is already done — 86 tests including fuzzed invariants (claimed yield never exceeds deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, and multi-sig edge cases. This audit is the *only* thing between the codebase and a mainnet communities can put real money into.
+### Security of funds — $17,000
+Every DAO holds members' stake plus investment escrow in one contract. That pool is defended in five independent layers, not one audit:
+- **Independent audit — $12,000.** Full-scope engagement (Cyfrin / Halborn / Trail of Bits tier) across the 8 contracts and ~3,700 lines: DAO lifecycle, staked voting, phased escrow, 3-of-N multi-sig yield, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer. Pre-audit hardening is done — 89 tests including fuzzed invariants (claimed yield never exceeds deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, multi-sig edge cases.
+- **Competitive review — $3,000.** A Code4rena / Cantina contest after primary-audit remediation, focused on the upgradeability and governance surface — the newest, highest-leverage code.
+- **Bug bounty — $1,000.** An Immunefi listing plus an initial payout reserve, live from the first mainnet deposit and scaling with TVL.
+- **Real-time monitoring — $700 / 12 months.** Alerts on every large withdrawal, admin change, upgrade proposal, freeze, and clawback, routed to the founder and DAO admins, with an automated pause trigger.
+- **Signer hardening — $300.** Hardware wallets for the 3-of-N yield signers and the upgrade controller; a Safe for the protocol treasury.
 
-### Launch — $9,600
-- **Mainnet deployment + initial seeding — $2,000.** Factory, implementation, beacon + controller, governor; first three pilot DAOs; contingency for post-audit redeployment.
-- **12 months infrastructure — $3,600.** Vercel Pro, Supabase Pro, Pinata IPFS, RabbitMQ, domain/SSL (~$2,400/yr) plus scaling headroom through Q4 2026.
-- **Facilitation of 3 pilot DAOs — $4,000.** Two in-person sessions each (onboarding + first vote), printed materials, transport, and support through one full investment cycle. ~$1,300/DAO. These aren't placeholders — they're the case studies every future onboarding is built on.
+### Marketing & community adoption — $16,000
+This is where a community product is won, and it is not a channel a solo technical founder can run alone.
+- **Social media & community manager — $6,000.** Six months part-time, running the WhatsApp / Telegram / X channels the target groups actually use — daily presence, weekly transparency updates, answering association chairmen and cooperative leaders in plain language and local languages.
+- **Field community organizers — $5,000.** Two to three local organizers doing ground outreach across Lagos and at least one northern and one south-eastern city — association meetings, market unions, PTA gatherings, campus groups. Trust here is built in person.
+- **Localized content — $3,000.** Short explainer videos, pilot-DAO testimonials, and a "how your money is protected" series in English, Pidgin, Hausa, Yoruba, and Igbo.
+- **Community radio & noticeboards — $2,000.** Paid spots for organizers who aren't online at all.
 
-### Growth — $17,400
-- **Mobile app store launch — $3,000.** Apple + Google registration, QA across the low-end Android devices target users actually carry, submission, and OS-update maintenance. The most important surface for a market where many users never open a laptop.
-- **Localization — $2,400.** Professional translation and layout adaptation for Portuguese, Hausa, and Swahili across all views and system messages — covering Nigeria, Kenya, and Brazil.
-- **Developer stipend — $12,000**, released in $2,000 increments against shipped deliverables: audit remediation, pilot onboarding, mobile submission, localization, CCTP groundwork. Solo build; this keeps the protocol maintained and accountable to work shipped, not time elapsed.
+### Operations & launch — $9,000
+- **Mainnet deployment — $2,000.** Full contract set + post-audit redeploy contingency. One beacon `upgradeTo` then propagates fixes to every live DAO — no migration.
+- **Post-audit remediation — $2,500.** Capped engineering time to implement audit + contest findings, wire in the monitoring/pause tooling, re-verify the suite.
+- **12 months infrastructure — $2,500.** Vercel Pro, Supabase Pro, Pinata IPFS, managed backend + USSD gateway, domain/SSL.
+- **Structured pilot-DAO onboarding — $2,000.** In-person onboarding + first-vote facilitation for the three seed DAOs.
+
+Mobile store submission and the rest of the localization work are already scoped and funded through the two pillars above, but deliberately sit behind security in priority.
 
 ---
 
 ## Roadmap
 
-**Q3 2026 — Audit & mainnet.** Complete the audit (contracts + backend policy layer), remediate, deploy the post-audit stack to Arc Mainnet, submit the mobile app, onboard the three pilot DAOs, Gas Station live on mainnet.
+**Phase 1 (Q3 2026) — Security & mainnet.** Run the five-layer security program (audit → remediation → competitive contest → bug bounty → monitoring). Deploy the post-audit stack to Arc Mainnet. Onboard the three pilot DAOs with in-person facilitation. USDC-native escrow, non-custodial Circle wallets, and Gas Station live on mainnet.
 
-**Q4 2026 — Growth.** Mobile PWA optimization; Portuguese / Hausa / Swahili / French; open public DAO creation with guided onboarding; live subgraph analytics dashboard; CCTP for cross-chain USDC deposits (pulled forward — diaspora deposits from the UK/US are one of the strongest usage stories).
+**Phase 2 (Q4 2026) — Nigeria reach.** Ship the React Native app to the App Store and Google Play. Multi-language support — Hausa, Yoruba, Igbo, Nigerian Pidgin — across all 12 views. Take the built USSD feature-phone tier live via a licensed Naira↔USDC on/off-ramp partner. Open public DAO creation with guided onboarding. Publish the on-chain analytics dashboard from the live subgraph.
 
-**Q1 2027 — Scale & decentralize.** IPFS-hosted DApp with an ENS domain; cross-DAO federation layer; licensed Naira on/off-ramp partner for the feature-phone tier; open-source SDK for third-party tooling.
+**Phase 3 (Q1 2027) — Scale, federation & multi-country expansion.** Cross-DAO federation layer for coordinated proposals. First expansion beyond Nigeria — Ghana (*susu*), Kenya (*chama*), and outward — run in parallel with Nigerian growth, not after it. CCTP for cross-chain USDC deposits from Base / Ethereum / Solana into DAO treasuries. Open-source SDK for third-party tooling.
 
 ---
 
@@ -194,7 +210,7 @@ Fund that mile, and a street never has to just accept the dark again.
 
 `ReentrancyGuard` on every ERC-20 transfer path · CEI ordering throughout · `Pausable` creator-only emergency stop · `SafeERC20` for all USDC · `Initializable` against proxy re-init · 40+ typed custom errors · 3-of-N multi-sig on yield execution · stake-weighted, sybil-resistant governance with a pass rule snapshotted at proposal open · banned-admin re-appointment guard · protocol fee taken from realized yield only, hard-capped at 5%, treasury fixed at DAO creation · 90-day configurable grace period before unclaimed yield can be swept · beacon upgrades behind a timelock + TVL-weighted DAO veto.
 
-`forge coverage` cannot emit a percentage — it hits a stack-too-deep compiler error on a codebase this size even under `--ir-minimum`, a known Foundry limitation, not a gap hidden behind test count. Coverage is demonstrated by the 86-test suite and its fuzzed invariants.
+`forge coverage` cannot emit a percentage — it hits a stack-too-deep compiler error on a codebase this size even under `--ir-minimum`, a known Foundry limitation, not a gap hidden behind test count. Coverage is demonstrated by the 89-test suite and its fuzzed invariants.
 
 ## Clients
 
@@ -223,7 +239,7 @@ Fund that mile, and a street never has to just accept the dark again.
 | USDC | ✅ | Native gas + settlement across all staking, escrow, voting, yield. |
 | Circle User-Controlled Wallets | ✅ | Auto-provisioned ERC-4337 smart account on email/Google sign-in; MPC-split key; backend holds no share. |
 | Circle Gas Station | ✅ | Sponsors gas for every member action. |
-| CCTP | Q4 2026 | Multi-chain USDC deposits from Base / Ethereum / Solana into DAO treasuries. |
+| CCTP | Q1 2027 | Multi-chain USDC deposits from Base / Ethereum / Solana into DAO treasuries. |
 | Licensed Naira on/off-ramp partner | Q4 2026 – Q1 2027 | Mobile-money ⇄ USDC for the feature-phone tier. |
 
 ## Storage & analytics
@@ -232,14 +248,14 @@ IPFS (Pinata) for DAO logos, avatars, proposal documents, chat images · Supabas
 
 ## Founder
 
-Self-taught developer based in Lagos, trained across multiple bootcamps, several years shipping production software, mostly solo. Prior shipped work: **ARESprotocol**, **BID-IT** (a student marketplace), **Socrates** (a real-time vulnerability-scanning browser extension). Solo doesn't mean unproven — it means a track record of taking an idea from nothing to something people use, now pointed at the problem I grew up inside.
+B.Sc. in Computer Engineering, based in Lagos. Several years shipping production software, mostly solo. Prior shipped work: **ARESprotocol**, **BID-IT** (a student marketplace), **Socrates** (a real-time vulnerability-scanning browser extension). Solo doesn't mean unproven — it means a track record of taking an idea from nothing to something people use, now pointed at the problem I grew up inside.
 
 ## Links
 
 - Web app — https://civic-vault-aupu.vercel.app
 - Demo video — https://youtu.be/mkdc0uo4waQ
 - GitHub — https://github.com/Jaydbrown/CivicVault
-- Subgraph — https://thegraph.com/studio/subgraph/civicvault
+- Subgraph (public query endpoint) — https://api.studio.thegraph.com/query/1755424/civicvault/v0.0.2
 - X — https://x.com/CivicVaultDAO
 - Explorer — https://testnet.arcscan.app
 

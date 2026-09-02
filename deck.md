@@ -207,8 +207,8 @@ Every vote, phase release, yield deposit, and claim is stored in an on-chain `Ac
 
 | Milestone | Status |
 |---|---|
-| Smart contracts (~3,400 lines of Solidity, incl. member governance) | ✅ Done |
-| Foundry test suite (78 tests) | ✅ Done |
+| Smart contracts (~3,700 lines of Solidity, 8 contracts, incl. member governance + beacon upgrades) | ✅ Done |
+| Foundry test suite (89 tests, 5 suites) | ✅ Done |
 | Frontend — all views + governance + non-custodial Circle wallet | ✅ Done |
 | Backend — auth, chat, notifications | ✅ Done |
 | IPFS integration | ✅ Done |
@@ -234,53 +234,57 @@ Communities pay nothing to create a DAO, onboard members, or vote. The fee never
 
 | Metric | 6 Months | 12 Months |
 |---|---|---|
-| DAOs on mainnet | 10 | 50 |
-| Verified members | 200 | 1,500 |
-| USDC staked in voting | $5,000 | $50,000 |
-| Yield distributed | $500 | $10,000 |
+| DAOs on mainnet | 5 | 15 |
+| Verified members | 100 | 400 |
+| USDC staked in voting | $2,000 | $8,000 |
+| Yield distributed | $200 | $800 |
 
-At scale — 150 DAOs averaging $1M TVL — yield fees alone reach $7,500/month. Enterprise tiers and SDK licensing add additional revenue streams.
+Growth is deliberately conservative — this is a trust-based, facilitation-heavy product, not a viral one. At scale — a few hundred DAOs averaging ~$100K TVL — realized-yield fees compound into a sustainable base; enterprise tiers for registered cooperatives and SDK licensing add further revenue.
 
 ---
 
 ## Slide 11 · Roadmap
 
-**Q3 2026 — Launch**
-Security audit → Arc Mainnet → 3 pilot DAOs onboarded with full facilitation support.
-Target: 10 DAOs · 200 members · $5K USDC staked.
+**Phase 1 (Q3 2026) — Security & Launch**
+Five-layer security program (audit → remediation → competitive contest → bug bounty → monitoring) → Arc Mainnet → 3 pilot DAOs onboarded with full facilitation support.
+Target: 5 DAOs · 100 members · $2K USDC staked.
 
-**Q4 2026 — Grow**
-Mobile PWA · Portuguese, Hausa, Swahili localization · public DAO creation · analytics dashboard.
-Target: 50 DAOs · 1,500 members · $50K staked.
+**Phase 2 (Q4 2026) — Nigeria Reach**
+Social + field community team · React Native app to the stores · USSD tier live via a licensed on/off-ramp partner · Hausa / Yoruba / Igbo / Pidgin localization · public DAO creation · analytics dashboard.
+Target: 15 DAOs · 400 members · $8K staked.
 
-**Q1 2027 — Scale**
-Cross-DAO federation layer · remittance entry-point integrations · CCTP for cross-chain USDC deposits · open-source SDK.
-Target: 150+ DAOs · $200K+ TVL.
+**Phase 3 (Q1 2027) — Scale, Federation & Multi-Country Expansion**
+Cross-DAO federation layer · expansion beyond Nigeria (Ghana, Kenya, outward) in parallel with Nigerian growth · remittance entry-point integrations · CCTP for cross-chain USDC deposits · open-source SDK.
+Target: 30 DAOs · 800 members · $20K staked.
 
 ---
 
 ## Slide 12 · The Ask
 
-**$42,000 grant**
+**$42,000 grant — built around the two things a community product lives or dies on: is the money safe, and do communities adopt it.**
 
-| Item | Amount |
-|---|---|
-| Smart contract security audit | $15,000 |
-| Arc Mainnet deployment & gas | $2,000 |
-| Infrastructure — 12 months | $3,600 |
-| 3 pilot DAO community onboarding | $4,000 |
-| Mobile PWA | $3,000 |
-| Localization — PT / Hausa / Swahili | $2,400 |
-| Developer stipend — 6 months | $12,000 |
-| **Total** | **$42,000** |
+| Pillar | Item | Amount |
+|---|---|---|
+| **Security of funds — $17,000** | Independent audit | $12,000 |
+| | Competitive contest (post-remediation) | $3,000 |
+| | Bug bounty (Immunefi listing + reserve) | $1,000 |
+| | Real-time monitoring — 12 months | $700 |
+| | Signer hardening (hardware wallets, Safe) | $300 |
+| **Marketing & community adoption — $16,000** | Social media & community manager (6 mo, part-time) | $6,000 |
+| | Field community organizers (Lagos + 2 regions) | $5,000 |
+| | Localized content (EN / Pidgin / Hausa / Yoruba / Igbo) | $3,000 |
+| | Community radio & noticeboard placements | $2,000 |
+| **Operations & launch — $9,000** | Arc Mainnet deployment + contingency | $2,000 |
+| | Post-audit remediation | $2,500 |
+| | Infrastructure — 12 months | $2,500 |
+| | Structured pilot-DAO onboarding | $2,000 |
+| | **Total** | **$42,000** |
 
-CivicVault is the first protocol purpose-built for hyperlocal community investment on-chain — there is no comparable infrastructure for rotating savings groups, neighborhood cooperatives, or diaspora investment pools anywhere in Web3 today. Every dollar of this grant accelerates that first-mover position into a market that has been entirely unserved by decentralized finance.
+CivicVault is the first protocol purpose-built for hyperlocal community investment on-chain — there is no comparable infrastructure for rotating savings groups, neighborhood cooperatives, or diaspora investment pools anywhere in Web3 today.
 
-The grant directly funds the single remaining blocker to mainnet: an independent security audit ($15,000). Once cleared, CivicVault becomes the first live, audited DAO protocol where ordinary community members — not crypto natives — can pool USDC, govern real investments, and claim yield on Arc Network, expanding the practical utility of the blockchain far beyond trading and speculation into everyday economic coordination.
+This is a community product, not a typical blockchain product. Every DAO holds a pooled USDC treasury — that pool is the entire point and the entire risk. So roughly $17,000 goes to defending it in five independent layers (audit, competitive contest, bug bounty, monitoring, signer hardening), and roughly $16,000 to the on-the-ground marketing and community work that a solo technical founder cannot do alone — the channel where a community product is actually won. The remaining $9,000 covers mainnet deployment, post-audit remediation, infrastructure, and hands-on onboarding of the first three DAOs.
 
-The remainder covers what's needed to make that launch real: Arc Mainnet deployment gas costs ($2,000), 12 months of infrastructure — Vercel, Supabase, Pinata, domain ($3,600), facilitation of 3 pilot DAOs with real communities ($4,000), mobile PWA development for low-bandwidth markets ($3,000), multi-language localization in Portuguese, Hausa, and Swahili ($2,400), and 6 months of developer stipend for continued maintenance and feature work ($12,000). Total: $42,000.
-
-This is not a speculative roadmap. The protocol is built, tested, and deployed on Arc Testnet. The grant closes the final gap between a completed codebase and a live, audited product that brings an entirely new category of user — community organizers, cooperative members, savings group leaders — onto the Arc Network for the first time.
+This is not a speculative roadmap. The protocol is built, tested (89 Foundry tests), and deployed on Arc Testnet, with a live web app, a complete mobile app, a built USSD tier, and a public subgraph. The grant funds the two things still left to prove: that the pool is safe, and that communities will adopt it.
 
 ---
 

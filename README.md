@@ -35,11 +35,11 @@ CivicVault lets communities pool USDC into a DAO treasury, propose and vote on l
 **On-chain flow:**
 
 1. A founder creates a DAO via `CivicVaultFactory` — a new beacon-proxy vault is deployed in one transaction
-2. Admins verify members via KYC (hash stored on-chain)
-3. Any verified member can propose a local investment with a USDC funding target and deadline
-4. Members vote by staking USDC; vote weight is proportional to membership stake
+2. Admins onboard and KYC-verify members (proof hash stored on-chain, no personal data)
+3. Admins post an investment proposal — USDC funding target, deadline, risk grade, IPFS documents — as the curation layer; members hold every lever that touches money
+4. Verified members vote by staking USDC; governance weight is the stake a member has committed behind upvotes
 5. When a proposal reaches its threshold it becomes ACTIVE — funds move to a phased escrow
-6. Finance managers release funds in three phases (30 / 40 / 30%) as milestones are completed
+6. Admins release funds in three phases (30 / 40 / 30%) as milestones are confirmed; members who see nothing built can vote to **freeze** the release or **claw back** the unreleased tranches (`CivicVaultGovernor`)
 7. When the investment yields returns, those are deposited back and distributed to voters proportionally
 
 ---
@@ -91,8 +91,8 @@ CivicVault lets communities pool USDC into a DAO treasury, propose and vote on l
 ### On-chain (Contracts + Frontend)
 
 - **Create DAO** — deploy an isolated CivicVault proxy; upload a logo to IPFS via Pinata
-- **Join & stake** — deposit USDC to become a member; stake determines vote weight
-- **Investment proposals** — title, description, USDC target, deadline, risk grade (A–D), IPFS document
+- **Membership & stake** — admins onboard and KYC members; a member's committed stake (USDC put behind upvotes) sets governance weight
+- **Investment proposals** — admin-curated: title, description, USDC target, deadline, risk grade (A–D), IPFS document
 - **Stake-weighted voting** — upvotes stake USDC; downvotes are free; deadline-aware cutoff
 - **Phased escrow** — three-phase fund release tied to milestone confirmations
 - **Yield deposit & claim** — finance managers deposit returns; voters claim proportionally
@@ -213,8 +213,12 @@ CivicVault/
 │   │   ├── CivicVaultGovernor.sol # Member-initiated governance singleton
 │   │   └── interfaces/
 │   │       └── ICivicVault.sol
-│   ├── test/                      # 78 tests (incl. CivicVaultGovernance.t.sol)
-│   │   └── CivicVault.t.sol
+│   ├── test/                      # 89 tests across 5 suites (unit, factory, governance, beacon-upgrade, invariants)
+│   │   ├── CivicVault.t.sol
+│   │   ├── CivicVaultFactory.t.sol
+│   │   ├── CivicVaultGovernance.t.sol
+│   │   ├── CivicVaultBeacon.t.sol
+│   │   └── CivicVaultInvariants.t.sol
 │   ├── script/
 │   │   └── DeployCivicVault.s.sol
 │   └── broadcast/                 # Deployment receipts (Arc Testnet)
@@ -282,14 +286,16 @@ Key functions:
 
 | Function | Who can call | Description |
 |----------|-------------|-------------|
-| `joinDAO(uint256 amount)` | Anyone | Deposit USDC, receive membership shares |
-| `proposeInvestment(...)` | Member | Create a new investment proposal |
-| `voteOnInvestment(id, votes, value)` | Verified member | Stake USDC votes on a proposal |
-| `activateInvestment(id)` | Admin | Move funded proposal to ACTIVE state |
-| `releasePhaseFunds(id, phase)` | Finance Manager | Release 30/40/30% of escrow |
-| `proposeYieldDeposit(id, amount)` | Finance Manager | Deposit yield for distribution |
+| `addMember(wallet, kycProofHash)` | Admin | Onboard a member; KYC proof hash stored on-chain |
+| `createInvestment(...)` | Admin | Post an investment proposal for members to fund |
+| `vote(id, numberOfVotes, voteValue)` | Verified member | Stake USDC on an upvote (adds to committed stake); free downvote |
+| `activateInvestment(id)` | Admin | Move a funded proposal to ACTIVE — funds enter phased escrow |
+| `releaseNextPhase(id, recipient)` | Admin | Release the next 30/40/30% tranche (blocked if members froze it) |
+| `proposeYieldDeposit(id, amount, cid)` | Finance Manager | Propose a yield deposit from a completed investment |
+| `approveYieldDeposit(id)` / `executeYieldDeposit(id)` | Admin (3-of-N) / anyone | Approve then execute; funds must be present at execution |
 | `claimYield(id)` | Voter | Claim proportional yield share |
-| `withdrawStake(amount)` | Member | Withdraw USDC if not locked in active votes |
+| `withdrawStake(id)` | Member | Withdraw USDC once the vote is no longer locked |
+| `reclaimClawback(id)` | Upvoter | After a clawback vote passes, reclaim unreleased escrow pro-rata |
 
 ### CivicVaultFactory + beacon
 
@@ -521,7 +527,9 @@ Members without a smartphone reach the same on-chain DAOs through a `*123#` sess
 
 ## Analytics (The Graph)
 
-The subgraph indexes all CivicVault events on Arc Testnet — DAO creation, investment proposals, votes, phase releases, yield deposits, and claims.
+The subgraph indexes all CivicVault events on Arc Testnet — DAO creation, investment proposals, votes, phase releases, yield deposits, claims, and member-governance proposals (`CivicVaultGovernor`).
+
+**Public query endpoint (no login):** `https://api.studio.thegraph.com/query/1755424/civicvault/v0.0.2`
 
 ```bash
 cd subgraph
