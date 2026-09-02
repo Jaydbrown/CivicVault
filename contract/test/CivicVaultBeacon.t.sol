@@ -86,7 +86,7 @@ contract CivicVaultBeaconTest is Test {
         vm.expectRevert(CivicVaultBeaconController.TimelockNotElapsed.selector);
         controller.executeUpgrade();
 
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(block.timestamp + 4 days);
         controller.executeUpgrade();
 
         assertEq(IVersioned(dao1).version(), 2);
@@ -106,7 +106,7 @@ contract CivicVaultBeaconTest is Test {
         vm.prank(whaleAdmin);
         controller.vetoUpgrade(dao1);
 
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(block.timestamp + 4 days);
         vm.expectRevert(CivicVaultBeaconController.VetoThresholdMet.selector);
         controller.executeUpgrade();
     }
@@ -122,7 +122,7 @@ contract CivicVaultBeaconTest is Test {
         vm.prank(minnowAdmin);
         controller.vetoUpgrade(dao2);
 
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(block.timestamp + 4 days);
         controller.executeUpgrade();
         assertEq(controller.currentImplementation(), address(v2));
     }
@@ -158,7 +158,7 @@ contract CivicVaultBeaconTest is Test {
         (address impl,,,,,) = controller.pendingUpgrade();
         assertEq(impl, address(0));
 
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(block.timestamp + 4 days);
         vm.expectRevert(CivicVaultBeaconController.NoPendingUpgrade.selector);
         controller.executeUpgrade();
     }
@@ -188,7 +188,7 @@ contract CivicVaultBeaconTest is Test {
         vm.expectRevert(CivicVaultBeaconController.AlreadyVetoed.selector);
         controller.vetoUpgrade(dao1);
 
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(block.timestamp + 4 days);
         vm.expectRevert(CivicVaultBeaconController.VetoThresholdMet.selector);
         controller.executeUpgrade();
 
@@ -212,7 +212,7 @@ contract CivicVaultBeaconTest is Test {
         vm.prank(beaconOwner);
         controller.proposeUpgrade(address(v2));
 
-        vm.warp(block.timestamp + 2 days + 1); // window elapsed, nobody executed
+        vm.warp(block.timestamp + 4 days + 1); // window elapsed, nobody executed
         vm.prank(whaleAdmin);
         controller.vetoUpgrade(dao1);
 

@@ -35,12 +35,18 @@ contract CivicVaultFactory is Ownable {
     // ===== PROTOCOL FEE =====
     /// @notice Max protocol fee on realised yield: 5%.
     uint16 public constant MAX_PROTOCOL_YIELD_FEE_BPS = 500;
+    /// @notice Max protocol fee on each disbursed escrow tranche: 1%.
+    uint16 public constant MAX_PROTOCOL_DISBURSEMENT_FEE_BPS = 100;
     /// @notice Recipient of the yield fee. Recommend a multisig from day one — a
     ///         compromised key here cannot be rotated for already-deployed DAOs
     ///         (the value is baked into each clone at initialize).
     address public protocolTreasury;
     /// @notice Fee in bps of realised yield, applied to DAOs created from now on.
     uint16 public protocolYieldFeeBps;
+    /// @notice Fee in bps taken from each disbursed escrow tranche, applied to
+    ///         DAOs created from now on. This is the primary protocol revenue
+    ///         line — it does not depend on a treasury generating a return.
+    uint16 public protocolDisbursementFeeBps;
 
     /// @notice Shared CivicVaultGovernor for member-initiated governance. DAOs
     ///         created before this is set have no on-chain governance (legacy).
@@ -48,6 +54,7 @@ contract CivicVaultFactory is Ownable {
 
     event ProtocolTreasuryUpdated(address indexed newTreasury);
     event ProtocolYieldFeeUpdated(uint16 newFeeBps);
+    event ProtocolDisbursementFeeUpdated(uint16 newFeeBps);
     event GovernorUpdated(address indexed newGovernor);
     event BeaconOwnershipTransferred(address indexed newOwner);
 
@@ -94,6 +101,13 @@ contract CivicVaultFactory is Ownable {
         emit ProtocolYieldFeeUpdated(bps);
     }
 
+    /// @notice Set the disbursement fee (bps of each released tranche). Only affects DAOs created afterwards.
+    function setProtocolDisbursementFeeBps(uint16 bps) external onlyOwner {
+        require(bps <= MAX_PROTOCOL_DISBURSEMENT_FEE_BPS, "Fee too high");
+        protocolDisbursementFeeBps = bps;
+        emit ProtocolDisbursementFeeUpdated(bps);
+    }
+
     /// @notice Set the shared governor. Only affects DAOs created afterwards.
     function setGovernor(address g) external onlyOwner {
         governor = g;
@@ -125,7 +139,10 @@ contract CivicVaultFactory is Ownable {
         require(bytes(location).length > 0, "Location required");
         require(maxMembership > 0, "Invalid max membership");
         require(usdcAddress != address(0), "Invalid USDC address");
-        require(protocolYieldFeeBps == 0 || protocolTreasury != address(0), "Treasury unset");
+        require(
+            (protocolYieldFeeBps == 0 && protocolDisbursementFeeBps == 0) || protocolTreasury != address(0),
+            "Treasury unset"
+        );
 
         // Deploy a beacon proxy and initialize it atomically in the constructor.
         daoAddress = address(
@@ -144,7 +161,8 @@ contract CivicVaultFactory is Ownable {
                         usdcAddress,
                         protocolTreasury,
                         protocolYieldFeeBps,
-                        governor
+                        governor,
+                        protocolDisbursementFeeBps
                     )
                 )
             )

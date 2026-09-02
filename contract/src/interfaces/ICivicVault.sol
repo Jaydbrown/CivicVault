@@ -108,7 +108,9 @@ interface ICivicVault {
     event DeadlineExtended(uint256 indexed investmentId, uint256 newDeadline, uint256 extensionCount);
 
     event FundsLocked(uint256 indexed investmentId, uint256 amount);
-    event FundsReleased(uint256 indexed investmentId, uint8 phase, uint256 amount, address indexed recipient);
+    event FundsReleased(
+        uint256 indexed investmentId, uint8 phase, uint256 amount, address indexed recipient, uint256 protocolFee
+    );
 
     event VoteCast(
         uint256 indexed investmentId, address indexed voter, uint256 numberOfVotes, uint8 voteValue, uint256 timestamp
@@ -136,13 +138,9 @@ interface ICivicVault {
     event FinanceManagerRemoved(address indexed manager);
     event DAOPaused(uint256 timestamp);
     event DAOUnpaused(uint256 timestamp);
-    event UnclaimedYieldRecovered(
-        uint256 indexed investmentId, address indexed recipient, uint256 amount, uint256 timestamp
-    );
     event DAOInfoUpdated(string newDescription, string newLogoURI, uint256 timestamp);
     event MemberKYCHashUpdated(address indexed member, bytes32 newHash, uint256 timestamp);
     event InvestmentDocumentsUpdated(uint256 indexed investmentId, uint256 timestamp);
-    event YieldGracePeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
 
     // ===== MEMBER GOVERNANCE EVENTS =====
     // Proposal lifecycle events (ProposalCreated / ProposalVoteCast /
@@ -162,7 +160,6 @@ interface ICivicVault {
     function investmentCount() external view returns (uint256);
     function activeInvestmentCount() external view returns (uint256);
     function totalValueLocked() external view returns (uint256);
-    function yieldGracePeriod() external view returns (uint256);
 
     // Getters used by CivicVaultView
     function getInvestment(uint256 id) external view returns (Investment memory);
@@ -199,5 +196,4 @@ interface ICivicVault {
     function updateMemberKYCHash(address wallet, bytes32 newHash) external;
     function batchAddMembers(address[] memory wallets, bytes32[] memory kycProofHashes) external;
     function updateInvestmentDocuments(uint256 investmentId, string[] memory newDocumentCIDs) external;
-    function setYieldGracePeriod(uint256 newPeriod) external;
 }

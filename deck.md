@@ -24,7 +24,7 @@ I grew up watching people around me pool money together — contribution groups,
 
 Someone runs off with the pot. A trusted admin skims yield before distributing. Members have no idea where the money actually went. There's no receipt, no audit, and no way to remove the person holding the money.
 
-This isn't a niche problem. Rotating savings groups — called chamas in Kenya, susus in West Africa, tontines in Cameroon, arisan in Indonesia — move well over **$100 billion every year globally**. And almost all of it runs on WhatsApp chats and spreadsheets.
+This isn't a niche problem. Rotating savings groups — called chamas in Kenya, susus in West Africa, tontines in Cameroon, arisan in Indonesia — are a large informal-finance market. The World Bank's 2025 Global Findex counts 1.3 billion adults still unbanked — Nigeria among the eight countries holding over half of them — and almost all of this money is coordinated on WhatsApp chats and in paper ledgers.
 
 The tools to fix this exist. Blockchain gives us transparency, on-chain escrow, and trustless yield distribution. But every DeFi protocol out there was built for traders and yield farmers — not for a community organizer in Lagos trying to manage 40 members and $30,000 in pooled savings.
 
@@ -34,7 +34,7 @@ That's the gap CivicVault fills.
 
 ## Slide 3 · The Market
 
-### A $100B+ annual market with no on-chain infrastructure.
+### A large informal-finance market with no on-chain treasury infrastructure.
 
 **Who we're building for:**
 - Rotating savings groups (chamas, susus, tontines, arisan)
@@ -46,9 +46,9 @@ That's the gap CivicVault fills.
 **Where:** Africa, Southeast Asia, Latin America, and diaspora communities globally.
 
 **The numbers:**
-- Sub-Saharan Africa alone has 40M+ chama members
-- 0.1% on-chain penetration = $100M+ TVL
-- At a 0.75% protocol yield fee, that's meaningful revenue from a small slice of the market
+- EFInA 2023: ~10% of Nigerian adults (about 10–11M people) rely on informal savings as their only financial channel
+- Even a fraction of a percent of this on-chain is a large TVL base
+- Revenue is the disbursement fee (30 bps launch, 100 bps cap) plus an institutional tier — recurring, not contingent on communities investing
 
 **Why this moment:**
 Circle's Arc Network — where USDC is the native gas token — makes USDC-native community finance genuinely viable for the first time. Circle user-controlled wallets plus Gas Station mean members sign in with an email, never touch a seed phrase, never hold a gas balance, and keep sole control of their key — CivicVault can't move their money. And a beacon-proxy factory makes deploying a DAO as cheap as a single transaction — with one upgradeable implementation behind a timelock, so a fix reaches every DAO. All of this exists now. It didn't two years ago.
@@ -67,8 +67,8 @@ A founder deploys a neighborhood DAO through the CivicVaultFactory. The communit
 **Step 2 — Onboard members**
 Admins add members and verify their identity using a hash-based KYC system. No personal data ever touches the blockchain — only a cryptographic confirmation that verification happened.
 
-**Step 3 — Propose an investment**
-Admins create investment proposals — a local market stall, an agricultural co-op, a small business loan. Each proposal has a funding target, deadline, grade, and supporting documents stored on IPFS.
+**Step 3 — Propose a treasury allocation**
+Admins propose an allocation — a transformer, a classroom block, working capital for a member co-op. Each has an amount, deadline, risk grade, and supporting documents on IPFS. Admins curate; members hold every lever that touches the money.
 
 **Step 4 — Vote with real skin in the game**
 Verified members vote by staking USDC. If you believe in a proposal, you put money behind it. Downvotes are free — but they don't count toward funding. No veto-without-accountability.
@@ -76,8 +76,8 @@ Verified members vote by staking USDC. If you believe in a proposal, you put mon
 **Step 5 — Phased release (30 / 40 / 30)**
 When a proposal hits its target, funds don't move all at once. They release in three milestone phases. The project executor has to show progress to unlock each tranche.
 
-**Step 6 — Yield governance by multi-sig**
-When investments return profit, a finance manager proposes a yield deposit. Three admins have to approve it before it executes. No single person can push money out unilaterally.
+**Step 6 — Returns come back under multi-sig**
+When an allocation returns funds, a finance manager proposes the deposit and three admins must approve before it executes. No single person moves money.
 
 **Step 7 — Members claim their share**
 Yield accrues proportionally based on each member's stake. Members claim whenever they want. The math handles partial deposits and rolling claims without double-counting.
@@ -111,7 +111,7 @@ Add Privy's embedded wallets — login with email, Google, or passkey, automatic
 
 ## Slide 6 · Product
 
-### 11 screens. Full on-chain flows. Web and mobile.
+### 12 screens. Full on-chain flows. Web, mobile, and USSD.
 
 **Web App (React 19 · TypeScript · Vite 6 · Tailwind 4)**
 
@@ -172,7 +172,7 @@ Everything above on your phone — wallet connection, governance, DAO chat, yiel
 | `StringUtils` | On-chain activity log formatting |
 
 **Security:**
-ReentrancyGuard · CEI ordering · Pausable emergency stop · SafeERC20 · Initializable · 40+ typed custom errors · 3-of-N multi-sig for yield · stake-weighted governance with snapshotted pass rules · realized-yield-only protocol fee, hard-capped at 5%
+ReentrancyGuard · CEI ordering · Pausable emergency stop that halts new activity but cannot block exits, claims, or member governance · SafeERC20 · Initializable · 40+ typed custom errors · 3-of-N multi-sig for returns · stake-weighted governance with snapshotted pass rules · disbursement fee capped at 100 bps + returns fee capped at 500 bps, both from the tranche/return only · never sweeps unclaimed member funds · beacon upgrades behind a 4-day timelock + TVL-weighted DAO veto
 
 **Wallets:** Circle user-controlled (non-custodial) + Gas Station (gasless) for the smartphone tier; every backend-initiated transaction is checked against a fixed policy and audit-logged.
 
@@ -207,8 +207,8 @@ Every vote, phase release, yield deposit, and claim is stored in an on-chain `Ac
 
 | Milestone | Status |
 |---|---|
-| Smart contracts (~3,700 lines of Solidity, 8 contracts, incl. member governance + beacon upgrades) | ✅ Done |
-| Foundry test suite (89 tests, 5 suites) | ✅ Done |
+| Smart contracts (~3,700 lines, 5 contracts + 3 libraries, incl. member governance + beacon upgrades) | ✅ Done |
+| Foundry test suite (93 tests, 6 suites) | ✅ Done |
 | Frontend — all views + governance + non-custodial Circle wallet | ✅ Done |
 | Backend — auth, chat, notifications | ✅ Done |
 | IPFS integration | ✅ Done |
@@ -289,7 +289,7 @@ CivicVault is the first protocol purpose-built for hyperlocal community investme
 
 This is a community product, not a typical blockchain product. Every DAO holds a pooled USDC treasury — that pool is the entire point and the entire risk. So roughly $17,000 goes to defending it in five independent layers (audit, competitive contest, bug bounty, monitoring, signer hardening), and roughly $16,000 to the on-the-ground marketing and community work that a solo technical founder cannot do alone — the channel where a community product is actually won. The remaining $9,000 covers mainnet deployment, post-audit remediation, infrastructure, and hands-on onboarding of the first three DAOs.
 
-This is not a speculative roadmap. The protocol is built, tested (89 Foundry tests), and deployed on Arc Testnet, with a live web app, a complete mobile app, a built USSD tier, and a public subgraph. The grant funds the two things still left to prove: that the pool is safe, and that communities will adopt it.
+This is not a speculative roadmap. The protocol is built, tested (93 Foundry tests), and deployed on Arc Testnet, with a live web app, a complete mobile app, a built USSD tier, and a public subgraph. The grant funds the two things still left to prove: that the pool is safe, and that communities will adopt it.
 
 ---
 

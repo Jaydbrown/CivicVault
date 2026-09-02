@@ -101,7 +101,7 @@ templates:
           handler: handleStakeWithdrawn
         - event: FundsLocked(indexed uint256,uint256)
           handler: handleFundsLocked
-        - event: FundsReleased(indexed uint256,uint8,uint256,indexed address)
+        - event: FundsReleased(indexed uint256,uint8,uint256,indexed address,uint256)
           handler: handleFundsReleased
         - event: YieldDeposited(indexed uint256,uint256,string,uint256)
           handler: handleYieldDeposited

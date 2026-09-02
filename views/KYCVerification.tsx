@@ -17,7 +17,6 @@ import {
   removeAdminOnDao,
   removeFinanceManagerOnDao,
   removeMemberOnDao,
-  sweepUnclaimedYieldOnDao,
   type OnchainDao,
   type OnchainInvestment,
   type DaoUserRole,
@@ -48,7 +47,6 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
   const [financeWalletInput, setFinanceWalletInput] = useState('');
   const [memberMgmtWallet, setMemberMgmtWallet] = useState('');
   const [investmentIdInput, setInvestmentIdInput] = useState('');
-  const [sweepRecipient, setSweepRecipient] = useState('');
   const [actionBusy, setActionBusy] = useState('');
 
   const normalizeAddMemberError = (err: unknown): string => {
@@ -198,7 +196,6 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
       'activate-investment': 'Project activated successfully.',
       'mark-incomplete': 'Project marked as incomplete.',
       'close-investment': 'Project closed successfully.',
-      'sweep-yield': 'Unclaimed funds moved successfully.',
       'pause-dao': 'Community paused successfully.',
       'unpause-dao': 'Community resumed successfully.',
     };
@@ -633,38 +630,6 @@ const KYCVerification: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
                           </button>
                         </div>
 
-                        <div className="space-y-2 p-3 bg-card backdrop-blur-md border border-border rounded-xl">
-                          <label className="block text-xs font-bold text-foreground/90">Move unclaimed funds</label>
-                          <p className="text-[11px] text-muted-foreground">
-                            After grace period ends, move remaining unclaimed yield for the selected project to this recipient wallet.
-                          </p>
-                          <input
-                            type="text"
-                            value={sweepRecipient}
-                            onChange={(e) => setSweepRecipient(e.target.value)}
-                            placeholder="Recipient wallet address (0x...)"
-                            className="w-full p-2.5 bg-card backdrop-blur-md border border-border rounded-lg text-sm"
-                          />
-                          <button
-                            onClick={() => {
-                              if (!requireWalletAndDao()) return;
-                              if (!investmentIdInput) return notifyWarning('Select a project.');
-                              if (!sweepRecipient) return notifyWarning('Enter a payout address.');
-                              void runRoleAction('sweep-yield', async () => {
-                                await sweepUnclaimedYieldOnDao(
-                                  connectedWallet as unknown as PrivyEthereumWallet,
-                                  selectedDao as `0x${string}`,
-                                  Number(investmentIdInput),
-                                  sweepRecipient.trim() as `0x${string}`
-                                );
-                              });
-                            }}
-                            disabled={actionBusy.length > 0 || !investmentIdInput || !sweepRecipient}
-                            className="w-full py-2 border border-rose-300 text-rose-700 rounded-lg text-xs font-bold disabled:opacity-50"
-                          >
-                            {actionBusy === 'sweep-yield' ? 'Moving...' : 'Move Unclaimed Funds'}
-                          </button>
-                        </div>
                       </div>
                     )}
                   </div>

@@ -27,7 +27,7 @@ CivicVault gives a community — a neighborhood association, a PTA, a cooperativ
 - **Embedded wallets.** Members sign in with email or Google and get a non-custodial Circle smart-account wallet. No seed phrase, no gas token, no app to leave.
 - **Controlled transfers.** Contributions land in the treasury contract, not a person's account. Disbursements to a project or vendor are milestone-gated (30 / 40 / 30%) and need multi-party authorization — no one moves funds alone or out of order.
 - **Compliance tooling.** Members are KYC-verified as on-chain hash commitments (no personal data on-chain). Every backend-initiated transfer clears a transaction-policy allowlist and lands in an audit log. Institutions can export the full ledger.
-- **Programmable liquidity.** Funds can be allocated to a local project and the escrow released against progress; members can vote to freeze a release or claw back what hasn't been spent; unclaimed returns are swept after a configurable grace period. When an allocation produces a return, the contract distributes it to contributors automatically, to the cent, in proportion to what each committed.
+- **Programmable liquidity.** Funds can be allocated to a local project and the escrow released against progress; members can vote to freeze a release or claw back what hasn't been spent. When an allocation produces a return, the contract distributes it to contributors automatically, to the cent, in proportion to what each committed — and an unclaimed share stays claimable by its owner indefinitely. The protocol never sweeps member funds.
 
 No treasurer holding the account. No chairman who can skip a phase. No contributor who quietly loses their claim. Every movement is on a public ledger that no admin can edit.
 
@@ -37,11 +37,11 @@ No treasurer holding the account. No chairman who can skip a phase. No contribut
 
 | | |
 |---|---|
-| **Smart contracts** | 8 contracts, ~3,700 lines of Solidity. **89 Foundry tests passing** — full lifecycle, fuzzed treasury invariants, a malicious-token reentrancy test, multi-sig edge cases, a 17-test member-governance suite, an 11-test upgrade-safety suite. |
+| **Smart contracts** | 5 contracts + 3 libraries, ~3,700 lines of Solidity. **93 Foundry tests passing** — full lifecycle, fuzzed treasury invariants, a malicious-token reentrancy test, multi-sig edge cases, a 17-test member-governance suite, an 11-test upgrade-safety suite, a 4-test disbursement-fee suite. |
 | **Live on Arc Testnet** | Factory, upgradeable beacon + timelock controller, member-governance contract, view layer, and a seed DAO — all deployed and verified at block 60010770. This stack replaced an earlier clone-based deployment when member governance and beacon upgradeability landed; the pilot cohort that had signed on is being re-onboarded onto it. Addresses in the reference section. |
 | **Web app** | React 19, 12 views covering every action from treasury creation to disbursement, governance, and returns. Live at `civic-vault-aupu.vercel.app`. |
 | **Mobile app** | React Native / Expo, feature-complete, pending store submission. |
-| **Feature-phone access** | USSD (`*123#`) menu — balance, vote, governance — built end to end, including a PIN-authorised custodial signer with a hard balance cap and SMS confirmations. |
+| **Feature-phone access** | USSD menu — balance, vote, governance — built end to end and tested against the Africa's Talking sandbox, including a PIN-authorised custodial signer with a hard balance cap and SMS confirmations. Goes live once a shortcode is provisioned (needs the entity) and a licensed on/off-ramp partner is signed — both on the roadmap. |
 | **Backend** | Privy-authenticated Express API. Every Circle signing request passes an on-chain-verified transaction policy and lands in an audit log. Real-time chat, email notifications, a live subgraph. |
 
 The single thing standing between this codebase and a mainnet communities can trust is a professional security audit. **That's what this grant is for.**
@@ -50,7 +50,7 @@ The single thing standing between this codebase and a mainnet communities can tr
 
 ## The problem, at scale
 
-Every one of these groups is running a treasury — they just don't call it that, and they run it with a notebook. Rotating savings groups — chamas, susus, ajo, esusu, tontines, arisan — move **well over $100 billion a year**, almost entirely through WhatsApp threads, spreadsheets, and one person's bank account. Sub-Saharan Africa alone has 40M+ chama members. Add PTA development funds, community development associations, student union budgets, and diaspora investment clubs, and you have an enormous, entirely offline market whose defining failure mode is *money pooled by a group with no enforceable record of where it went.*
+Every one of these groups is running a treasury — they just don't call it that, and they run it with a notebook. Rotating savings and cooperative groups — chamas, susus, ajo, esusu, tontines, arisan — are a large informal-finance market: World Bank Global Findex 2025 puts 1.3 billion adults still unbanked, with Nigeria among the eight countries holding over half of them, and EFInA's 2023 survey finds ~10% of Nigerian adults (about 10–11 million people) rely on informal savings mechanisms as their only financial channel. By late 2024 roughly ₦4.6 trillion — over 90% of Nigeria's currency in circulation — sat outside the banking system entirely. Add PTA development funds, community development associations, student union budgets, and diaspora investment clubs, and you have an enormous, largely offline market whose defining failure mode is *money pooled by a group with no enforceable record of where it went.*
 
 Three things have kept a solution out of reach:
 
@@ -97,11 +97,15 @@ That last point is the one most protocols get wrong, so it's worth being explici
 
 **Admins curate, members decide.** Investment proposals are posted by admins, not by any member — a deliberate curation step (diligence, supporting documents, a risk grade) that stops the proposal list from becoming a spam channel. But origination is the *only* thing an admin holds unilaterally. Funding a proposal takes member stake. Each escrow tranche can be frozen by a member vote. Unspent escrow can be clawed back by a member vote. The admin who posted it can be evicted by a member vote, and barred from reinstatement. Curating the menu is not controlling the money.
 
-**Upgradeable without a single point of control.** Every DAO is a beacon proxy — one `upgradeTo` fixes a bug across all of them, no stranded contracts. But the beacon isn't a bare owner key: it's held by a controller that puts every upgrade through a **2-day timelock**, and DAOs holding ≥ 30% of total value-locked can **veto** it. The upgrade path exists; it is not a lever one person can pull over everyone's funds.
+**Upgradeable without a single point of control.** Every DAO is a beacon proxy — one `upgradeTo` fixes a bug across all of them, no stranded contracts. But the beacon isn't a bare owner key: it's held by a controller that puts every upgrade through a **4-day timelock** (deliberately longer than the 3-day member-governance window, so members always have time to react before an implementation change lands), and DAOs holding ≥ 30% of total value-locked can **veto** it. Two honest limits of this: with a single early DAO, that DAO holds 100% of TVL and effectively controls the upgrade path; and at large scale, veto apathy means an unopposed upgrade ships after the timelock. The veto is a backstop against a hostile upgrade, not a substitute for the timelock and the owner being a multisig — which is why the controller owner is a multisig from mainnet day one.
 
 **Phased, multi-sig money movement.** No admin releases out of order. No finance manager moves yield alone. No disbursement happens without 3 separate approvals *and* the funds physically present.
 
-**No custodial backend.** The web/mobile tier is fully non-custodial. The feature-phone tier is necessarily custodial (a `*123#` session can't hold a key), but it's bounded: signing is limited by policy to vote / claim / capped-approve — never a transfer-out — with a per-wallet balance cap, full audit logging, and PIN lockout. Disclosed in-product and here.
+**Custody, and where it's bounded.** The web/mobile tier is fully non-custodial — the member's Circle smart account holds the only signing share. The feature-phone tier is necessarily custodial (a USSD session can't hold a key), but it's bounded: signing is limited by policy to vote / claim / capped-approve — never a transfer-out — with a per-wallet balance cap, full audit logging, and PIN lockout. Disclosed in-product and here.
+
+**One canonical on-chain address per member.** A member has one address that holds their committed stake and is registered as the DAO member: their linked external wallet if they have one, otherwise their Circle smart account. Every role check, vote, and claim resolves to that address — the app never splits a member's standing across two wallets.
+
+**Pause can't trap funds or block recourse.** The creator's emergency `pause` stops *new* activity — new members, new allocations, new votes, disbursements. It does **not** stop a member exiting, withdrawing an un-locked stake, claiming a return, or reclaiming a clawback, and it has no effect on the Governor at all (a separate contract) — so members can still vote to freeze, claw back, or evict a paused DAO's admin. Pause is a brake on new commitments, not a lever to freeze the treasury.
 
 **Regulatory status.** CivicVault currently operates as a testnet pilot with no live custody of member funds. Before mainnet, the custodial USSD tier and the returns-distribution feature will be reviewed with Nigerian counsel; a legal entity will be incorporated, and the on/off-ramp for the feature-phone tier will run through a licensed partner rather than the protocol. The engineering controls above (policy-scoped signing, balance caps, audit logging) are risk mitigation, not a substitute for that review — and part of what this grant makes possible.
 
@@ -124,7 +128,7 @@ Community-first, not crypto-first. The user is an organizer, not a DeFi native.
 
 The revenue model is a treasury model — it charges for running the treasury, not for the treasury succeeding at investing. Nothing here depends on a community generating a return, which is not something a grant reviewer should be asked to bank on.
 
-**1. Disbursement fee (primary).** A small basis-point fee — target **25–50 bps**, factory-set and hard-capped — skimmed when funds are released from escrow to a project or vendor. Every active treasury generates it; it scales with usage, not with investment outcomes, and it's predictable. It also funds the Circle Gas Station sponsorship pool directly: usage pays for usage. (This is a small addition to `releaseNextPhase` and is in the audit scope below — the contract today implements only the returns fee.)
+**1. Disbursement fee (primary).** A basis-point fee — **launching at 30 bps (0.30%), hard-capped at 100 bps in the contract**, factory-set — skimmed when funds are released from escrow to a project or vendor. It comes out of the tranche, never the staked principal; the full tranche still leaves escrow. Every active treasury generates it, it scales with usage rather than with investment outcomes, and it's predictable. It also funds the Circle Gas Station sponsorship pool directly: usage pays for usage. Implemented in `releaseNextPhase`, covered by a 4-test suite, and in the audit scope below.
 
 **2. Institutional tier (recurring).** A flat annual subscription for registered cooperatives, unions, and associations that need branding, compliance ledger exports, named/enterprise signers, higher member caps, and priority support. Predictable recurring revenue, sold to entities that already have a budget line for administration.
 
@@ -142,7 +146,7 @@ CivicVault is a community product, not a typical blockchain product. It is won o
 
 ### Security of funds — $17,000
 Every DAO holds a live USDC treasury — members' committed deposits plus disbursement escrow — in one contract. That treasury is defended in five independent layers, not one audit:
-- **Independent audit — $12,000.** Full-scope engagement (Cyfrin / Halborn / Trail of Bits tier) across the 8 contracts and ~3,700 lines: treasury lifecycle, deposit/commit accounting, phased disbursement escrow, the basis-point disbursement fee (added pre-audit), 3-of-N multi-sig on returns, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer. Pre-audit hardening is done — 89 tests including fuzzed invariants (distributed returns never exceed deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, multi-sig edge cases.
+- **Independent audit — $12,000.** Full-scope engagement (Cyfrin / Halborn / Trail of Bits tier) across the 5 contracts + 3 libraries, ~3,700 lines: treasury lifecycle, deposit/commit accounting, phased disbursement escrow, the basis-point disbursement fee, 3-of-N multi-sig on returns, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer. Pre-audit hardening is done — 93 tests including fuzzed invariants (distributed returns never exceed deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, multi-sig edge cases.
 - **Competitive review — $3,000.** A Code4rena / Cantina contest after primary-audit remediation, focused on the upgradeability and governance surface — the newest, highest-leverage code.
 - **Bug bounty — $1,000.** An Immunefi listing plus an initial payout reserve, live from the first mainnet deposit and scaling with TVL.
 - **Real-time monitoring — $700 / 12 months.** Alerts on every large withdrawal, admin change, upgrade proposal, freeze, and clawback, routed to the founder and DAO admins, with an automated pause trigger.
@@ -188,12 +192,12 @@ Fund that mile, and a street never has to just accept the dark again.
 
 # Technical Reference
 
-## Smart contracts (Solidity ^0.8.20 · Foundry · OpenZeppelin)
+## Smart contracts (5 contracts + 3 libraries · Solidity ^0.8.20 · Foundry · OpenZeppelin)
 
 | Contract | Role |
 |---|---|
 | `CivicVaultFactory` | Beacon-proxy factory + the shared `UpgradeableBeacon`; one deploy creates unlimited DAO proxies. Holds the protocol-fee config (treasury + rate, `Ownable`-set, hard-capped in code). |
-| `CivicVaultBeaconController` | Owns the beacon. Every implementation upgrade goes through a 2-day timelock and can be vetoed by DAOs holding ≥ 30% of total value-locked. Veto weight accrues as vetoes arrive and total TVL is snapshotted at propose time, so `executeUpgrade` is O(1) and cannot be gas-bricked as DAO count grows. `withdrawVeto` lets a DAO reverse course. |
+| `CivicVaultBeaconController` | Owns the beacon. Every implementation upgrade goes through a 4-day timelock (> the 3-day governance window) and can be vetoed by DAOs holding ≥ 30% of total value-locked. Veto weight accrues as vetoes arrive and total TVL is snapshotted at propose time, so `executeUpgrade` is O(1) and cannot be gas-bricked as DAO count grows. `withdrawVeto` lets a DAO reverse course. Controller owner is a multisig from mainnet day one. |
 | `CivicVault` | Per-DAO logic: members, KYC, investments, staked voting, phased escrow, yield multi-sig, proportional claim, stake-weight accounting, and one `govApply` hook the governor calls after a passed vote. |
 | `CivicVaultGovernor` | Member-initiated governance singleton, keyed by DAO address. Proposal types: remove / reinstate admin, freeze / unfreeze a release, quorum clawback. Pass rule snapshotted at open; participation quorum + turnout floor; escalating repeat-freeze bar + cooldown; per-proposer cooldown; voter stake locked until close; superseded-proposal tombstoning. |
 | `CivicVaultView` | Gas-free batched read helpers for the frontend (incl. governance power, clawback-reclaimable). |
@@ -201,6 +205,8 @@ Fund that mile, and a street never has to just accept the dark again.
 | `ICivicVault` | Interface + shared structs. |
 
 ### Deployed on Arc Testnet (block 60010770)
+
+> These addresses are the beacon-proxy + member-governance stack. The disbursement-fee, 4-day-timelock, and pause-scope changes in this document are committed and tested but not yet redeployed — a fresh testnet deploy and subgraph re-index land before the audit engagement begins.
 
 | Contract | Address |
 |---|---|
@@ -215,9 +221,9 @@ Fund that mile, and a street never has to just accept the dark again.
 
 ### Security patterns
 
-`ReentrancyGuard` on every ERC-20 transfer path · CEI ordering throughout · `Pausable` creator-only emergency stop · `SafeERC20` for all USDC · `Initializable` against proxy re-init · 40+ typed custom errors · 3-of-N multi-sig on yield execution · stake-weighted, sybil-resistant governance with a pass rule snapshotted at proposal open · banned-admin re-appointment guard · protocol fee taken from realized yield only, hard-capped at 5%, treasury fixed at DAO creation · 90-day configurable grace period before unclaimed yield can be swept · beacon upgrades behind a timelock + TVL-weighted DAO veto.
+`ReentrancyGuard` on every ERC-20 transfer path · CEI ordering throughout · `Pausable` creator-only emergency stop that halts *new* activity but cannot block exits, claims, clawback reclaims, or member governance · `SafeERC20` for all USDC · `Initializable` against proxy re-init · 40+ typed custom errors · 3-of-N multi-sig on yield execution · stake-weighted, sybil-resistant governance with a pass rule snapshotted at proposal open · banned-admin re-appointment guard · disbursement fee capped at 100 bps and returns fee capped at 500 bps in code, treasury fixed at DAO creation, both taken only from the tranche / realized return, never from principal or escrow · the protocol never sweeps unclaimed member funds · beacon upgrades behind a 4-day timelock + TVL-weighted DAO veto.
 
-`forge coverage` cannot emit a percentage — it hits a stack-too-deep compiler error on a codebase this size even under `--ir-minimum`, a known Foundry limitation, not a gap hidden behind test count. Coverage is demonstrated by the 89-test suite and its fuzzed invariants.
+`forge coverage` cannot emit a percentage — it hits a stack-too-deep compiler error on a codebase this size even under `--ir-minimum`, a known Foundry limitation, not a gap hidden behind test count. Coverage is demonstrated by the 93-test suite and its fuzzed invariants.
 
 ## Clients
 

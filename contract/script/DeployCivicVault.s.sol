@@ -21,6 +21,9 @@ contract DeployCivicVault is Script {
         // change). Both optional — default is treasury = deployer, fee = 300 bps.
         address treasury = vm.envOr("PROTOCOL_TREASURY", deployer);
         uint256 feeBps = vm.envOr("PROTOCOL_YIELD_FEE_BPS", uint256(300));
+        // Primary revenue line: bps taken from each disbursed escrow tranche.
+        // Default 30 bps (0.30%); factory-capped at 100 bps.
+        uint256 disburseBps = vm.envOr("PROTOCOL_DISBURSEMENT_FEE_BPS", uint256(30));
         // Owner of the beacon controller (upgrade authority behind the timelock).
         // Use a multisig; defaults to the deployer.
         address beaconOwner = vm.envOr("BEACON_CONTROLLER_OWNER", deployer);
@@ -40,6 +43,7 @@ contract DeployCivicVault is Script {
 
         factory.setProtocolTreasury(treasury);
         factory.setProtocolYieldFeeBps(uint16(feeBps));
+        factory.setProtocolDisbursementFeeBps(uint16(disburseBps));
         factory.setGovernor(address(governor));
 
         address daoAddress = factory.createDAO(

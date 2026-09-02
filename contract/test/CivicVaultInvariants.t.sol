@@ -264,7 +264,7 @@ contract CivicVaultInvariantsTest is Test {
     function test_Clone_CannotBeReinitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         dao.initialize(
-            address(0xdead), "Hijacked", "Desc", "Loc", "0,0", "00000", 1, address(usdc), address(0), 0, address(0)
+            address(0xdead), "Hijacked", "Desc", "Loc", "0,0", "00000", 1, address(usdc), address(0), 0, address(0), 0
         );
     }
 
@@ -272,7 +272,7 @@ contract CivicVaultInvariantsTest is Test {
         CivicVault implementation = new CivicVault();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         implementation.initialize(
-            address(0xdead), "Hijacked", "Desc", "Loc", "0,0", "00000", 1, address(usdc), address(0), 0, address(0)
+            address(0xdead), "Hijacked", "Desc", "Loc", "0,0", "00000", 1, address(usdc), address(0), 0, address(0), 0
         );
     }
 

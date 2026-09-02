@@ -58,9 +58,6 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     error YieldExceedsTotal();
     error CannotClose();
     error NoActiveInvestments();
-    error NotEnded();
-    error NoUnclaimedYield();
-    error GracePeriodActive();
     error AlreadyAdmin();
     error NotAnAdmin();
     error AlreadyFinanceManager();
@@ -69,7 +66,6 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     /// @notice Only the yield proposer or an admin/creator may execute after approvals (prevents third-party griefing).
     error UnauthorizedYieldExec();
     error ArrayLengthMismatch();
-    error InvalidGracePeriod();
     error NotAMember();
     error FeeTooHigh();
     error ReleaseIsFrozen();
@@ -133,16 +129,20 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     uint256 public constant PHASE2_PERCENT = 40;
     uint256 public constant PHASE3_PERCENT = 30;
     uint256 public constant MAX_EXTENSIONS = 3;
-    uint256 public yieldGracePeriod;
 
     // ===== PROTOCOL FEE =====
     // Skimmed from realised yield only, at executeYieldDeposit. Never touches
     // staked principal or escrowed tranches. Set once in initialize.
     uint16 public constant MAX_YIELD_FEE_BPS = 500; // 5%
+    uint16 internal constant MAX_DISBURSEMENT_FEE_BPS = 100; // 1%
     // No public getter — the recipient is disclosed on every YieldFeeSkimmed
     // event and configured on the factory. Saves vault bytecode.
     address internal _protocolTreasury;
     uint16 public yieldFeeBps;
+    // Fee in bps taken from each escrow tranche as it is disbursed to a project.
+    // Comes out of the disbursement, not the staked principal. Set once in
+    // initialize; disclosed on every DisbursementFeeSkimmed event and on the factory.
+    uint16 internal _disbursementFeeBps;
 
     // ===== MEMBER GOVERNANCE =====
     // The proposal / voting / threshold machinery lives in a separate singleton
@@ -226,12 +226,17 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         address _usdcAddress,
         address _protocolTreasury_,
         uint16 _protocolYieldFeeBps,
-        address _governor
+        address _governor,
+        uint16 _disburseFeeBps
     ) external initializer {
         if (_creator == address(0)) revert ZeroAddress();
         if (_usdcAddress == address(0)) revert ZeroAddress();
-        if (_protocolYieldFeeBps > MAX_YIELD_FEE_BPS) revert FeeTooHigh();
-        if (_protocolTreasury_ == address(0) && _protocolYieldFeeBps != 0) revert ZeroAddress();
+        if (_protocolYieldFeeBps > MAX_YIELD_FEE_BPS || _disburseFeeBps > MAX_DISBURSEMENT_FEE_BPS) {
+            revert FeeTooHigh();
+        }
+        if (_protocolTreasury_ == address(0) && (_protocolYieldFeeBps != 0 || _disburseFeeBps != 0)) {
+            revert ZeroAddress();
+        }
 
         creator = _creator;
         governor = _governor;
@@ -242,9 +247,15 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         postalCode = _postalCode;
         maxMembership = _maxMembership;
         usdcAddress = _usdcAddress;
-        yieldGracePeriod = 90 days;
         _protocolTreasury = _protocolTreasury_;
         yieldFeeBps = _protocolYieldFeeBps;
+        _disbursementFeeBps = _disburseFeeBps;
+    }
+
+    /// @dev Skims `bps` of `gross` to the protocol treasury; returns the fee taken.
+    function _skimFee(uint256 gross, uint16 bps) internal returns (uint256 fee) {
+        fee = (gross * bps) / 10_000;
+        if (fee > 0) IERC20(usdcAddress).safeTransfer(_protocolTreasury, fee);
     }
 
     // ===== MEMBER MANAGEMENT =====
@@ -280,7 +291,7 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         emit MemberRemoved(wallet, block.timestamp);
     }
 
-    function exitDAO() external whenNotPaused {
+    function exitDAO() external {
         if (!members[msg.sender].isActive) revert NotMember();
 
         members[msg.sender].isActive = false;
@@ -504,16 +515,20 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
 
         address to = recipient == address(0) ? inv.createdBy : recipient;
 
-        IERC20(usdcAddress).safeTransfer(to, amount);
+        // Protocol disbursement fee — comes out of the tranche, not the staked
+        // principal. The full `amount` still leaves escrow / TVL; the recipient
+        // receives the remainder.
+        uint256 fee = _skimFee(amount, _disbursementFeeBps);
+        IERC20(usdcAddress).safeTransfer(to, amount - fee);
         escrowedAmount[investmentId] -= amount;
         releasePhaseCompleted[investmentId] = nextPhase;
         totalValueLocked -= amount;
 
-        emit FundsReleased(investmentId, nextPhase, amount, to);
+        emit FundsReleased(investmentId, nextPhase, amount, to, fee);
     }
 
     // ===== REFUNDS =====
-    function withdrawStake(uint256 investmentId) external investmentExists(investmentId) nonReentrant whenNotPaused {
+    function withdrawStake(uint256 investmentId) external investmentExists(investmentId) nonReentrant {
         Investment storage inv = investments[investmentId];
         if (inv.status != ICivicVault.Status.INCOMPLETE) revert NotIncomplete();
         if (block.timestamp < stakeLockedUntil[msg.sender]) revert StakeLocked();
@@ -606,12 +621,9 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
 
         // Protocol fee — realised yield only. Never touches staked principal or
         // escrowed tranches. `net` is what members are entitled to.
-        uint256 fee = (p.amount * yieldFeeBps) / 10_000;
+        uint256 fee = _skimFee(p.amount, yieldFeeBps);
         uint256 net = p.amount - fee;
-        if (fee > 0) {
-            IERC20(usdcAddress).safeTransfer(_protocolTreasury, fee);
-            emit YieldFeeSkimmed(p.investmentId, proposalId, fee, _protocolTreasury);
-        }
+        if (fee > 0) emit YieldFeeSkimmed(p.investmentId, proposalId, fee, _protocolTreasury);
 
         inv.totalYieldGenerated += net;
 
@@ -634,7 +646,6 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         investmentExists(investmentId)
         hasStakeInInvestment(investmentId)
         nonReentrant
-        whenNotPaused
     {
         Investment storage inv = investments[investmentId];
         // Allow claiming on ACTIVE and ENDED (members retain rights during the
@@ -705,31 +716,6 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         activeInvestmentCount--;
 
         emit InvestmentClosed(investmentId, block.timestamp);
-    }
-
-    function sweepUnclaimedYield(uint256 investmentId, address recipient)
-        external
-        onlyAdmin
-        investmentExists(investmentId)
-        nonReentrant
-        whenNotPaused
-    {
-        Investment storage inv = investments[investmentId];
-        if (inv.status != ICivicVault.Status.ENDED) revert NotEnded();
-        if (recipient == address(0)) revert ZeroAddress();
-
-        YieldDistribution storage dist = yieldDistributions[investmentId];
-        if (dist.remainingAmount == 0) revert NoUnclaimedYield();
-        if (block.timestamp < dist.timestamp + yieldGracePeriod) revert GracePeriodActive();
-
-        uint256 unclaimedAmount = dist.remainingAmount;
-        dist.remainingAmount = 0;
-        dist.distributedAmount += unclaimedAmount;
-        investments[investmentId].totalYieldDistributed += unclaimedAmount;
-
-        IERC20(usdcAddress).safeTransfer(recipient, unclaimedAmount);
-
-        emit UnclaimedYieldRecovered(investmentId, recipient, unclaimedAmount, block.timestamp);
     }
 
     // ===== ADMIN FUNCTIONS =====
@@ -844,13 +830,6 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         emit InvestmentDocumentsUpdated(investmentId, block.timestamp);
     }
 
-    function setYieldGracePeriod(uint256 newPeriod) external onlyCreator {
-        if (newPeriod < 7 days || newPeriod > 365 days) revert InvalidGracePeriod();
-        uint256 old = yieldGracePeriod;
-        yieldGracePeriod = newPeriod;
-        emit YieldGracePeriodUpdated(old, newPeriod);
-    }
-
     // ===== NEW VIEW HELPERS =====
 
     function getClaimableYield(uint256 investmentId, address voter)
@@ -935,7 +914,7 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
     }
 
     /// @notice After a clawback, each upvoter reclaims their pro-rata slice of the unreleased escrow.
-    function reclaimClawback(uint256 investmentId) external investmentExists(investmentId) nonReentrant whenNotPaused {
+    function reclaimClawback(uint256 investmentId) external investmentExists(investmentId) nonReentrant {
         Investment storage inv = investments[investmentId];
         if (inv.status != ICivicVault.Status.CLAWED_BACK) revert NotClawedBack();
         if (block.timestamp < stakeLockedUntil[msg.sender]) revert StakeLocked();

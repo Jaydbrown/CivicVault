@@ -963,6 +963,11 @@
         "name": "_governor",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_disburseFeeBps",
+        "type": "uint16",
+        "internalType": "uint16"
       }
     ],
     "outputs": [],
@@ -1435,37 +1440,6 @@
   },
   {
     "type": "function",
-    "name": "setYieldGracePeriod",
-    "inputs": [
-      {
-        "name": "newPeriod",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "sweepUnclaimedYield",
-    "inputs": [
-      {
-        "name": "investmentId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "recipient",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "totalCommittedStake",
     "inputs": [],
     "outputs": [
@@ -1720,19 +1694,6 @@
         "name": "",
         "type": "uint16",
         "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "yieldGracePeriod",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -2058,6 +2019,12 @@
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "protocolFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -2386,37 +2353,6 @@
   },
   {
     "type": "event",
-    "name": "UnclaimedYieldRecovered",
-    "inputs": [
-      {
-        "name": "investmentId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "recipient",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "timestamp",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "Unpaused",
     "inputs": [
       {
@@ -2658,25 +2594,6 @@
     "anonymous": false
   },
   {
-    "type": "event",
-    "name": "YieldGracePeriodUpdated",
-    "inputs": [
-      {
-        "name": "oldPeriod",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "newPeriod",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
     "type": "error",
     "name": "AdminBanned",
     "inputs": []
@@ -2778,11 +2695,6 @@
   },
   {
     "type": "error",
-    "name": "GracePeriodActive",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "InsufficientAllowance",
     "inputs": []
   },
@@ -2804,11 +2716,6 @@
   {
     "type": "error",
     "name": "InvalidExtensionDays",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidGracePeriod",
     "inputs": []
   },
   {
@@ -2878,11 +2785,6 @@
   },
   {
     "type": "error",
-    "name": "NoUnclaimedYield",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "NoYieldAvailable",
     "inputs": []
   },
@@ -2914,11 +2816,6 @@
   {
     "type": "error",
     "name": "NotCreator",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotEnded",
     "inputs": []
   },
   {

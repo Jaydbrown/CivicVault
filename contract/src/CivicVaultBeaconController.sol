@@ -41,7 +41,10 @@ contract CivicVaultBeaconController is Ownable {
     UpgradeableBeacon public immutable beacon;
     IFactoryLike public immutable factory;
 
-    uint256 public constant UPGRADE_DELAY = 2 days;
+    /// @notice Timelock on every upgrade. Kept >= CivicVaultGovernor.VOTING_WINDOW
+    ///         (3 days) so members always have time to open and pass a proposal
+    ///         (freeze, clawback, evict) before an implementation change lands.
+    uint256 public constant UPGRADE_DELAY = 4 days;
     /// @notice Veto threshold: DAOs holding >= 30% of the snapshot TVL block the upgrade.
     uint256 public constant VETO_BPS = 3000;
 

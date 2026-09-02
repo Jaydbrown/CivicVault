@@ -213,7 +213,7 @@ CivicVault/
 │   │   ├── CivicVaultGovernor.sol # Member-initiated governance singleton
 │   │   └── interfaces/
 │   │       └── ICivicVault.sol
-│   ├── test/                      # 89 tests across 5 suites (unit, factory, governance, beacon-upgrade, invariants)
+│   ├── test/                      # 93 tests across 6 suites (unit, factory, governance, beacon-upgrade, invariants, disbursement-fee)
 │   │   ├── CivicVault.t.sol
 │   │   ├── CivicVaultFactory.t.sol
 │   │   ├── CivicVaultGovernance.t.sol
@@ -305,7 +305,7 @@ Each DAO is a `BeaconProxy` pointing at one `UpgradeableBeacon` the factory depl
 
 ### CivicVaultBeaconController
 
-Owns the beacon so `upgradeTo` isn't a bare owner call over every DAO's funds. An upgrade goes: `proposeUpgrade(newImpl)` → **2-day timelock** → `executeUpgrade()`. During the window, the creator or any admin of a DAO can `vetoUpgrade(dao)`; if DAOs holding **≥ 30% of total value-locked** veto, the upgrade cannot execute. The controller's own owner is meant to be a multisig / meta-DAO — there is no path back to an EOA-controlled beacon.
+Owns the beacon so `upgradeTo` isn't a bare owner call over every DAO's funds. An upgrade goes: `proposeUpgrade(newImpl)` → **4-day timelock** (longer than the 3-day governance window) → `executeUpgrade()`. During the window, the creator or any admin of a DAO can `vetoUpgrade(dao)`; if DAOs holding **≥ 30% of total value-locked** veto, the upgrade cannot execute. The controller's own owner is meant to be a multisig / meta-DAO — there is no path back to an EOA-controlled beacon.
 
 ### CivicVaultView
 

@@ -276,6 +276,10 @@ export class FundsReleased__Params {
   get recipient(): Address {
     return this._event.parameters[3].value.toAddress();
   }
+
+  get protocolFee(): BigInt {
+    return this._event.parameters[4].value.toBigInt();
+  }
 }
 
 export class Initialized extends ethereum.Event {
@@ -642,36 +646,6 @@ export class StakeWithdrawn__Params {
   }
 }
 
-export class UnclaimedYieldRecovered extends ethereum.Event {
-  get params(): UnclaimedYieldRecovered__Params {
-    return new UnclaimedYieldRecovered__Params(this);
-  }
-}
-
-export class UnclaimedYieldRecovered__Params {
-  _event: UnclaimedYieldRecovered;
-
-  constructor(event: UnclaimedYieldRecovered) {
-    this._event = event;
-  }
-
-  get investmentId(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
-  }
-
-  get recipient(): Address {
-    return this._event.parameters[1].value.toAddress();
-  }
-
-  get amount(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
-  }
-
-  get timestamp(): BigInt {
-    return this._event.parameters[3].value.toBigInt();
-  }
-}
-
 export class Unpaused extends ethereum.Event {
   get params(): Unpaused__Params {
     return new Unpaused__Params(this);
@@ -905,28 +879,6 @@ export class YieldFeeSkimmed__Params {
 
   get treasury(): Address {
     return this._event.parameters[3].value.toAddress();
-  }
-}
-
-export class YieldGracePeriodUpdated extends ethereum.Event {
-  get params(): YieldGracePeriodUpdated__Params {
-    return new YieldGracePeriodUpdated__Params(this);
-  }
-}
-
-export class YieldGracePeriodUpdated__Params {
-  _event: YieldGracePeriodUpdated;
-
-  constructor(event: YieldGracePeriodUpdated) {
-    this._event = event;
-  }
-
-  get oldPeriod(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
-  }
-
-  get newPeriod(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
   }
 }
 
@@ -2804,29 +2756,6 @@ export class CivicVault extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toI32());
   }
 
-  yieldGracePeriod(): BigInt {
-    let result = super.call(
-      "yieldGracePeriod",
-      "yieldGracePeriod():(uint256)",
-      [],
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_yieldGracePeriod(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "yieldGracePeriod",
-      "yieldGracePeriod():(uint256)",
-      [],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
   yieldProposalApprovals(param0: BigInt, param1: Address): boolean {
     let result = super.call(
       "yieldProposalApprovals",
@@ -3456,6 +3385,10 @@ export class InitializeCall__Inputs {
   get _governor(): Address {
     return this._call.inputValues[10].value.toAddress();
   }
+
+  get _disburseFeeBps(): i32 {
+    return this._call.inputValues[11].value.toI32();
+  }
 }
 
 export class InitializeCall__Outputs {
@@ -3714,70 +3647,6 @@ export class RemoveMemberCall__Outputs {
   _call: RemoveMemberCall;
 
   constructor(call: RemoveMemberCall) {
-    this._call = call;
-  }
-}
-
-export class SetYieldGracePeriodCall extends ethereum.Call {
-  get inputs(): SetYieldGracePeriodCall__Inputs {
-    return new SetYieldGracePeriodCall__Inputs(this);
-  }
-
-  get outputs(): SetYieldGracePeriodCall__Outputs {
-    return new SetYieldGracePeriodCall__Outputs(this);
-  }
-}
-
-export class SetYieldGracePeriodCall__Inputs {
-  _call: SetYieldGracePeriodCall;
-
-  constructor(call: SetYieldGracePeriodCall) {
-    this._call = call;
-  }
-
-  get newPeriod(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-}
-
-export class SetYieldGracePeriodCall__Outputs {
-  _call: SetYieldGracePeriodCall;
-
-  constructor(call: SetYieldGracePeriodCall) {
-    this._call = call;
-  }
-}
-
-export class SweepUnclaimedYieldCall extends ethereum.Call {
-  get inputs(): SweepUnclaimedYieldCall__Inputs {
-    return new SweepUnclaimedYieldCall__Inputs(this);
-  }
-
-  get outputs(): SweepUnclaimedYieldCall__Outputs {
-    return new SweepUnclaimedYieldCall__Outputs(this);
-  }
-}
-
-export class SweepUnclaimedYieldCall__Inputs {
-  _call: SweepUnclaimedYieldCall;
-
-  constructor(call: SweepUnclaimedYieldCall) {
-    this._call = call;
-  }
-
-  get investmentId(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-
-  get recipient(): Address {
-    return this._call.inputValues[1].value.toAddress();
-  }
-}
-
-export class SweepUnclaimedYieldCall__Outputs {
-  _call: SweepUnclaimedYieldCall;
-
-  constructor(call: SweepUnclaimedYieldCall) {
     this._call = call;
   }
 }

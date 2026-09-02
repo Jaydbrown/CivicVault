@@ -1497,6 +1497,19 @@ export class PhaseRelease extends Entity {
     this.set("amount", Value.fromBigInt(value));
   }
 
+  get protocolFee(): BigInt {
+    let value = this.get("protocolFee");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set protocolFee(value: BigInt) {
+    this.set("protocolFee", Value.fromBigInt(value));
+  }
+
   get recipient(): Bytes {
     let value = this.get("recipient");
     if (!value || value.kind == ValueKind.NULL) {

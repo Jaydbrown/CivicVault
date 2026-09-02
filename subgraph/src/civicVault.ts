@@ -278,6 +278,7 @@ export function handleFundsReleased(event: FundsReleased): void {
   release.investment = invId;
   release.phase = event.params.phase;
   release.amount = event.params.amount;
+  release.protocolFee = event.params.protocolFee;
   release.recipient = event.params.recipient;
   release.timestamp = event.block.timestamp;
   release.save();

@@ -44,7 +44,6 @@ const CIVIC_VAULT_ABI = [
   { type: "error", name: "UnauthorizedYieldExec", inputs: [] },
   { type: "error", name: "InvestmentNotActive", inputs: [] },
   { type: "error", name: "ArrayLengthMismatch", inputs: [] },
-  { type: "error", name: "InvalidGracePeriod", inputs: [] },
   { type: "error", name: "NotAMember", inputs: [] },
   {
     type: "function",
@@ -321,16 +320,6 @@ const CIVIC_VAULT_ABI = [
   },
   {
     type: "function",
-    name: "sweepUnclaimedYield",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "investmentId", type: "uint256" },
-      { name: "recipient", type: "address" },
-    ],
-    outputs: [],
-  },
-  {
-    type: "function",
     name: "pause",
     stateMutability: "nonpayable",
     inputs: [],
@@ -449,13 +438,6 @@ const CIVIC_VAULT_ABI = [
   },
   {
     type: "function",
-    name: "yieldGracePeriod",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ type: "uint256" }],
-  },
-  {
-    type: "function",
     name: "yieldProposalCount",
     stateMutability: "view",
     inputs: [],
@@ -529,13 +511,6 @@ const CIVIC_VAULT_ABI = [
       { name: "investmentId", type: "uint256" },
       { name: "newDocumentCIDs", type: "string[]" },
     ],
-    outputs: [],
-  },
-  {
-    type: "function",
-    name: "setYieldGracePeriod",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "newPeriod", type: "uint256" }],
     outputs: [],
   },
   {
@@ -1519,8 +1494,7 @@ async function writeDaoContract(
     | "markInvestmentIncomplete"
     | "closeInvestment"
     | "pause"
-    | "unpause"
-    | "sweepUnclaimedYield",
+    | "unpause",
   args: readonly unknown[] = []
 ): Promise<Hex> {
   await wallet.switchChain(APP_CHAIN_ID);
@@ -1608,15 +1582,6 @@ export async function closeInvestmentOnDao(
   investmentId: number
 ): Promise<Hex> {
   return writeDaoContract(wallet, daoAddress, "closeInvestment", [BigInt(investmentId)]);
-}
-
-export async function sweepUnclaimedYieldOnDao(
-  wallet: PrivyEthereumWallet,
-  daoAddress: Address,
-  investmentId: number,
-  recipient: Address
-): Promise<Hex> {
-  return writeDaoContract(wallet, daoAddress, "sweepUnclaimedYield", [BigInt(investmentId), recipient]);
 }
 
 export async function pauseDao(
@@ -1988,33 +1953,6 @@ export async function updateInvestmentDocumentsOnDao(
   return txHash;
 }
 
-// ===== GRACE PERIOD CONFIG =====
-
-export async function setYieldGracePeriodOnDao(
-  wallet: PrivyEthereumWallet,
-  daoAddress: Address,
-  days: number
-): Promise<Hex> {
-  if (!Number.isFinite(days) || days < 7 || days > 365) {
-    throw new Error("Grace period must be between 7 and 365 days.");
-  }
-  await wallet.switchChain(APP_CHAIN_ID);
-  const walletClient = await getWalletClient(wallet);
-  const account = wallet.address as Address;
-
-  const { request } = await simulateContractRpc({
-    address: daoAddress,
-    abi: CIVIC_VAULT_ABI,
-    functionName: "setYieldGracePeriod",
-    args: [BigInt(days * 86400)],
-    account,
-  });
-
-  const txHash = await walletClient.writeContract(request as never);
-  await publicClient.waitForTransactionReceipt({ hash: txHash });
-  return txHash;
-}
-
 // ===== READ HELPERS =====
 
 export async function fetchDaoAdmins(daoAddress: Address): Promise<Address[]> {
@@ -2038,15 +1976,6 @@ export async function fetchInvestmentsByStatus(
     args: [status],
   });
   return ids.map(Number);
-}
-
-export async function fetchYieldGracePeriod(daoAddress: Address): Promise<number> {
-  const seconds = await readContractRpc<bigint>({
-    address: daoAddress,
-    abi: CIVIC_VAULT_ABI,
-    functionName: "yieldGracePeriod",
-  });
-  return Math.round(Number(seconds) / 86400);
 }
 
 // ===== FACTORY ADMIN =====

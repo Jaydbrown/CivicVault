@@ -124,7 +124,8 @@ type PhaseRelease @entity {
   dao: DAO!
   investment: Investment!
   phase: Int!
-  amount: BigInt!
+  amount: BigInt!               # gross tranche released from escrow
+  protocolFee: BigInt!          # disbursement fee skimmed to the protocol treasury
   recipient: Bytes!
   timestamp: BigInt!
 }

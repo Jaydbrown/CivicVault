@@ -10,6 +10,24 @@ import {
   BigInt,
 } from "@graphprotocol/graph-ts";
 
+export class BeaconOwnershipTransferred extends ethereum.Event {
+  get params(): BeaconOwnershipTransferred__Params {
+    return new BeaconOwnershipTransferred__Params(this);
+  }
+}
+
+export class BeaconOwnershipTransferred__Params {
+  _event: BeaconOwnershipTransferred;
+
+  constructor(event: BeaconOwnershipTransferred) {
+    this._event = event;
+  }
+
+  get newOwner(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class DAOCreated extends ethereum.Event {
   get params(): DAOCreated__Params {
     return new DAOCreated__Params(this);
@@ -88,6 +106,24 @@ export class DAOReactivated__Params {
   }
 }
 
+export class GovernorUpdated extends ethereum.Event {
+  get params(): GovernorUpdated__Params {
+    return new GovernorUpdated__Params(this);
+  }
+}
+
+export class GovernorUpdated__Params {
+  _event: GovernorUpdated;
+
+  constructor(event: GovernorUpdated) {
+    this._event = event;
+  }
+
+  get newGovernor(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class OwnershipTransferred extends ethereum.Event {
   get params(): OwnershipTransferred__Params {
     return new OwnershipTransferred__Params(this);
@@ -107,6 +143,60 @@ export class OwnershipTransferred__Params {
 
   get newOwner(): Address {
     return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class ProtocolDisbursementFeeUpdated extends ethereum.Event {
+  get params(): ProtocolDisbursementFeeUpdated__Params {
+    return new ProtocolDisbursementFeeUpdated__Params(this);
+  }
+}
+
+export class ProtocolDisbursementFeeUpdated__Params {
+  _event: ProtocolDisbursementFeeUpdated;
+
+  constructor(event: ProtocolDisbursementFeeUpdated) {
+    this._event = event;
+  }
+
+  get newFeeBps(): i32 {
+    return this._event.parameters[0].value.toI32();
+  }
+}
+
+export class ProtocolTreasuryUpdated extends ethereum.Event {
+  get params(): ProtocolTreasuryUpdated__Params {
+    return new ProtocolTreasuryUpdated__Params(this);
+  }
+}
+
+export class ProtocolTreasuryUpdated__Params {
+  _event: ProtocolTreasuryUpdated;
+
+  constructor(event: ProtocolTreasuryUpdated) {
+    this._event = event;
+  }
+
+  get newTreasury(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class ProtocolYieldFeeUpdated extends ethereum.Event {
+  get params(): ProtocolYieldFeeUpdated__Params {
+    return new ProtocolYieldFeeUpdated__Params(this);
+  }
+}
+
+export class ProtocolYieldFeeUpdated__Params {
+  _event: ProtocolYieldFeeUpdated;
+
+  constructor(event: ProtocolYieldFeeUpdated) {
+    this._event = event;
+  }
+
+  get newFeeBps(): i32 {
+    return this._event.parameters[0].value.toI32();
   }
 }
 
@@ -189,6 +279,52 @@ export class CivicVaultFactory extends ethereum.SmartContract {
     return new CivicVaultFactory("CivicVaultFactory", address);
   }
 
+  MAX_PROTOCOL_DISBURSEMENT_FEE_BPS(): i32 {
+    let result = super.call(
+      "MAX_PROTOCOL_DISBURSEMENT_FEE_BPS",
+      "MAX_PROTOCOL_DISBURSEMENT_FEE_BPS():(uint16)",
+      [],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_MAX_PROTOCOL_DISBURSEMENT_FEE_BPS(): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "MAX_PROTOCOL_DISBURSEMENT_FEE_BPS",
+      "MAX_PROTOCOL_DISBURSEMENT_FEE_BPS():(uint16)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
+  MAX_PROTOCOL_YIELD_FEE_BPS(): i32 {
+    let result = super.call(
+      "MAX_PROTOCOL_YIELD_FEE_BPS",
+      "MAX_PROTOCOL_YIELD_FEE_BPS():(uint16)",
+      [],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_MAX_PROTOCOL_YIELD_FEE_BPS(): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "MAX_PROTOCOL_YIELD_FEE_BPS",
+      "MAX_PROTOCOL_YIELD_FEE_BPS():(uint16)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
   allDAOs(param0: BigInt): Address {
     let result = super.call("allDAOs", "allDAOs(uint256):(address)", [
       ethereum.Value.fromUnsignedBigInt(param0),
@@ -201,6 +337,21 @@ export class CivicVaultFactory extends ethereum.SmartContract {
     let result = super.tryCall("allDAOs", "allDAOs(uint256):(address)", [
       ethereum.Value.fromUnsignedBigInt(param0),
     ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  beacon(): Address {
+    let result = super.call("beacon", "beacon():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_beacon(): ethereum.CallResult<Address> {
+    let result = super.tryCall("beacon", "beacon():(address)", []);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -369,6 +520,21 @@ export class CivicVaultFactory extends ethereum.SmartContract {
     );
   }
 
+  governor(): Address {
+    let result = super.call("governor", "governor():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_governor(): ethereum.CallResult<Address> {
+    let result = super.tryCall("governor", "governor():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
   implementation(): Address {
     let result = super.call("implementation", "implementation():(address)", []);
 
@@ -439,6 +605,75 @@ export class CivicVaultFactory extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  protocolDisbursementFeeBps(): i32 {
+    let result = super.call(
+      "protocolDisbursementFeeBps",
+      "protocolDisbursementFeeBps():(uint16)",
+      [],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_protocolDisbursementFeeBps(): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "protocolDisbursementFeeBps",
+      "protocolDisbursementFeeBps():(uint16)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
+  protocolTreasury(): Address {
+    let result = super.call(
+      "protocolTreasury",
+      "protocolTreasury():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_protocolTreasury(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "protocolTreasury",
+      "protocolTreasury():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  protocolYieldFeeBps(): i32 {
+    let result = super.call(
+      "protocolYieldFeeBps",
+      "protocolYieldFeeBps():(uint16)",
+      [],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_protocolYieldFeeBps(): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "protocolYieldFeeBps",
+      "protocolYieldFeeBps():(uint16)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
   }
 
   totalDAOCount(): BigInt {
@@ -635,6 +870,156 @@ export class RenounceOwnershipCall__Outputs {
   _call: RenounceOwnershipCall;
 
   constructor(call: RenounceOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class SetGovernorCall extends ethereum.Call {
+  get inputs(): SetGovernorCall__Inputs {
+    return new SetGovernorCall__Inputs(this);
+  }
+
+  get outputs(): SetGovernorCall__Outputs {
+    return new SetGovernorCall__Outputs(this);
+  }
+}
+
+export class SetGovernorCall__Inputs {
+  _call: SetGovernorCall;
+
+  constructor(call: SetGovernorCall) {
+    this._call = call;
+  }
+
+  get g(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetGovernorCall__Outputs {
+  _call: SetGovernorCall;
+
+  constructor(call: SetGovernorCall) {
+    this._call = call;
+  }
+}
+
+export class SetProtocolDisbursementFeeBpsCall extends ethereum.Call {
+  get inputs(): SetProtocolDisbursementFeeBpsCall__Inputs {
+    return new SetProtocolDisbursementFeeBpsCall__Inputs(this);
+  }
+
+  get outputs(): SetProtocolDisbursementFeeBpsCall__Outputs {
+    return new SetProtocolDisbursementFeeBpsCall__Outputs(this);
+  }
+}
+
+export class SetProtocolDisbursementFeeBpsCall__Inputs {
+  _call: SetProtocolDisbursementFeeBpsCall;
+
+  constructor(call: SetProtocolDisbursementFeeBpsCall) {
+    this._call = call;
+  }
+
+  get bps(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+}
+
+export class SetProtocolDisbursementFeeBpsCall__Outputs {
+  _call: SetProtocolDisbursementFeeBpsCall;
+
+  constructor(call: SetProtocolDisbursementFeeBpsCall) {
+    this._call = call;
+  }
+}
+
+export class SetProtocolTreasuryCall extends ethereum.Call {
+  get inputs(): SetProtocolTreasuryCall__Inputs {
+    return new SetProtocolTreasuryCall__Inputs(this);
+  }
+
+  get outputs(): SetProtocolTreasuryCall__Outputs {
+    return new SetProtocolTreasuryCall__Outputs(this);
+  }
+}
+
+export class SetProtocolTreasuryCall__Inputs {
+  _call: SetProtocolTreasuryCall;
+
+  constructor(call: SetProtocolTreasuryCall) {
+    this._call = call;
+  }
+
+  get t(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetProtocolTreasuryCall__Outputs {
+  _call: SetProtocolTreasuryCall;
+
+  constructor(call: SetProtocolTreasuryCall) {
+    this._call = call;
+  }
+}
+
+export class SetProtocolYieldFeeBpsCall extends ethereum.Call {
+  get inputs(): SetProtocolYieldFeeBpsCall__Inputs {
+    return new SetProtocolYieldFeeBpsCall__Inputs(this);
+  }
+
+  get outputs(): SetProtocolYieldFeeBpsCall__Outputs {
+    return new SetProtocolYieldFeeBpsCall__Outputs(this);
+  }
+}
+
+export class SetProtocolYieldFeeBpsCall__Inputs {
+  _call: SetProtocolYieldFeeBpsCall;
+
+  constructor(call: SetProtocolYieldFeeBpsCall) {
+    this._call = call;
+  }
+
+  get bps(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+}
+
+export class SetProtocolYieldFeeBpsCall__Outputs {
+  _call: SetProtocolYieldFeeBpsCall;
+
+  constructor(call: SetProtocolYieldFeeBpsCall) {
+    this._call = call;
+  }
+}
+
+export class TransferBeaconOwnershipCall extends ethereum.Call {
+  get inputs(): TransferBeaconOwnershipCall__Inputs {
+    return new TransferBeaconOwnershipCall__Inputs(this);
+  }
+
+  get outputs(): TransferBeaconOwnershipCall__Outputs {
+    return new TransferBeaconOwnershipCall__Outputs(this);
+  }
+}
+
+export class TransferBeaconOwnershipCall__Inputs {
+  _call: TransferBeaconOwnershipCall;
+
+  constructor(call: TransferBeaconOwnershipCall) {
+    this._call = call;
+  }
+
+  get newOwner(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class TransferBeaconOwnershipCall__Outputs {
+  _call: TransferBeaconOwnershipCall;
+
+  constructor(call: TransferBeaconOwnershipCall) {
     this._call = call;
   }
 }
