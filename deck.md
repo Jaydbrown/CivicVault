@@ -208,7 +208,7 @@ Every vote, phase release, yield deposit, and claim is stored in an on-chain `Ac
 | Milestone | Status |
 |---|---|
 | Smart contracts (~3,700 lines, 5 contracts + 3 libraries, incl. member governance + beacon upgrades) | ✅ Done |
-| Foundry test suite (93 tests, 6 suites) | ✅ Done |
+| Foundry test suite (98 tests, 6 suites) | ✅ Done |
 | Frontend — all views + governance + non-custodial Circle wallet | ✅ Done |
 | Backend — auth, chat, notifications | ✅ Done |
 | IPFS integration | ✅ Done |
@@ -289,7 +289,7 @@ CivicVault is the first protocol purpose-built for hyperlocal community investme
 
 This is a community product, not a typical blockchain product. Every DAO holds a pooled USDC treasury — that pool is the entire point and the entire risk. So roughly $17,000 goes to defending it in five independent layers (audit, competitive contest, bug bounty, monitoring, signer hardening), and roughly $16,000 to the on-the-ground marketing and community work that a solo technical founder cannot do alone — the channel where a community product is actually won. The remaining $9,000 covers mainnet deployment, post-audit remediation, infrastructure, and hands-on onboarding of the first three DAOs.
 
-This is not a speculative roadmap. The protocol is built, tested (93 Foundry tests), and deployed on Arc Testnet, with a live web app, a complete mobile app, a built USSD tier, and a public subgraph. The grant funds the two things still left to prove: that the pool is safe, and that communities will adopt it.
+This is not a speculative roadmap. The protocol is built, tested (98 Foundry tests), and deployed on Arc Testnet, with a live web app, a complete mobile app, a built USSD tier, and a public subgraph. The grant funds the two things still left to prove: that the pool is safe, and that communities will adopt it.
 
 ---
 

@@ -788,6 +788,112 @@ contract CivicVaultTest is Test {
         vm.stopPrank();
     }
 
+    // ===== PAUSE IS BOUNDED: cannot trap member funds or block exits =====
+
+    function test_Pause_DoesNotBlock_ClaimYield_or_Exit() public {
+        vm.prank(admin);
+        uint256 id = dao.createInvestment(
+            "P", ICivicVault.Category.HEALTH, 10_000 * 1e6, 5, ICivicVault.Grade.A, 30, new string[](0)
+        );
+        vm.startPrank(member1);
+        usdc.approve(address(dao), 10_000 * 1e6);
+        dao.vote(id, 10_000 * 1e6, 1);
+        vm.stopPrank();
+        vm.prank(admin);
+        dao.activateInvestment(id);
+
+        vm.startPrank(financeManager);
+        usdc.approve(address(dao), 500 * 1e6);
+        uint256 pid = dao.proposeYieldDeposit(id, 500 * 1e6, "cid");
+        vm.stopPrank();
+        vm.prank(admin);
+        dao.approveYieldDeposit(pid);
+        vm.prank(admin2);
+        dao.approveYieldDeposit(pid);
+        vm.prank(admin3);
+        dao.approveYieldDeposit(pid);
+        vm.prank(financeManager);
+        dao.executeYieldDeposit(pid);
+
+        // creator freezes the whole DAO
+        vm.prank(creator);
+        dao.pause();
+
+        // member can still claim their yield and leave
+        uint256 before = usdc.balanceOf(member1);
+        vm.prank(member1);
+        dao.claimYield(id);
+        assertGt(usdc.balanceOf(member1), before, "yield claim must work while paused");
+
+        vm.prank(member1);
+        dao.exitDAO();
+        (,,,, bool isActive) = dao.members(member1);
+        assertFalse(isActive, "exit must work while paused");
+    }
+
+    function test_Pause_DoesNotBlock_StakeRecovery_FromFailedRaise() public {
+        vm.prank(admin);
+        uint256 id = dao.createInvestment(
+            "P", ICivicVault.Category.HEALTH, 10_000 * 1e6, 5, ICivicVault.Grade.A, 1, new string[](0)
+        );
+        vm.startPrank(member1);
+        usdc.approve(address(dao), 4_000 * 1e6);
+        dao.vote(id, 4_000 * 1e6, 1); // under the 10k target
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 2 days); // deadline passed, raise failed
+
+        // creator pauses before anyone marks it incomplete
+        vm.prank(creator);
+        dao.pause();
+
+        // member recovers their own stake — no admin action, no unpause needed
+        uint256 before = usdc.balanceOf(member1);
+        vm.prank(member1);
+        dao.withdrawStake(id);
+        assertEq(usdc.balanceOf(member1) - before, 4_000 * 1e6, "full stake back from a failed raise");
+        assertEq(uint8(dao.getInvestment(id).status), uint8(ICivicVault.Status.INCOMPLETE));
+    }
+
+    function test_WithdrawStake_FromFundedButNeverActivatedRaise() public {
+        // A raise that HITS its target but is never activated before the
+        // deadline would otherwise strand funds forever (canActivate needs
+        // time <= deadline; shouldMarkIncomplete needs under-target).
+        vm.prank(admin);
+        uint256 id = dao.createInvestment(
+            "P", ICivicVault.Category.HEALTH, 5_000 * 1e6, 5, ICivicVault.Grade.A, 1, new string[](0)
+        );
+        vm.startPrank(member1);
+        usdc.approve(address(dao), 5_000 * 1e6);
+        dao.vote(id, 5_000 * 1e6, 1); // fully funded
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 2 days); // deadline passes, admin never activated
+
+        uint256 before = usdc.balanceOf(member1);
+        vm.prank(member1);
+        dao.withdrawStake(id);
+        assertEq(usdc.balanceOf(member1) - before, 5_000 * 1e6, "backer recovers a stranded funded raise");
+    }
+
+    function test_MarkIncomplete_WorksWhilePaused() public {
+        vm.prank(admin);
+        uint256 id = dao.createInvestment(
+            "P", ICivicVault.Category.HEALTH, 10_000 * 1e6, 5, ICivicVault.Grade.A, 1, new string[](0)
+        );
+        vm.startPrank(member1);
+        usdc.approve(address(dao), 1_000 * 1e6);
+        dao.vote(id, 1_000 * 1e6, 1);
+        vm.stopPrank();
+        vm.warp(block.timestamp + 2 days);
+
+        vm.prank(creator);
+        dao.pause();
+        vm.prank(admin);
+        dao.markInvestmentIncomplete(id); // status flip, no funds — allowed while paused
+        assertEq(uint8(dao.getInvestment(id).status), uint8(ICivicVault.Status.INCOMPLETE));
+    }
+
     // ===== CLOSE INVESTMENT TESTS =====
     function test_CloseInvestment() public {
         // Setup and activate investment

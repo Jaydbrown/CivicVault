@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {CivicVault} from "../src/CivicVault.sol";
 import {CivicVaultFactory} from "../src/CivicVaultFactory.sol";
+import {CivicVaultGovernor} from "../src/CivicVaultGovernor.sol";
 import {ICivicVault} from "../src/interfaces/ICivicVault.sol";
 import {MockUSDC} from "./MockUSDC.sol";
 
@@ -12,6 +13,7 @@ import {MockUSDC} from "./MockUSDC.sol";
 /// principal, and the full tranche still leaves escrow / TVL.
 contract CivicVaultDisbursementFeeTest is Test {
     CivicVaultFactory factory;
+    CivicVaultGovernor gov;
     MockUSDC usdc;
 
     address owner = address(0x1);
@@ -25,10 +27,12 @@ contract CivicVaultDisbursementFeeTest is Test {
 
     function setUp() public {
         usdc = new MockUSDC();
+        gov = new CivicVaultGovernor();
         CivicVault impl = new CivicVault();
         factory = new CivicVaultFactory(owner, address(impl));
         vm.startPrank(owner);
         factory.setProtocolTreasury(treasury);
+        factory.setGovernor(address(gov));
         vm.stopPrank();
         usdc.mint(member, 1_000_000 * M);
     }
@@ -118,5 +122,33 @@ contract CivicVaultDisbursementFeeTest is Test {
         factory.setProtocolDisbursementFeeBps(100); // exactly the cap is fine
         vm.stopPrank();
         assertEq(factory.protocolDisbursementFeeBps(), 100);
+    }
+
+    /// A disbursement fee on phase 1 must not distort a later clawback: the
+    /// clawback pool is the *remaining* escrow, and the fee already left with
+    /// the tranche it was skimmed from.
+    function test_fee_thenClawback_poolIsRemainingEscrow() public {
+        CivicVault dao = _dao(50); // 0.50%
+        uint256 id = _fundedActive(dao);
+
+        vm.prank(admin);
+        dao.releaseNextPhase(id, vendor); // phase 1: 300 out of escrow (1.5 fee, 298.5 to vendor)
+        assertEq(dao.escrowedAmount(id), 700 * M);
+
+        // member holds 100% of the stake — clawback passes
+        vm.prank(member);
+        uint256 pid = gov.openProposal(address(dao), 3, address(0), id); // 3 = Clawback
+        vm.prank(member);
+        gov.voteOnProposal(address(dao), pid, true);
+        vm.warp(block.timestamp + 3 days + 1);
+        gov.executeProposal(address(dao), pid);
+
+        assertEq(dao.clawbackPool(id), 700 * M, "pool is the unreleased escrow, fee-independent");
+
+        uint256 before = usdc.balanceOf(member);
+        vm.prank(member);
+        dao.reclaimClawback(id);
+        assertEq(usdc.balanceOf(member) - before, 700 * M, "sole backer reclaims the whole pool");
+        assertEq(dao.totalValueLocked(), 0, "nothing left locked");
     }
 }

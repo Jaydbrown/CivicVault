@@ -252,12 +252,6 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         _disbursementFeeBps = _disburseFeeBps;
     }
 
-    /// @dev Skims `bps` of `gross` to the protocol treasury; returns the fee taken.
-    function _skimFee(uint256 gross, uint16 bps) internal returns (uint256 fee) {
-        fee = (gross * bps) / 10_000;
-        if (fee > 0) IERC20(usdcAddress).safeTransfer(_protocolTreasury, fee);
-    }
-
     // ===== MEMBER MANAGEMENT =====
     function addMember(address wallet, bytes32 kycProofHash) external onlyAdmin whenNotPaused {
         if (wallet == address(0)) revert ZeroAddress();
@@ -435,12 +429,7 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         emit InvestmentActivated(investmentId, block.timestamp);
     }
 
-    function markInvestmentIncomplete(uint256 investmentId)
-        external
-        onlyAdmin
-        investmentExists(investmentId)
-        whenNotPaused
-    {
+    function markInvestmentIncomplete(uint256 investmentId) external onlyAdmin investmentExists(investmentId) {
         Investment storage inv = investments[investmentId];
 
         if (!InvestmentManager.shouldMarkIncomplete(inv.upvotes, inv.fundNeeded, inv.deadline, block.timestamp)) {
@@ -517,19 +506,34 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
 
         // Protocol disbursement fee — comes out of the tranche, not the staked
         // principal. The full `amount` still leaves escrow / TVL; the recipient
-        // receives the remainder.
-        uint256 fee = _skimFee(amount, _disbursementFeeBps);
-        IERC20(usdcAddress).safeTransfer(to, amount - fee);
+        // receives the remainder. bps is capped at 100 so `amount - fee` cannot
+        // underflow.
+        uint256 fee = (amount * _disbursementFeeBps) / 10_000;
+
+        // Effects before interactions (CEI): commit the escrow / TVL bookkeeping
+        // before any USDC leaves the contract.
         escrowedAmount[investmentId] -= amount;
         releasePhaseCompleted[investmentId] = nextPhase;
         totalValueLocked -= amount;
 
         emit FundsReleased(investmentId, nextPhase, amount, to, fee);
+
+        if (fee > 0) IERC20(usdcAddress).safeTransfer(_protocolTreasury, fee);
+        IERC20(usdcAddress).safeTransfer(to, amount - fee);
     }
 
     // ===== REFUNDS =====
     function withdrawStake(uint256 investmentId) external investmentExists(investmentId) nonReentrant {
         Investment storage inv = investments[investmentId];
+        // Universal escape hatch: once the voting window has closed on a PENDING
+        // investment that was never activated, its backers can always recover
+        // their stake — whether it fell short of target, or hit target but no
+        // admin activated it in time, or the DAO is paused. Without this, a
+        // funded-but-not-activated raise past its deadline would strand funds.
+        if (inv.status == ICivicVault.Status.PENDING && block.timestamp > inv.deadline) {
+            inv.status = ICivicVault.Status.INCOMPLETE;
+            emit InvestmentIncomplete(investmentId, block.timestamp);
+        }
         if (inv.status != ICivicVault.Status.INCOMPLETE) revert NotIncomplete();
         if (block.timestamp < stakeLockedUntil[msg.sender]) revert StakeLocked();
 
@@ -620,11 +624,12 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         IERC20(usdcAddress).safeTransferFrom(p.proposer, address(this), p.amount);
 
         // Protocol fee — realised yield only. Never touches staked principal or
-        // escrowed tranches. `net` is what members are entitled to.
-        uint256 fee = _skimFee(p.amount, yieldFeeBps);
+        // escrowed tranches. `net` is what members are entitled to. yieldFeeBps
+        // is capped at 500 so `net` cannot underflow.
+        uint256 fee = (p.amount * yieldFeeBps) / 10_000;
         uint256 net = p.amount - fee;
-        if (fee > 0) emit YieldFeeSkimmed(p.investmentId, proposalId, fee, _protocolTreasury);
 
+        // Effects before the fee interaction (CEI).
         inv.totalYieldGenerated += net;
 
         YieldDistribution storage dist = yieldDistributions[p.investmentId];
@@ -635,6 +640,11 @@ contract CivicVault is ICivicVault, Pausable, ReentrancyGuard, Initializable {
         dist.timestamp = block.timestamp;
 
         p.executed = true;
+
+        if (fee > 0) {
+            IERC20(usdcAddress).safeTransfer(_protocolTreasury, fee);
+            emit YieldFeeSkimmed(p.investmentId, proposalId, fee, _protocolTreasury);
+        }
 
         emit YieldDepositExecuted(proposalId, p.investmentId, net, p.expenseReportCID, block.timestamp);
         emit YieldDeposited(p.investmentId, net, p.expenseReportCID, block.timestamp);

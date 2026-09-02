@@ -213,7 +213,7 @@ CivicVault/
 │   │   ├── CivicVaultGovernor.sol # Member-initiated governance singleton
 │   │   └── interfaces/
 │   │       └── ICivicVault.sol
-│   ├── test/                      # 93 tests across 6 suites (unit, factory, governance, beacon-upgrade, invariants, disbursement-fee)
+│   ├── test/                      # 98 tests across 6 suites (unit, factory, governance, beacon-upgrade, invariants, disbursement-fee)
 │   │   ├── CivicVault.t.sol
 │   │   ├── CivicVaultFactory.t.sol
 │   │   ├── CivicVaultGovernance.t.sol

@@ -37,7 +37,7 @@ No treasurer holding the account. No chairman who can skip a phase. No contribut
 
 | | |
 |---|---|
-| **Smart contracts** | 5 contracts + 3 libraries, ~3,700 lines of Solidity. **93 Foundry tests passing** — full lifecycle, fuzzed treasury invariants, a malicious-token reentrancy test, multi-sig edge cases, a 17-test member-governance suite, an 11-test upgrade-safety suite, a 4-test disbursement-fee suite. |
+| **Smart contracts** | 5 contracts + 3 libraries, ~3,700 lines of Solidity. **98 Foundry tests passing** — full lifecycle, fuzzed treasury invariants, a malicious-token reentrancy test, multi-sig edge cases, a 17-test member-governance suite, an 11-test upgrade-safety suite, a 6-test disbursement-fee suite, and pause-can't-trap-funds coverage. |
 | **Live on Arc Testnet** | Factory, upgradeable beacon + timelock controller, member-governance contract, view layer, and a seed DAO — all deployed and verified at block 60010770. This stack replaced an earlier clone-based deployment when member governance and beacon upgradeability landed; the pilot cohort that had signed on is being re-onboarded onto it. Addresses in the reference section. |
 | **Web app** | React 19, 12 views covering every action from treasury creation to disbursement, governance, and returns. Live at `civic-vault-aupu.vercel.app`. |
 | **Mobile app** | React Native / Expo, feature-complete, pending store submission. |
@@ -146,7 +146,7 @@ CivicVault is a community product, not a typical blockchain product. It is won o
 
 ### Security of funds — $17,000
 Every DAO holds a live USDC treasury — members' committed deposits plus disbursement escrow — in one contract. That treasury is defended in five independent layers, not one audit:
-- **Independent audit — $12,000.** Full-scope engagement (Cyfrin / Halborn / Trail of Bits tier) across the 5 contracts + 3 libraries, ~3,700 lines: treasury lifecycle, deposit/commit accounting, phased disbursement escrow, the basis-point disbursement fee, 3-of-N multi-sig on returns, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer. Pre-audit hardening is done — 93 tests including fuzzed invariants (distributed returns never exceed deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, multi-sig edge cases.
+- **Independent audit — $12,000.** Full-scope engagement (Cyfrin / Halborn / Trail of Bits tier) across the 5 contracts + 3 libraries, ~3,700 lines: treasury lifecycle, deposit/commit accounting, phased disbursement escrow, the basis-point disbursement fee, 3-of-N multi-sig on returns, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer. Pre-audit hardening is done — 98 tests including fuzzed invariants (distributed returns never exceed deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, multi-sig edge cases.
 - **Competitive review — $3,000.** A Code4rena / Cantina contest after primary-audit remediation, focused on the upgradeability and governance surface — the newest, highest-leverage code.
 - **Bug bounty — $1,000.** An Immunefi listing plus an initial payout reserve, live from the first mainnet deposit and scaling with TVL.
 - **Real-time monitoring — $700 / 12 months.** Alerts on every large withdrawal, admin change, upgrade proposal, freeze, and clawback, routed to the founder and DAO admins, with an automated pause trigger.
@@ -223,7 +223,7 @@ Fund that mile, and a street never has to just accept the dark again.
 
 `ReentrancyGuard` on every ERC-20 transfer path · CEI ordering throughout · `Pausable` creator-only emergency stop that halts *new* activity but cannot block exits, claims, clawback reclaims, or member governance · `SafeERC20` for all USDC · `Initializable` against proxy re-init · 40+ typed custom errors · 3-of-N multi-sig on yield execution · stake-weighted, sybil-resistant governance with a pass rule snapshotted at proposal open · banned-admin re-appointment guard · disbursement fee capped at 100 bps and returns fee capped at 500 bps in code, treasury fixed at DAO creation, both taken only from the tranche / realized return, never from principal or escrow · the protocol never sweeps unclaimed member funds · beacon upgrades behind a 4-day timelock + TVL-weighted DAO veto.
 
-`forge coverage` cannot emit a percentage — it hits a stack-too-deep compiler error on a codebase this size even under `--ir-minimum`, a known Foundry limitation, not a gap hidden behind test count. Coverage is demonstrated by the 93-test suite and its fuzzed invariants.
+`forge coverage` cannot emit a percentage — it hits a stack-too-deep compiler error on a codebase this size even under `--ir-minimum`, a known Foundry limitation, not a gap hidden behind test count. Coverage is demonstrated by the 98-test suite and its fuzzed invariants.
 
 ## Clients
 
