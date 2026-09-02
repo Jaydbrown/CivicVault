@@ -1,8 +1,10 @@
 # CivicVault
 
-**On-chain infrastructure for the way communities actually pool money.**
+**Programmable USDC treasury infrastructure for member-owned communities.**
 
 Built on Circle's Arc Network · Live on Arc Testnet · Requesting $42,000 to secure and launch.
+
+Circle's grant RFP names *treasury management — stablecoin-powered treasury products with embedded wallets, transfers, compliance tooling, and programmable liquidity* as a focus use case. That is CivicVault, exactly, aimed at the smallest and most underserved treasuries there are: the ones communities run themselves, today with a notebook and one person's bank account.
 
 ---
 
@@ -20,11 +22,14 @@ I watched that exact pattern repeat — different street, different collection, 
 
 ## What it is
 
-CivicVault lets a neighborhood, a PTA, a savings group, or a diaspora club spin up its own on-chain treasury in one transaction. Members pool USDC. They vote — with real stake behind the vote — on which local investments to fund. Money is escrowed by the contract itself and released to projects in milestone phases, never all at once. When an investment returns a profit, the contract splits the yield automatically, to the exact cent, in proportion to what each member staked.
+CivicVault gives a community — a neighborhood association, a PTA, a cooperative, a union, a diaspora club — a programmable USDC treasury it governs by rule instead of by trust, deployed in one transaction.
 
-No treasurer holding the account. No chairman who can skip a phase. No contributor who quietly loses their claim. Every release, every vote, every payout is on a public ledger that no admin can edit.
+- **Embedded wallets.** Members sign in with email or Google and get a non-custodial Circle smart-account wallet. No seed phrase, no gas token, no app to leave.
+- **Controlled transfers.** Contributions land in the treasury contract, not a person's account. Disbursements to a project or vendor are milestone-gated (30 / 40 / 30%) and need multi-party authorization — no one moves funds alone or out of order.
+- **Compliance tooling.** Members are KYC-verified as on-chain hash commitments (no personal data on-chain). Every backend-initiated transfer clears a transaction-policy allowlist and lands in an audit log. Institutions can export the full ledger.
+- **Programmable liquidity.** Funds can be allocated to a local project and the escrow released against progress; members can vote to freeze a release or claw back what hasn't been spent; unclaimed returns are swept after a configurable grace period. When an allocation produces a return, the contract distributes it to contributors automatically, to the cent, in proportion to what each committed.
 
-You're not donating anymore. You're staking — and when the community's investment pays off, so do you.
+No treasurer holding the account. No chairman who can skip a phase. No contributor who quietly loses their claim. Every movement is on a public ledger that no admin can edit.
 
 ---
 
@@ -34,7 +39,7 @@ You're not donating anymore. You're staking — and when the community's investm
 |---|---|
 | **Smart contracts** | 8 contracts, ~3,700 lines of Solidity. **89 Foundry tests passing** — full lifecycle, fuzzed treasury invariants, a malicious-token reentrancy test, multi-sig edge cases, a 17-test member-governance suite, an 11-test upgrade-safety suite. |
 | **Live on Arc Testnet** | Factory, upgradeable beacon + timelock controller, member-governance contract, view layer, and a seed DAO — all deployed and verified at block 60010770. This stack replaced an earlier clone-based deployment when member governance and beacon upgradeability landed; the pilot cohort that had signed on is being re-onboarded onto it. Addresses in the reference section. |
-| **Web app** | React 19, 12 views covering every action from DAO creation to yield claim. Live at `civic-vault-aupu.vercel.app`. |
+| **Web app** | React 19, 12 views covering every action from treasury creation to disbursement, governance, and returns. Live at `civic-vault-aupu.vercel.app`. |
 | **Mobile app** | React Native / Expo, feature-complete, pending store submission. |
 | **Feature-phone access** | USSD (`*123#`) menu — balance, vote, governance — built end to end, including a PIN-authorised custodial signer with a hard balance cap and SMS confirmations. |
 | **Backend** | Privy-authenticated Express API. Every Circle signing request passes an on-chain-verified transaction policy and lands in an audit log. Real-time chat, email notifications, a live subgraph. |
@@ -45,7 +50,7 @@ The single thing standing between this codebase and a mainnet communities can tr
 
 ## The problem, at scale
 
-Rotating savings groups — chamas, susus, ajo, esusu, tontines, arisan — move **well over $100 billion a year**, almost entirely through WhatsApp threads, spreadsheets, and one person's bank account. Sub-Saharan Africa alone has 40M+ chama members. Add PTA development funds, community development associations, student union budgets, and diaspora investment clubs, and you have an enormous, entirely offline market whose defining failure mode is *money pooled by a group with no enforceable record of where it went.*
+Every one of these groups is running a treasury — they just don't call it that, and they run it with a notebook. Rotating savings groups — chamas, susus, ajo, esusu, tontines, arisan — move **well over $100 billion a year**, almost entirely through WhatsApp threads, spreadsheets, and one person's bank account. Sub-Saharan Africa alone has 40M+ chama members. Add PTA development funds, community development associations, student union budgets, and diaspora investment clubs, and you have an enormous, entirely offline market whose defining failure mode is *money pooled by a group with no enforceable record of where it went.*
 
 Three things have kept a solution out of reach:
 
@@ -73,12 +78,12 @@ Take any one of these away and the experience collapses back into "you need to u
 
 1. **A founder deploys a DAO** through a gas-efficient beacon-proxy factory — one transaction, no legal overhead. Every DAO shares one upgradeable implementation, so a future security fix reaches all of them without a migration.
 2. **Admins onboard and KYC-verify members** with on-chain hash commitments — a cryptographic record that verification happened, zero personal data on-chain.
-3. **Admins post investment proposals** — a transformer, a classroom block, a cooperative loan, a market stall — each with a funding target, deadline, risk grade, and IPFS-linked documents.
-4. **Members vote by staking USDC.** An upvote moves real capital into escrow. Downvotes are free but carry no weight — no veto without accountability.
-5. **On hitting target, funds escrow and release in three phases** (30% / 40% / 30%), enforced in sequence by an on-chain counter. An admin *cannot* release phase 2 before phase 1 — but sequencing is not verification, and a colluding admin could still walk all three tranches to a vendor who builds nothing. That is exactly what member governance is for: any member who sees no progress can open a proposal to **freeze the release**, and if the money is already gone dark, to **claw back every unreleased tranche** pro-rata to the people who funded it. The admin controls the schedule; the members control whether the money keeps moving.
-6. **Yield deposits need 3-of-N admin approval** — and the money must actually be in the proposer's wallet at execution, not promised. No ghost payouts.
-7. **Members claim their exact pro-rata share** whenever they want. The contract doesn't do favoritism and never forgets the smallest contributor.
-8. **Members — not the creator — hold ultimate control.** Stake-weighted member votes can evict an admin (and bar the creator from re-appointing them), freeze a suspicious release, or claw back an investment's unreleased funds pro-rata to its backers.
+3. **Admins propose a treasury allocation** — a transformer, a classroom block, working capital for a member co-op, a market stall — each with an amount, deadline, risk grade, and IPFS-linked documents.
+4. **Members authorize it by committing USDC behind it.** A commit moves real capital into escrow and sets that member's governance weight; a free "no" carries no weight — no veto without exposure.
+5. **On reaching the amount, funds escrow and disburse in three phases** (30% / 40% / 30%), enforced in sequence by an on-chain counter. An admin *cannot* release phase 2 before phase 1 — but sequencing is not verification, and a colluding admin could still walk all three tranches to a vendor who builds nothing. That is exactly what member governance is for: any member who sees no progress can open a proposal to **freeze the release**, and if the money is already gone dark, to **claw back every unreleased tranche** pro-rata to the people who funded it. The admin controls the schedule; the members control whether the money keeps moving.
+6. **Returns flow back into the treasury under 3-of-N approval** — and the money must actually be in the depositor's wallet at execution, not promised. No ghost entries.
+7. **Contributors receive their exact pro-rata share** of any return, whenever they want. The contract doesn't do favoritism and never forgets the smallest contributor.
+8. **Members — not the creator — hold ultimate control.** Stake-weighted member votes can evict an admin (and bar the creator from re-appointing them), freeze a suspicious release, or claw back an allocation's unspent funds pro-rata to its backers.
 
 That last point is the one most protocols get wrong, so it's worth being explicit.
 
@@ -98,7 +103,7 @@ That last point is the one most protocols get wrong, so it's worth being explici
 
 **No custodial backend.** The web/mobile tier is fully non-custodial. The feature-phone tier is necessarily custodial (a `*123#` session can't hold a key), but it's bounded: signing is limited by policy to vote / claim / capped-approve — never a transfer-out — with a per-wallet balance cap, full audit logging, and PIN lockout. Disclosed in-product and here.
 
-**Regulatory status.** CivicVault currently operates as a testnet pilot with no live custody of member funds. Before mainnet, the custodial USSD tier and the "communities stake and share in returns" model will be reviewed with Nigerian counsel; a legal entity will be incorporated, and the on/off-ramp for the feature-phone tier will run through a licensed partner rather than the protocol. The engineering controls above (policy-scoped signing, balance caps, audit logging) are risk mitigation, not a substitute for that review — and part of what this grant makes possible.
+**Regulatory status.** CivicVault currently operates as a testnet pilot with no live custody of member funds. Before mainnet, the custodial USSD tier and the returns-distribution feature will be reviewed with Nigerian counsel; a legal entity will be incorporated, and the on/off-ramp for the feature-phone tier will run through a licensed partner rather than the protocol. The engineering controls above (policy-scoped signing, balance caps, audit logging) are risk mitigation, not a substitute for that review — and part of what this grant makes possible.
 
 ---
 
@@ -117,15 +122,17 @@ Community-first, not crypto-first. The user is an organizer, not a DeFi native.
 
 ## The business
 
-CivicVault earns nothing when a DAO is idle. It earns when a community's investment pays off.
+The revenue model is a treasury model — it charges for running the treasury, not for the treasury succeeding at investing. Nothing here depends on a community generating a return, which is not something a grant reviewer should be asked to bank on.
 
-**Protocol yield fee** — skimmed from **realized yield only** (never principal, never escrow) when a deposit executes, paid to a protocol treasury. Set on the factory, **hard-capped at 5% in the contract**, launching at **3%**. Enforced on-chain, emitted as an event, visible to every member before they join. On $500,000 of realized yield flowing through the protocol, that's $15,000 to the treasury.
+**1. Disbursement fee (primary).** A small basis-point fee — target **25–50 bps**, factory-set and hard-capped — skimmed when funds are released from escrow to a project or vendor. Every active treasury generates it; it scales with usage, not with investment outcomes, and it's predictable. It also funds the Circle Gas Station sponsorship pool directly: usage pays for usage. (This is a small addition to `releaseNextPhase` and is in the audit scope below — the contract today implements only the returns fee.)
 
-The launch rate is 3% (revised up from an earlier 1.5% model once Gas Station sponsorship and ongoing security operations — monitoring, bug bounty — were priced in; the two together cost more than 1.5% of early yield can cover). It is still an order of magnitude below the 15–30% management cuts that cooperative administrators and investment-club organizers routinely take today, and unlike theirs it is fixed in code, capped, and auditable by every member.
+**2. Institutional tier (recurring).** A flat annual subscription for registered cooperatives, unions, and associations that need branding, compliance ledger exports, named/enterprise signers, higher member caps, and priority support. Predictable recurring revenue, sold to entities that already have a budget line for administration.
 
-Secondary lines as the network scales: a small one-time DAO creation fee, and an institutional tier for registered cooperatives and unions that need branding, compliance exports, and higher limits.
+**3. One-time deployment fee.** A small fee on treasury creation, waived for the pilot cohort.
 
-The model works because every alternative costs a community far more — a lawyer to structure an investment vehicle, a joint bank account with fees and no audit trail, or a cooperative administrator whose management cut dwarfs a 3% protocol fee with none of the transparency.
+**4. Realized-returns fee (secondary).** For treasuries that *do* allocate to yield-bearing projects, the contract skims from **realized returns only** (never principal, never escrow) — hard-capped at 5%, launching at 3%, emitted on-chain. This is upside, not the plan.
+
+Every alternative costs a community far more — a lawyer to structure a vehicle, a joint bank account with fees and no audit trail, or an administrator whose cut dwarfs a fee measured in basis points, with none of the transparency.
 
 ---
 
@@ -134,8 +141,8 @@ The model works because every alternative costs a community far more — a lawye
 CivicVault is a community product, not a typical blockchain product. It is won or lost on exactly two things, and the budget is built around them in equal measure: **the pooled USDC treasury in every DAO must be provably safe**, and **real community groups must actually find it, trust it, and use it.** An audited protocol nobody adopts fails. An adopted protocol that loses a community's money fails worse.
 
 ### Security of funds — $17,000
-Every DAO holds members' stake plus investment escrow in one contract. That pool is defended in five independent layers, not one audit:
-- **Independent audit — $12,000.** Full-scope engagement (Cyfrin / Halborn / Trail of Bits tier) across the 8 contracts and ~3,700 lines: DAO lifecycle, staked voting, phased escrow, 3-of-N multi-sig yield, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer. Pre-audit hardening is done — 89 tests including fuzzed invariants (claimed yield never exceeds deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, multi-sig edge cases.
+Every DAO holds a live USDC treasury — members' committed deposits plus disbursement escrow — in one contract. That treasury is defended in five independent layers, not one audit:
+- **Independent audit — $12,000.** Full-scope engagement (Cyfrin / Halborn / Trail of Bits tier) across the 8 contracts and ~3,700 lines: treasury lifecycle, deposit/commit accounting, phased disbursement escrow, the basis-point disbursement fee (added pre-audit), 3-of-N multi-sig on returns, member governance, the beacon-proxy factory and its timelock/veto upgrade controller, plus the backend transaction-policy layer. Pre-audit hardening is done — 89 tests including fuzzed invariants (distributed returns never exceed deposited; escrow release never exceeds funded), a malicious-ERC20 reentrancy test, multi-sig edge cases.
 - **Competitive review — $3,000.** A Code4rena / Cantina contest after primary-audit remediation, focused on the upgradeability and governance surface — the newest, highest-leverage code.
 - **Bug bounty — $1,000.** An Immunefi listing plus an initial payout reserve, live from the first mainnet deposit and scaling with TVL.
 - **Real-time monitoring — $700 / 12 months.** Alerts on every large withdrawal, admin change, upgrade proposal, freeze, and clawback, routed to the founder and DAO admins, with an automated pause trigger.
@@ -170,9 +177,9 @@ Mobile store submission and the rest of the localization work are already scoped
 
 ## Why this matters
 
-CivicVault is not a yield aggregator or a token play. It is **infrastructure for real communities making real decisions about real money**, and nothing purpose-built for this exists in Web3 today — not for savings groups, not for neighborhood cooperatives, not for PTA funds, not for diaspora pools.
+CivicVault is not a yield aggregator or a token play. It is **stablecoin treasury infrastructure for member-owned organizations** — the same embedded wallets, controlled transfers, compliance tooling, and programmable liquidity Circle names as a focus use case, built for the treasuries that have never had any of it: the ones communities run themselves. Nothing purpose-built for this exists in Web3 today — not for savings groups, not for neighborhood cooperatives, not for PTA funds, not for diaspora pools.
 
-The hard part is done. Three client surfaces, audit-ready contracts with member governance that closes the last centralization gap, a non-custodial wallet layer, a live subgraph, a pilot DAO on-chain. The last mile is an audit and three communities to prove it in the field.
+The hard part is done. Three client surfaces, audit-ready contracts with member governance that closes the last centralization gap, a non-custodial wallet layer, a live subgraph, a treasury deployed on-chain. The last mile is an audit and three communities to prove it in the field.
 
 Fund that mile, and a street never has to just accept the dark again.
 
@@ -236,7 +243,7 @@ Fund that mile, and a street never has to just accept the dark again.
 | Product | Status | Use |
 |---|---|---|
 | Arc | ✅ | Sole deployment chain. |
-| USDC | ✅ | Native gas + settlement across all staking, escrow, voting, yield. |
+| USDC | ✅ | Native gas + settlement across treasury deposits, escrow, disbursement, and returns. |
 | Circle User-Controlled Wallets | ✅ | Auto-provisioned ERC-4337 smart account on email/Google sign-in; MPC-split key; backend holds no share. |
 | Circle Gas Station | ✅ | Sponsors gas for every member action. |
 | CCTP | Q1 2027 | Multi-chain USDC deposits from Base / Ethereum / Solana into DAO treasuries. |

@@ -5,13 +5,13 @@
 ## Slide 1 · Cover
 
 # CivicVault
-### Community Capital, On-Chain
+### Programmable USDC treasuries for member-owned communities
 
-Neighborhood DAOs that pool USDC, vote on local investments, and share yield — on-chain, transparent, no middlemen.
+Give an association, cooperative, union, or club a shared on-chain treasury it governs by rule instead of by trust — embedded wallets, milestone-gated disbursement, multi-party authorization, member freeze/clawback, a tamper-proof ledger. Circle's *treasury management* use case, for the treasuries that have never had it.
 
 - **Chain:** Arc Network (Circle) · Chain ID 5042002
 - **Status:** Live on Arc Testnet · Mainnet-ready pending audit
-- **Demo:** https://final-project-sol-lx9v.vercel.app
+- **Demo:** https://civic-vault-aupu.vercel.app
 - **Video:** https://youtu.be/mkdc0uo4waQ
 
 ---
@@ -57,7 +57,7 @@ Circle's Arc Network — where USDC is the native gas token — makes USDC-nativ
 
 ## Slide 4 · The Solution
 
-### CivicVault lets communities run their savings groups on-chain — from start to yield.
+### CivicVault runs a community's treasury on-chain — from deposit to disbursement to returns.
 
 Here's how a community uses it:
 
@@ -228,18 +228,23 @@ Factory — `0x58Ff8ca3b9863e535845f58D5d7AA90B33fE635F` · Governor — `0x1cE8
 
 ## Slide 10 · Business Model
 
-**Protocol fee: a percentage of realized yield only (launches at 3%, hard-capped at 5% in the contract).**
+**Monetize the treasury, not the treasury's investment results.**
 
-Communities pay nothing to create a DAO, onboard members, or vote. The fee never touches principal or escrow — CivicVault earns only when members earn.
+| Line | What | Why it holds |
+|---|---|---|
+| **Disbursement fee (primary)** | 25–50 bps, hard-capped, skimmed when escrow releases to a project/vendor | Every active treasury generates it; scales with usage, not investment outcomes; funds the Gas Station pool |
+| **Institutional tier (recurring)** | Flat annual subscription — branding, compliance exports, named signers, higher limits | Predictable recurring revenue from entities with an admin budget line |
+| **Deployment fee** | Small one-time fee on treasury creation (waived for pilots) | — |
+| **Realized-returns fee (secondary)** | 3% of realized returns only, capped at 5%, on-chain | Upside for treasuries that invest — not the plan |
 
 | Metric | 6 Months | 12 Months |
 |---|---|---|
-| DAOs on mainnet | 5 | 15 |
+| Treasuries on mainnet | 5 | 15 |
 | Verified members | 100 | 400 |
-| USDC staked in voting | $2,000 | $8,000 |
-| Yield distributed | $200 | $800 |
+| USDC committed | $2,000 | $8,000 |
+| Funds disbursed | $1,200 | $6,000 |
 
-Growth is deliberately conservative — this is a trust-based, facilitation-heavy product, not a viral one. At scale — a few hundred DAOs averaging ~$100K TVL — realized-yield fees compound into a sustainable base; enterprise tiers for registered cooperatives and SDK licensing add further revenue.
+Growth is deliberately conservative — this is a trust-based, facilitation-heavy product, not a viral one. Nothing in this model depends on communities succeeding at investing.
 
 ---
 

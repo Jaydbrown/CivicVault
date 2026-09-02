@@ -66,7 +66,7 @@ const Hero: React.FC<{ onLaunch: () => void; isAuthenticated?: boolean }> = ({
           animate={{ x: ["0%", "-50%"] }}
           transition={{ ease: "linear", duration: 15, repeat: Infinity }}
         >
-          {Array(8).fill("COMMUNITY GOVERNED • TRANSPARENT • ON-CHAIN YIELDS • ").map((text, i) => (
+          {Array(8).fill("COMMUNITY GOVERNED • TRANSPARENT • ON-CHAIN TREASURIES • ").map((text, i) => (
             <span key={i} className="font-display text-3xl md:text-4xl font-bold mx-4 uppercase tracking-widest shrink-0">
               {text}
             </span>

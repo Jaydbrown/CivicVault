@@ -1,6 +1,6 @@
 # CivicVault
 
-> Community-governed investment DAOs on Arc Testnet — stake USDC, vote on local infrastructure proposals, and earn proportional yield when investments succeed.
+> Programmable USDC treasury infrastructure for member-owned communities on Arc Testnet — pooled deposits, milestone-gated disbursement, multi-party authorization, member-level freeze/clawback, and a tamper-proof on-chain ledger.
 
 [![Arc Testnet](https://img.shields.io/badge/Chain-Arc%20Testnet%205042002-blue)](https://testnet.arcscan.app)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-brightgreen)](https://soliditylang.org/)
@@ -28,7 +28,7 @@
 
 ## Overview
 
-CivicVault lets communities pool USDC into a DAO treasury, propose and vote on local investments — roads, schools, utilities — and distribute yield back to members when projects complete.
+CivicVault gives a community a programmable USDC treasury it governs by rule instead of by trust: pooled deposits held in a contract (not a person's account), disbursements to local projects that are milestone-gated and multi-party authorized, member votes that can freeze a release or claw back unspent funds, and a tamper-proof ledger of every movement. When an allocation produces a return, the contract distributes it to contributors pro-rata. It maps directly to Circle's *treasury management* use case — embedded wallets, controlled transfers, compliance tooling, programmable liquidity — for the treasuries that have never had any of it.
 
 **Why Arc Testnet?** Arc is Circle's L1 blockchain where USDC is the native gas token. Every fee and transfer is denominated in the same stable asset, eliminating the UX friction of needing a separate gas token alongside the investment currency.
 
