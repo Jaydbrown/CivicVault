@@ -270,6 +270,51 @@ export const loadDaoChatMessages = (
   return Promise.resolve(messages.slice(messages.length - limit));
 };
 
+/**
+ * Fallback: write straight to Supabase with the publishable key. Only used when
+ * the backend reports chat isn't configured (no SUPABASE_SERVICE_KEY yet).
+ * Membership is still enforced by the composer gate in Messages.tsx. Once the
+ * service key + restrict-chat-inserts.sql are in place, this path stops working
+ * (RLS blocks it) and everything goes through the verified backend route.
+ */
+const writeDirectToSupabase = async (params: {
+  daoAddress: string;
+  senderWallet: string;
+  senderLabel: string;
+  content: string;
+  attachmentUrl?: string | null;
+}): Promise<DaoChatMessage> => {
+  const attach = params.attachmentUrl?.trim() || "";
+  const id =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const base = {
+    id,
+    room_key: getRoomKey(params.daoAddress),
+    sender_wallet: params.senderWallet,
+    sender_label: params.senderLabel,
+    content: params.content.slice(0, 1000),
+    created_at: new Date().toISOString(),
+  };
+  const post = (row: Record<string, unknown>) =>
+    fetch(getSupabaseRestUrl(), {
+      method: "POST",
+      headers: { ...supabaseHeaders(), Prefer: "return=representation" },
+      body: JSON.stringify([row]),
+    });
+  let res = await post(attach ? { ...base, attachment_url: attach } : base);
+  if (!res.ok && attach) {
+    const body = await res.text();
+    if (supabaseAttachmentColumnUnsupported(res.status, body)) {
+      res = await post({ ...base, content: [base.content, attach].filter(Boolean).join("\n\n").slice(0, 1000) });
+    }
+  }
+  if (!res.ok) throw new Error(`Failed to send message: ${await res.text()}`);
+  const [row] = fromSupabaseRows((await res.json()) as never);
+  return row ?? hydrateChatImageAttachment({ ...base, daoAddress: base.room_key, createdAt: Date.now(), attachmentUrl: attach || undefined } as never);
+};
+
 export const sendDaoChatMessage = (params: {
   daoAddress: string;
   senderWallet: string;
@@ -303,6 +348,10 @@ export const sendDaoChatMessage = (params: {
       .catch((err) => {
         if (err instanceof ApiError && err.status === 403) {
           throw new Error("Only verified members of this DAO can post here.");
+        }
+        // Backend not wired for chat yet (503) -> write directly for now.
+        if (err instanceof ApiError && (err.status === 503 || err.status === 404)) {
+          return writeDirectToSupabase({ daoAddress, senderWallet, senderLabel, content: content.slice(0, 1000), attachmentUrl: attachmentUrl || undefined });
         }
         throw err instanceof Error ? err : new Error("Failed to send message.");
       });
