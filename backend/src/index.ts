@@ -9,7 +9,6 @@ import authRoutes         from './routes/auth.routes';
 import chatRoutes         from './routes/chat.routes';
 import notificationRoutes from './routes/notifications.routes';
 import usersRoutes        from './routes/users.routes';
-import circleWalletRoutes from './routes/circleWallet.routes';
 import walletRoutes       from './routes/wallet.routes';
 import fiatRoutes         from './routes/fiat.routes';
 import ussdRoutes         from './routes/ussd.routes';
@@ -39,7 +38,11 @@ app.use('/api/auth',          authRoutes);
 app.use('/api/chat',          chatRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users',         usersRoutes);
-app.use('/api/circle-wallet', circleWalletRoutes); // deprecated — superseded by /api/wallet
+// '/api/circle-wallet' (routes/circleWallet.routes.ts) is retired, not mounted:
+// it had no auth and would create a Circle *developer-controlled* (custodial)
+// wallet for any address a caller named — contradicting the non-custodial
+// claim for embedded wallets. Superseded by /api/wallet's ensureWallet flow,
+// which provisions a user-controlled wallet for the authenticated caller only.
 app.use('/api/wallet',        walletRoutes);
 app.use('/api/fiat',          fiatRoutes);
 app.use('/api/ussd',          ussdRoutes);

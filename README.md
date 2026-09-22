@@ -344,6 +344,12 @@ Beacon-proxy stack with member governance + the protocol yield fee. Deployed at 
 
 Protocol fee: **300 bps** (3%) of realized yield → treasury `0x336d2787…` (deployer EOA on testnet; use a Safe for mainnet).
 
+> **Not yet redeployed:** the disbursement-fee, 4-day-timelock, and pause-scope
+> changes described in this document are committed and tested but not live at
+> the addresses above yet — a fresh testnet deploy and subgraph re-index land
+> before the audit engagement begins. Don't assume the deployed contracts
+> already reflect every behavior described here until this note is removed.
+
 > View on explorer: [testnet.arcscan.app](https://testnet.arcscan.app)
 
 ---

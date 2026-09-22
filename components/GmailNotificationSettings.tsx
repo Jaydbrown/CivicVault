@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Bell, BellOff, Check, AlertCircle } from 'lucide-react';
 import { BACKEND_URL } from '../utils/backendUrl';
+import { apiFetch } from '../utils/apiFetch';
 
 interface GmailNotificationSettingsProps {
   walletAddress: string;
@@ -32,8 +33,8 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
 
   const checkGmailConnection = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/auth/preferences/${walletAddress}`);
-      const data = await response.json();
+      // Auth required now — this must be the caller's own wallet.
+      const data = await apiFetch<{ gmailConnected: boolean }>(`/api/auth/preferences/${walletAddress}`);
       setIsConnected(!!data.gmailConnected);
     } catch (error) {
       console.error('Error checking Gmail connection:', error);

@@ -15,6 +15,7 @@ import {
 } from '../utils/civicVaultContracts';
 import { formatTxError, notifyError, notifySuccess } from '../utils/toast';
 import { BACKEND_URL } from '../utils/backendUrl';
+import { apiFetch } from '../utils/apiFetch';
 import { getCanonicalWalletAddress } from '../utils/walletResolution';
 import { useMemberSigner } from '../utils/useMemberSigner';
 import { usePrivy } from '@privy-io/react-auth';
@@ -82,8 +83,8 @@ const GmailConnectionStatus: React.FC<{ walletAddress: string }> = ({ walletAddr
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/auth/preferences/${walletAddress}`)
-      .then((r) => r.json())
+    // Auth required now — this must be the caller's own wallet.
+    apiFetch<{ gmailConnected: boolean }>(`/api/auth/preferences/${walletAddress}`)
       .then((d) => setIsConnected(!!d.gmailConnected))
       .catch(() => null);
   }, [walletAddress]);

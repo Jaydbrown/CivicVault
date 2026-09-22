@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { google } from 'googleapis';
 import { prisma } from '../db/prisma';
 import { normalizeWalletAddress } from '../utils/wallet';
-import { authConfigured, verifyBearer } from '../middleware/auth';
+import { authConfigured, requireAuth, verifyBearer } from '../middleware/auth';
 
 const router = Router();
 
@@ -160,8 +160,12 @@ router.post('/sync-identity', async (req, res) => {
   }
 });
 
-// Check Gmail connection status
-router.get('/preferences/:walletAddress', async (req, res) => {
+// Check Gmail connection status.
+// Auth required — self-only (requireAuth 403s on a wallet/token mismatch).
+// The response also no longer echoes `email`: nothing in the app reads it
+// from here (only `gmailConnected`), and this route used to leak any user's
+// email to whoever knew their wallet address.
+router.get('/preferences/:walletAddress', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) {
@@ -171,10 +175,9 @@ router.get('/preferences/:walletAddress', async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { walletAddress },
     });
-    
-    res.json({ 
+
+    res.json({
       gmailConnected: !!user?.gmailRefreshToken,
-      email: user?.email,
       walletAddress
     });
   } catch (error: any) {

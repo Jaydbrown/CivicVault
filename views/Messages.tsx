@@ -17,6 +17,7 @@ import {
 import { uploadImageToIpfs } from "../utils/ipfs";
 import { formatTxError, notifyError, notifySuccess, notifyWarning } from "../utils/toast";
 import { BACKEND_URL } from "../utils/backendUrl";
+import { apiFetch } from "../utils/apiFetch";
 import { getCanonicalWalletAddress } from "../utils/walletResolution";
 import {
   PROFILE_AVATAR_CHANGED_EVENT,
@@ -119,8 +120,8 @@ const GmailNotificationSettings: React.FC<{
 
   const checkGmailConnection = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/auth/preferences/${walletAddress}`);
-      const data = await response.json();
+      // Auth required now — this must be the caller's own wallet.
+      const data = await apiFetch<{ gmailConnected: boolean }>(`/api/auth/preferences/${walletAddress}`);
       setIsConnected(!!data.gmailConnected);
     } catch (error) {
       console.error("Error checking Gmail connection:", error);
@@ -329,34 +330,26 @@ const MessagesView: React.FC = () => {
         daoAddress: message.daoAddress,
         daoName: daoName,
         message: message.content,
-        senderWallet: message.senderWallet,
-        senderName: message.senderLabel
       });
-      
+
       const emailPreview = message.attachmentUrl?.trim()
         ? message.content.trim()
           ? `${message.content.trim().slice(0, 200)} [Photo]`
           : "[Photo shared]"
         : message.content;
 
-      const response = await fetch(`${BACKEND_URL}/api/chat/webhook/new-message`, {
+      // Requires auth: the backend derives the sender from the caller's own
+      // verified token (not from senderWallet/senderName in the body) and
+      // checks DAO membership before relaying anything through our mailbox.
+      const result = await apiFetch<Record<string, unknown>>("/api/chat/webhook/new-message", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           daoAddress: message.daoAddress,
           daoName: daoName,
           message: emailPreview,
-          senderWallet: message.senderWallet,
-          senderName: message.senderLabel,
           timestamp: message.createdAt
         })
       });
-
-      const result = (await response.json()) as Record<string, unknown>;
-      if (!response.ok) {
-        const msg = typeof result.error === "string" ? result.error : response.statusText;
-        throw new Error(msg || "Webhook failed");
-      }
 
       console.log("📧 Webhook result:", result);
 

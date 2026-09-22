@@ -135,21 +135,40 @@ router.get('/subscriptions/:walletAddress', async (req, res) => {
   }
 });
 
-/** Webhook publishes to RabbitMQ (preferred) — workers handle DB writes + SMTP jobs. Falls back synchronous if broker absent or publish fails. */
-router.post('/webhook/new-message', async (req, res) => {
+/**
+ * Webhook publishes to RabbitMQ (preferred) — workers handle DB writes + SMTP jobs.
+ * Falls back synchronous if broker absent or publish fails.
+ *
+ * This fires the actual outbound emails (via the CivicVault Gmail mailbox) to
+ * every DAO subscriber, so it must be gated the same way as `/message`: the
+ * caller must be authenticated and a verified member of `daoAddress` — an open
+ * version of this let anyone relay arbitrary HTML through our Gmail account to
+ * real users' inboxes. `senderWallet`/`senderName` are also taken from the
+ * verified token, never the body, so a member can't spoof who "sent" it.
+ */
+router.post('/webhook/new-message', requireAuth, async (req, res) => {
   try {
-    const { daoAddress, daoName, message, senderWallet, senderName, timestamp } = req.body;
+    const { daoAddress, daoName, message, timestamp } = req.body;
     const daoKey = typeof daoAddress === 'string' ? daoAddress.trim().toLowerCase() : '';
 
     if (!daoKey) {
       return res.status(400).json({ error: 'daoAddress is required' });
     }
+    if (!/^0x[a-f0-9]{40}$/.test(daoKey)) {
+      return res.status(400).json({ error: 'Invalid DAO address' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.auth!.userId } });
+    const candidates = [req.auth!.walletAddress, user?.circleWalletAddress ?? null];
+    if (!(await anyIsDaoMember(daoKey, candidates))) {
+      return res.status(403).json({ error: 'Only verified members of this DAO can trigger notifications for it' });
+    }
 
     const preview = typeof message === 'string' ? message : '';
-    const msgStr = typeof senderName === 'string' ? senderName : 'Someone';
+    const msgStr = user?.email || req.auth!.walletAddress;
     const titleDao = typeof daoName === 'string' ? daoName : 'Community';
     const ts = typeof timestamp === 'number' ? timestamp : Date.now();
-    const sender = typeof senderWallet === 'string' ? senderWallet : '';
+    const sender = req.auth!.walletAddress;
 
     console.log(`📨 Webhook: ${titleDao} from ${msgStr}`);
 

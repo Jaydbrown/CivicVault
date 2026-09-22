@@ -10,16 +10,37 @@ import { getSession } from '../ussd/session';
 const router = Router();
 
 /**
+ * Africa's Talking does not sign its USSD callbacks, so without a shared
+ * secret this endpoint would trust `phoneNumber` from whoever POSTs to it —
+ * letting anyone claim any enrolled phone number and set that victim's PIN
+ * before they ever dial in. Configure the callback URL registered with the
+ * aggregator as `.../api/ussd?token=<USSD_WEBHOOK_SECRET>` so only requests
+ * carrying it are served.
+ */
+function isValidUssdRequest(req: import('express').Request): boolean {
+  const secret = process.env.USSD_WEBHOOK_SECRET?.trim();
+  if (!secret) return false; // fail closed — refuse to run unauthenticated
+  const provided = String(req.query?.token ?? '');
+  return provided.length > 0 && provided === secret;
+}
+
+/**
  * Africa's Talking USSD callback. One POST per menu step; the response body is
  * plain text, `CON ` to keep the session open or `END ` to close it.
  * Body: { sessionId, phoneNumber, text, serviceCode }
  */
 router.post('/', async (req, res) => {
+  res.set('Content-Type', 'text/plain');
+  if (!isValidUssdRequest(req)) {
+    console.warn('[ussd] rejected callback missing/invalid ?token= secret');
+    res.status(401).send('END Unauthorized.');
+    return;
+  }
+
   const sessionId = String(req.body?.sessionId ?? '');
   const phone = String(req.body?.phoneNumber ?? '').trim();
   const text = String(req.body?.text ?? '');
 
-  res.set('Content-Type', 'text/plain');
   if (!sessionId || !phone) {
     res.send('END Invalid request.');
     return;

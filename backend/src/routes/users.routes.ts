@@ -22,7 +22,9 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // GET /api/users/:walletAddress — user with preferences + notifications
-router.get('/:walletAddress', async (req, res) => {
+// Auth required: this includes the user's email, so it must be self-only —
+// requireAuth already 403s if the token's own wallet doesn't match the param.
+router.get('/:walletAddress', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) return res.status(400).json({ error: 'Invalid wallet address' });
@@ -56,7 +58,8 @@ router.get('/:walletAddress/subscriptions', async (req, res) => {
 const VALID_DIGEST_VALUES = ['INSTANT', 'DAILY', 'NEVER'] as const;
 
 // GET /api/users/:walletAddress/profile — enriched user profile
-router.get('/:walletAddress/profile', async (req, res) => {
+// Auth required — same reasoning as GET /:walletAddress above (includes email).
+router.get('/:walletAddress/profile', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) return res.status(400).json({ error: 'Invalid wallet address' });
