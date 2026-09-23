@@ -170,12 +170,20 @@ router.post('/webhook/new-message', requireAuth, async (req, res) => {
 
     // A cosmetic display label the caller may supply (same fallback pattern
     // as /message's senderLabel) — never the sender's email, which would
-    // otherwise get broadcast to every other subscriber in this DAO.
+    // otherwise get broadcast to every other subscriber in this DAO. Capped
+    // and always suffixed with the real (short) address: a verified member
+    // could otherwise pick an arbitrary label (e.g. "CivicVault Support")
+    // to impersonate someone else in the notification — low risk since it's
+    // HTML-escaped and limited to verified members, but the short address
+    // gives every recipient a way to see who actually sent it regardless.
     const shortAddr = (addr: string) => `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-    const bodySenderName = typeof senderName === 'string' ? senderName.trim() : '';
+    const MAX_SENDER_NAME_LEN = 40;
+    const bodySenderName = typeof senderName === 'string' ? senderName.trim().slice(0, MAX_SENDER_NAME_LEN) : '';
 
     const preview = typeof message === 'string' ? message : '';
-    const msgStr = bodySenderName || shortAddr(req.auth!.walletAddress);
+    const msgStr = bodySenderName
+      ? `${bodySenderName} (${shortAddr(req.auth!.walletAddress)})`
+      : shortAddr(req.auth!.walletAddress);
     const titleDao = typeof daoName === 'string' ? daoName : 'Community';
     const ts = typeof timestamp === 'number' ? timestamp : Date.now();
     const sender = req.auth!.walletAddress;
