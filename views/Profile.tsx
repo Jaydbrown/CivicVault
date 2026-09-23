@@ -38,12 +38,12 @@ import {
   setStoredProfileAvatarUrl,
 } from "../utils/profileAvatar";
 import { getAccountDisplayName, getAccountInitial } from "../utils/userDisplay";
-import { formatTxError } from "../utils/toast";
+import { formatTxError, notifyError } from "../utils/toast";
+import { apiFetch } from "../utils/apiFetch";
 import { APP_CHAIN_NAME } from "../utils/contract";
 import { getChainName } from "../utils/chainUtils";
 import { getCanonicalWalletAddress, getLinkedEmail, isEmbeddedWalletOnly } from "../utils/walletResolution";
 import { useMemberSigner } from "../utils/useMemberSigner";
-import { BACKEND_URL } from "../utils/backendUrl";
 
 const MAX_PROFILE_AVATAR_BYTES = 4 * 1024 * 1024;
 const PROFILE_AVATAR_MIME = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
@@ -124,13 +124,16 @@ const ProfileView: React.FC = () => {
     if (!walletAddress || !notifEmail.trim()) return;
     setSavingEmail(true);
     try {
-      await fetch(`${BACKEND_URL}/api/users/${walletAddress}`, {
+      // Requires auth — this route always did, but a plain fetch with no
+      // token always failed here while the UI still reported "saved".
+      await apiFetch(`/api/users/${walletAddress}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: notifEmail.trim() }),
       });
       setEmailSaved(true);
       setTimeout(() => setEmailSaved(false), 3000);
+    } catch (error) {
+      notifyError(error instanceof Error ? error.message : "Failed to save notification email");
     } finally {
       setSavingEmail(false);
     }

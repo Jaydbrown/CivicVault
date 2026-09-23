@@ -14,7 +14,6 @@ import {
   type DaoUserRole, type OnchainDao, type OnchainInvestment, type YieldRow,
 } from '../utils/civicVaultContracts';
 import { formatTxError, notifyError, notifySuccess } from '../utils/toast';
-import { BACKEND_URL } from '../utils/backendUrl';
 import { apiFetch } from '../utils/apiFetch';
 import { getCanonicalWalletAddress } from '../utils/walletResolution';
 import { useMemberSigner } from '../utils/useMemberSigner';
@@ -92,12 +91,11 @@ const GmailConnectionStatus: React.FC<{ walletAddress: string }> = ({ walletAddr
   const connectGmail = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${BACKEND_URL}/api/auth/gmail/connect`, {
+      // Auth required now — the backend derives who this is for from the
+      // caller's own verified token, not from walletAddress in the body.
+      const { url } = await apiFetch<{ url: string }>('/api/auth/gmail/connect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress }),
       });
-      const { url } = await r.json();
       window.location.href = url;
     } catch {
       notifyError('Failed to connect Gmail');
@@ -166,9 +164,9 @@ const DaoNotificationToggle: React.FC<{
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/chat/subscriptions/${walletAddress}`)
-      .then((r) => r.json())
-      .then((subs: any[]) => {
+    // Auth required now — this must be the caller's own wallet.
+    apiFetch<any[]>(`/api/chat/subscriptions/${walletAddress}`)
+      .then((subs) => {
         const match = subs.find((s) => s.daoAddress === daoAddress.toLowerCase());
         setSubscribed(match?.receiveNotifications ?? false);
       })
@@ -178,14 +176,14 @@ const DaoNotificationToggle: React.FC<{
   const toggle = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${BACKEND_URL}/api/chat/subscribe`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      // Requires auth — /api/chat/subscribe always did, but this call never
+      // carried a token, so it always failed. Now via apiFetch.
+      await apiFetch('/api/chat/subscribe', {
+        method: 'POST',
         body: JSON.stringify({ walletAddress, daoAddress, receiveNotifications: !subscribed, email: subscriberEmail }),
       });
-      if (r.ok) {
-        setSubscribed(!subscribed);
-        notifySuccess(subscribed ? 'Notifications disabled' : 'Notifications enabled');
-      }
+      setSubscribed(!subscribed);
+      notifySuccess(subscribed ? 'Notifications disabled' : 'Notifications enabled');
     } catch {
       notifyError('Failed to update preference');
     } finally {

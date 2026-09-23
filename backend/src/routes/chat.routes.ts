@@ -113,7 +113,9 @@ router.post('/subscribe', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/subscriptions/:walletAddress', async (req, res) => {
+// Auth required — self-only. Which DAOs a wallet is subscribed to
+// notifications for shouldn't be enumerable by anyone else.
+router.get('/subscriptions/:walletAddress', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) {
@@ -143,12 +145,14 @@ router.get('/subscriptions/:walletAddress', async (req, res) => {
  * every DAO subscriber, so it must be gated the same way as `/message`: the
  * caller must be authenticated and a verified member of `daoAddress` — an open
  * version of this let anyone relay arbitrary HTML through our Gmail account to
- * real users' inboxes. `senderWallet`/`senderName` are also taken from the
- * verified token, never the body, so a member can't spoof who "sent" it.
+ * real users' inboxes. `senderWallet` (the real identity) always comes from
+ * the verified token, never the body. `senderName` is a cosmetic display
+ * label the caller may still supply — it must never be an email address,
+ * since it gets broadcast to every other subscriber in the outbound email.
  */
 router.post('/webhook/new-message', requireAuth, async (req, res) => {
   try {
-    const { daoAddress, daoName, message, timestamp } = req.body;
+    const { daoAddress, daoName, message, senderName, timestamp } = req.body;
     const daoKey = typeof daoAddress === 'string' ? daoAddress.trim().toLowerCase() : '';
 
     if (!daoKey) {
@@ -164,8 +168,14 @@ router.post('/webhook/new-message', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Only verified members of this DAO can trigger notifications for it' });
     }
 
+    // A cosmetic display label the caller may supply (same fallback pattern
+    // as /message's senderLabel) — never the sender's email, which would
+    // otherwise get broadcast to every other subscriber in this DAO.
+    const shortAddr = (addr: string) => `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+    const bodySenderName = typeof senderName === 'string' ? senderName.trim() : '';
+
     const preview = typeof message === 'string' ? message : '';
-    const msgStr = user?.email || req.auth!.walletAddress;
+    const msgStr = bodySenderName || shortAddr(req.auth!.walletAddress);
     const titleDao = typeof daoName === 'string' ? daoName : 'Community';
     const ts = typeof timestamp === 'number' ? timestamp : Date.now();
     const sender = req.auth!.walletAddress;

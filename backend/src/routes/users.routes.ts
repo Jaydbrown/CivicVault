@@ -41,7 +41,9 @@ router.get('/:walletAddress', requireAuth, async (req, res) => {
 });
 
 // GET /api/users/:walletAddress/subscriptions — chat subscriptions
-router.get('/:walletAddress/subscriptions', async (req, res) => {
+// Auth required — self-only. Not currently called by the frontend, but
+// which DAOs a wallet subscribes to shouldn't be enumerable by anyone else.
+router.get('/:walletAddress/subscriptions', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) return res.status(400).json({ error: 'Invalid wallet address' });
@@ -136,7 +138,9 @@ router.patch('/:walletAddress', requireAuth, async (req, res) => {
 });
 
 // GET /api/users/:walletAddress/preferences — get email notification preferences
-router.get('/:walletAddress/preferences', async (req, res) => {
+// Auth required — self-only. Not currently called by the frontend, but a
+// wallet's notification preferences shouldn't be readable by anyone else.
+router.get('/:walletAddress/preferences', requireAuth, async (req, res) => {
   try {
     const walletAddress = normalizeWalletAddress(req.params.walletAddress);
     if (!walletAddress) return res.status(400).json({ error: 'Invalid wallet address' });

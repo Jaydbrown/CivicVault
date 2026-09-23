@@ -20,14 +20,16 @@ export class GmailService {
     );
   }
 
+  /**
+   * Unused by any route today (auth.routes.ts builds its own auth URL) —
+   * kept in sync anyway so this doesn't become a stale, over-scoped
+   * template if something wires it up later. See auth.routes.ts's
+   * /gmail/connect for why the scope is just userinfo.email.
+   */
   getAuthUrl(userId: string): string {
     return this.oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: [
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.modify',
-      ],
+      scope: ['https://www.googleapis.com/auth/userinfo.email'],
       state: userId,
       prompt: 'consent',
     });

@@ -12,37 +12,32 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GMAIL_REDIRECT_URI
 );
 
-// Generate Gmail auth URL
-router.post('/gmail/connect', async (req, res) => {
+/**
+ * Generate a Gmail auth URL. `state` carries the user id the callback will
+ * write the resulting email/tokens onto — without auth here, anyone could
+ * name someone else's wallet in the body, complete the OAuth consent with
+ * their OWN Google account, and have the callback attach their Gmail
+ * address to the victim's account (redirecting the victim's notifications
+ * to the attacker's inbox). `state` is now always the caller's own,
+ * verified user id — never derived from the request body.
+ *
+ * Scope is intentionally just `userinfo.email`: this flow only ever uses
+ * it to capture an address for notification delivery. `gmail.send` and
+ * `gmail.readonly` were previously requested (full send + whole-inbox-read
+ * access) but nothing in this codebase ever uses the resulting per-user
+ * token to send or read mail — actual outbound mail goes through the
+ * shared CivicVault mailbox (see gmail.service.ts's sendOutboundNotification),
+ * not this OAuth grant. Requesting unused scopes is needless blast radius.
+ */
+router.post('/gmail/connect', requireAuth, async (req, res) => {
   try {
-    const walletAddress = normalizeWalletAddress(req.body?.walletAddress);
-    if (!walletAddress) {
-      return res.status(400).json({ error: 'Invalid wallet address' });
-    }
-    console.log('📧 Gmail connect request for:', walletAddress);
-
-    let user = await prisma.user.findUnique({
-      where: { walletAddress },
-    });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: { walletAddress },
-      });
-    }
-    
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: [
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile'
-      ],
-      state: user.id,
+      scope: ['https://www.googleapis.com/auth/userinfo.email'],
+      state: req.auth!.userId,
       prompt: 'consent'
     });
-    
+
     res.json({ url: authUrl });
   } catch (error: any) {
     console.error('Error:', error.message);

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Bell, BellOff, Check, AlertCircle } from 'lucide-react';
-import { BACKEND_URL } from '../utils/backendUrl';
 import { apiFetch } from '../utils/apiFetch';
 
 interface GmailNotificationSettingsProps {
@@ -43,9 +42,8 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
 
   const checkSubscription = async () => {
     try {
-      // FIXED: Correct endpoint - removed '/notifications'
-      const response = await fetch(`${BACKEND_URL}/api/chat/subscriptions/${walletAddress}`);
-      const subs = await response.json();
+      // Auth required now — this must be the caller's own wallet.
+      const subs = await apiFetch<any[]>(`/api/chat/subscriptions/${walletAddress}`);
       const daoSub = subs.find((s: any) => s.daoAddress === daoAddress.toLowerCase());
       const subscribed = daoSub?.receiveNotifications || false;
       setIsSubscribed(subscribed);
@@ -59,12 +57,11 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/auth/gmail/connect`, {
+      // Auth required now — the backend derives who this is for from the
+      // caller's own verified token, not from walletAddress in the body.
+      const { url } = await apiFetch<{ url: string }>('/api/auth/gmail/connect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress })
       });
-      const { url } = await response.json();
       if (url) {
         window.location.href = url;
       } else {
@@ -82,10 +79,10 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
     setLoading(true);
     setError(null);
     try {
-      // FIXED: Correct endpoint - removed '/notifications'
-      const response = await fetch(`${BACKEND_URL}/api/chat/subscribe`, {
+      // Requires auth — /api/chat/subscribe always did, but this call never
+      // carried a token, so it always failed. Now via apiFetch.
+      await apiFetch('/api/chat/subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           walletAddress,
           daoAddress: daoAddress.toLowerCase(),
@@ -93,20 +90,14 @@ export const GmailNotificationSettings: React.FC<GmailNotificationSettingsProps>
           email: subscriberEmail?.trim() || undefined,
         }),
       });
-      
-      if (response.ok) {
-        const newStatus = !isSubscribed;
-        setIsSubscribed(newStatus);
-        onSubscriptionChange?.(newStatus);
-        // Show success message (you can replace with your toast notification)
-        console.log(newStatus ? 'Email notifications enabled!' : 'Email notifications disabled');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to update preferences');
-      }
+
+      const newStatus = !isSubscribed;
+      setIsSubscribed(newStatus);
+      onSubscriptionChange?.(newStatus);
+      console.log(newStatus ? 'Email notifications enabled!' : 'Email notifications disabled');
     } catch (error) {
       console.error('Error toggling subscription:', error);
-      setError('Failed to update notification preferences');
+      setError(error instanceof Error ? error.message : 'Failed to update notification preferences');
     } finally {
       setLoading(false);
     }

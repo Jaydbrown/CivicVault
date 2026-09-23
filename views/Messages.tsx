@@ -16,7 +16,6 @@ import {
 } from "../utils/daoChat";
 import { uploadImageToIpfs } from "../utils/ipfs";
 import { formatTxError, notifyError, notifySuccess, notifyWarning } from "../utils/toast";
-import { BACKEND_URL } from "../utils/backendUrl";
 import { apiFetch } from "../utils/apiFetch";
 import { getCanonicalWalletAddress } from "../utils/walletResolution";
 import {
@@ -130,8 +129,8 @@ const GmailNotificationSettings: React.FC<{
 
   const checkSubscription = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/subscriptions/${walletAddress}`);
-      const subs = await response.json();
+      // Auth required now — this must be the caller's own wallet.
+      const subs = await apiFetch<any[]>(`/api/chat/subscriptions/${walletAddress}`);
       const daoSub = subs.find((s: any) => s.daoAddress === daoAddress.toLowerCase());
       setIsSubscribed(daoSub?.receiveNotifications || false);
       onSubscriptionChange?.(daoSub?.receiveNotifications || false);
@@ -143,12 +142,11 @@ const GmailNotificationSettings: React.FC<{
   const connectGmail = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/auth/gmail/connect`, {
+      // Auth required now — the backend derives who this is for from the
+      // caller's own verified token, not from walletAddress in the body.
+      const { url } = await apiFetch<{ url: string }>("/api/auth/gmail/connect", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletAddress })
       });
-      const { url } = await response.json();
       window.location.href = url;
     } catch (error) {
       console.error("Error connecting Gmail:", error);
@@ -161,9 +159,10 @@ const GmailNotificationSettings: React.FC<{
   const toggleSubscription = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/subscribe`, {
+      // Requires auth — /api/chat/subscribe always did, but this call never
+      // carried a token, so it always failed. Now via apiFetch.
+      await apiFetch("/api/chat/subscribe", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           walletAddress,
           daoAddress,
@@ -171,19 +170,14 @@ const GmailNotificationSettings: React.FC<{
           email: subscriberEmail?.trim() || undefined,
         }),
       });
-      
-      if (response.ok) {
-        const newStatus = !isSubscribed;
-        setIsSubscribed(newStatus);
-        onSubscriptionChange?.(newStatus);
-        notifySuccess(newStatus ? "Email notifications enabled for this DAO!" : "Email notifications disabled");
-      } else {
-        const error = await response.json();
-        notifyError(error.error || "Failed to update preferences");
-      }
+
+      const newStatus = !isSubscribed;
+      setIsSubscribed(newStatus);
+      onSubscriptionChange?.(newStatus);
+      notifySuccess(newStatus ? "Email notifications enabled for this DAO!" : "Email notifications disabled");
     } catch (error) {
       console.error("Error toggling subscription:", error);
-      notifyError("Failed to update notification preferences");
+      notifyError(error instanceof Error ? error.message : "Failed to update notification preferences");
     } finally {
       setLoading(false);
     }
@@ -347,6 +341,10 @@ const MessagesView: React.FC = () => {
           daoAddress: message.daoAddress,
           daoName: daoName,
           message: emailPreview,
+          // Cosmetic display label only (already never the raw email — see
+          // getAccountDisplayName). The backend still derives the real
+          // sender identity from the auth token, not from this field.
+          senderName: message.senderLabel,
           timestamp: message.createdAt
         })
       });
@@ -400,8 +398,8 @@ const MessagesView: React.FC = () => {
   const loadSubscriptionStatus = async () => {
     if (!walletAddress) return;
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/subscriptions/${walletAddress}`);
-      const subs = await response.json();
+      // Auth required now — this must be the caller's own wallet.
+      const subs = await apiFetch<any[]>(`/api/chat/subscriptions/${walletAddress}`);
       const statusMap: Record<string, boolean> = {};
       subs.forEach((sub: any) => {
         statusMap[sub.daoAddress] = sub.receiveNotifications;
